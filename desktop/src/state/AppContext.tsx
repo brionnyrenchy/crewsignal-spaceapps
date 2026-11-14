@@ -21,6 +21,7 @@ import {
   type ReadingReportScope,
   type BodySystemId,
   type CheckInDraft,
+  type GettingStartedDestination,
   type MetricId,
   type MetricSchedule,
   type PersonalReference,
@@ -99,6 +100,12 @@ interface AppContextValue {
 
   route: AppRoute;
   navigate: (nextRoute: AppRoute, reportScope?: ReadingReportScope) => void;
+  helpReturnRoute: AppRoute;
+  gettingStarted: boolean;
+  openGettingStarted: () => void;
+  openGettingStartedStep: (destination: GettingStartedDestination) => void;
+  showHelpProcedures: () => void;
+  returnFromHelp: () => void;
   readingReportScope: ReadingReportScope | undefined;
   selectedBodySystem: BodySystemId;
   setSelectedBodySystem: (id: BodySystemId) => void;
@@ -178,6 +185,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [systemTheme, setSystemTheme] = useState<"dark" | "light">(resolveSystemTheme);
   const [route, setRoute] = useState<AppRoute>("overview");
+  const [helpReturnRoute, setHelpReturnRoute] = useState<AppRoute>("overview");
+  const [gettingStarted, setGettingStarted] = useState(false);
   const [readingReportScope, setReadingReportScope] = useState<ReadingReportScope>();
   const [selectedBodySystem, setSelectedBodySystem] =
     useState<BodySystemId>("sleep_cognition");
@@ -523,12 +532,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, [snapshot, activeProfile, currentReferenceNowUtc, refreshSnapshot]);
 
-  const navigate = useCallback((nextRoute: AppRoute, reportScope?: ReadingReportScope) => {
-    setReadingReportScope(nextRoute === "reports" ? reportScope : undefined);
+  const showRoute = useCallback((nextRoute: AppRoute) => {
     setRoute(nextRoute);
     const main = document.getElementById("main-content");
     if (main) main.focus({ preventScroll: true });
   }, []);
+
+  const navigate = useCallback((nextRoute: AppRoute, reportScope?: ReadingReportScope) => {
+    if (nextRoute === "help" && route !== "help" && !gettingStarted) setHelpReturnRoute(route);
+    setGettingStarted(false);
+    setReadingReportScope(nextRoute === "reports" ? reportScope : undefined);
+    showRoute(nextRoute);
+  }, [gettingStarted, route, showRoute]);
+
+  function openGettingStarted() {
+    if (route !== "help" && !gettingStarted) setHelpReturnRoute(route);
+    setGettingStarted(true);
+    showRoute("help");
+  }
+
+  function openGettingStartedStep(destination: GettingStartedDestination) {
+    if (activeProfile?.mode !== "demo") return;
+    if (destination === "trends") setSelectedTrendMetric("sleep");
+    setReadingReportScope(undefined);
+    showRoute(destination);
+  }
+
+  function showHelpProcedures() {
+    setGettingStarted(false);
+    showRoute("help");
+  }
+
+  function returnFromHelp() {
+    setGettingStarted(false);
+    showRoute(helpReturnRoute);
+  }
 
   const setAppearance = useCallback(
     async (appearance: AppPreferences["appearance"]) => {
@@ -786,6 +824,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     diagnosticHooks,
     route,
     navigate,
+    helpReturnRoute,
+    gettingStarted,
+    openGettingStarted,
+    openGettingStartedStep,
+    showHelpProcedures,
+    returnFromHelp,
     readingReportScope,
     selectedBodySystem,
     setSelectedBodySystem,

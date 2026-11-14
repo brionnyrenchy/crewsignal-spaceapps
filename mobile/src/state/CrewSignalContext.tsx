@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AccessibilityInfo, Keyboard } from 'react-native';
+import { AccessibilityInfo, BackHandler, Keyboard } from 'react-native';
 import {
   DEFAULT_UNCONFIGURED_HELP,
   SIM_01_PROFILE_ID,
@@ -31,6 +31,7 @@ import {
   type CsvPossibleDuplicateChoice,
   type CsvReconciliationPreview,
   type DraftRecoveryValidationResult,
+  type GettingStartedDestination,
   type HelpProcedureCard,
   type Insight,
   type MetricId,
@@ -187,6 +188,10 @@ export interface CrewSignalContextValue {
   previousRoute: CrewSignalRoute;
   navigateTo: (route: CrewSignalRoute) => void;
   goBackFromHelp: () => void;
+  gettingStarted: boolean;
+  openGettingStarted: () => void;
+  openGettingStartedStep: (destination: GettingStartedDestination) => void;
+  showHelpProcedures: () => void;
   liveAnnouncement: string | null;
   announce: (message: string) => void;
   clearAnnouncement: () => void;
@@ -363,6 +368,7 @@ export function CrewSignalProvider({
 
   const [activeRoute, setActiveRoute] = useState<CrewSignalRoute>('overview');
   const [previousRoute, setPreviousRoute] = useState<CrewSignalRoute>('overview');
+  const [gettingStarted, setGettingStarted] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isOfflineSimulated, setIsOfflineSimulated] = useState(true);
   const [liveAnnouncement, setLiveAnnouncement] = useState<string | null>(null);
@@ -683,22 +689,47 @@ export function CrewSignalProvider({
 
   const navigateTo = useCallback(
     (route: CrewSignalRoute) => {
-      setActiveRoute((curr) => {
-        if (curr !== route && route === 'help') {
-          setPreviousRoute(curr);
-        }
-        return route;
-      });
-      if (route !== 'checkin') {
+      if (route === 'help' && activeRoute !== 'help' && !gettingStarted) setPreviousRoute(activeRoute);
+      setGettingStarted(false);
+      setActiveRoute(route);
+      if (route !== 'checkin' && route !== 'help') {
         setSkipOutcome(null);
       }
     },
-    [],
+    [activeRoute, gettingStarted],
   );
 
   const goBackFromHelp = useCallback(() => {
+    setGettingStarted(false);
     setActiveRoute(previousRoute === 'help' ? 'overview' : previousRoute);
   }, [previousRoute]);
+
+  const openGettingStarted = useCallback(() => {
+    if (activeRoute !== 'help' && !gettingStarted) setPreviousRoute(activeRoute);
+    setGettingStarted(true);
+    setActiveRoute('help');
+  }, [activeRoute, gettingStarted]);
+
+  function openGettingStartedStep(destination: GettingStartedDestination) {
+    if (activeProfile?.mode !== 'demo') return;
+    if (destination === 'trends') setSelectedTrendsMetric('sleep');
+    setActiveRoute(destination);
+  }
+
+  function showHelpProcedures() {
+    setGettingStarted(false);
+    setActiveRoute('help');
+  }
+
+  useEffect(() => {
+    if (activeRoute !== 'help' && !gettingStarted) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (activeRoute === 'help') goBackFromHelp();
+      else openGettingStarted();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [activeRoute, gettingStarted, goBackFromHelp, openGettingStarted]);
 
   const openOrBuildDraft = useCallback(
     (metricId: MetricId, customDraft?: CheckInDraft): CheckInDraft | null => {
@@ -1800,6 +1831,10 @@ export function CrewSignalProvider({
     previousRoute,
     navigateTo,
     goBackFromHelp,
+    gettingStarted,
+    openGettingStarted,
+    openGettingStartedStep,
+    showHelpProcedures,
     liveAnnouncement,
     announce,
     clearAnnouncement,

@@ -21,7 +21,7 @@ function CrewSignalRouteBody(): React.ReactElement {
   const { activeRoute } = useCrewSignal();
   switch (activeRoute) {
     case 'checkin':
-      return <CheckInScreen />;
+      return <></>;
     case 'explorer':
       return <ExplorerScreen />;
     case 'trends':
@@ -65,10 +65,21 @@ function ThemedCrewSignalApp({
 
 function ThemedShellHost(): React.ReactElement {
   const { palette } = useCrewTheme();
+  const { activeRoute, previousRoute, gettingStarted } = useCrewSignal();
+  const showCheckIn = activeRoute === 'checkin';
+  const keepCheckIn = previousRoute === 'checkin' && (activeRoute === 'help' || gettingStarted);
   return (
     <>
       <StatusBar style={palette.statusBarStyle} />
       <AppShell>
+        {(showCheckIn || keepCheckIn) && (
+          <View
+            style={showCheckIn ? { flex: 1 } : { display: 'none' }}
+            importantForAccessibility={showCheckIn ? 'auto' : 'no-hide-descendants'}
+          >
+            <CheckInScreen />
+          </View>
+        )}
         <CrewSignalRouteBody />
       </AppShell>
     </>

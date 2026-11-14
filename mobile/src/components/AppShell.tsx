@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { ActionButton } from './AppPrimitives';
 import { computeMissionDay, formatUtcTimeHHMM } from '../shared/src';
 import { useCrewSignal, type CrewSignalRoute } from '../state/CrewSignalContext';
 import { useCrewTheme } from '../theme/ThemeProvider';
@@ -170,6 +171,8 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
     activeRoute,
     navigateTo,
     goBackFromHelp,
+    gettingStarted,
+    openGettingStarted,
     activeProfile,
     nowUtc,
     isKeyboardVisible,
@@ -191,6 +194,11 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
       activeRoute === 'settings');
 
   const hideBottomBar = !isTablet && isKeyboardVisible && activeRoute === 'checkin';
+  const walkthroughReturn = gettingStarted && activeRoute !== 'help' ? (
+    <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+      <ActionButton label="Back to Getting started" onPress={openGettingStarted} variant="secondary" />
+    </View>
+  ) : null;
 
   const headerBar = (
     <View
@@ -478,6 +486,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
             {headerBar}
             {syntheticBanner}
             {liveRegion}
+            {walkthroughReturn}
             <View style={styles.contentHost}>{children}</View>
           </View>
         </View>
@@ -493,6 +502,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
       {headerBar}
       {syntheticBanner}
       {liveRegion}
+      {walkthroughReturn}
       <View style={styles.contentHost}>{children}</View>
 
       {!hideBottomBar ? (

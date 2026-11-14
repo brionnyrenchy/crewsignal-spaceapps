@@ -54,6 +54,8 @@ export function OverviewScreen(): React.ReactElement {
     nowUtc,
     startOrResumeCheckIn,
     navigateTo,
+    gettingStarted,
+    openGettingStarted,
     setSelectedActionId,
     setSelectedTrendsMetric,
     reviewInsight,
@@ -216,6 +218,10 @@ export function OverviewScreen(): React.ReactElement {
         title="Overview"
         subtitle={`${activeProfile.missionName} · ${coveredTypes} of 6 indicators logged · ${observations.length} committed ${observations.length === 1 ? 'entry' : 'entries'}`}
       />
+
+      {activeProfile.mode === 'demo' && !gettingStarted && (
+        <ActionButton label="Getting started" variant="secondary" onPress={openGettingStarted} />
+      )}
 
       {/* Primary Check-in Hero */}
       <PanelCard testID="overview-checkin-card">
