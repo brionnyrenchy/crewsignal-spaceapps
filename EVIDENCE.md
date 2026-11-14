@@ -9,6 +9,13 @@ Working changes based on `348e65b`. The audited `373a265` commit was unavailable
 | Source checks | `node shared/scripts/sync-to-targets.mjs --write all`, `node scripts/verify-clean-source.mjs` and `git diff --check` passed. |
 | Harness | Added a shared legacy-sentinel regression and Android coverage for JSON download, share, CSV and print after SQLite restore. `npm --prefix shared test -- interchange-and-vectors` could not start because Vitest was unavailable. Added Windows frontend JSON and print assertions against a seeded legacy observation. Android and Windows harness execution remain pending. |
 | Installed apps | Offline checks on Android phone, Android tablet and Windows remain pending. |
+## Issue #23 Continuous Integration
+
+[GitHub Actions CI](../../actions/workflows/ci.yml) records shared, parity, mobile, desktop, and website job results for every pull request and push to `main`. The desktop job runs locked Rust tests on `windows-latest`.
+
+Local verification on Windows with the workflow's Node `24.18.0` passed all four TypeScript checks, 73 shared tests, 54 mobile tests, 34 desktop frontend tests, 15 website tests, and both frontend builds. The shared test run used LF bytes for the CSV and font license fixtures to match the Linux checkout. `actionlint` accepted the workflow. The clean-source verifier passed with 42 matching shared files per target and exited with status 1 when a temporary unsynced edit was introduced.
+
+The first hosted run passed the shared, parity, desktop (including Rust), and website jobs. The mobile typecheck failed to resolve Node built-in imports in the SQLite review test. The mobile TypeScript configuration now includes Node types.
 
 ## Scheduled check-in prompts
 
@@ -20,6 +27,7 @@ Working changes based on `348e65b`. The audited `373a265` commit was unavailable
 | Installed devices | Pending on offline Android phone, Android tablet and installed Windows. Windows notifications require CrewSignal to be open. The Windows Rust lockfile and native build also remain pending because Cargo was unavailable. |
 
 Device verification should enable notifications explicitly, confirm a due reminder offline with only the metric name, then disable the schedule and confirm no further reminder. Open the prompted check-in and skip it to verify the existing skipped event without creating a reading.
+
 ## Issue #11 Getting Started Verification
 
 On November 14, 2026, the working changes based on `9f3e66c` passed shared and native-app type checks, 34 Windows UI tests, 54 Android harness tests, the Windows frontend build, and the Android JavaScript export (`expo export --platform android --no-bytecode`). Clean-source verification matched 42 shared files across all targets.
