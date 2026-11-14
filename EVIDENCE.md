@@ -43,6 +43,12 @@ Two headless Edge tests verified that a reversed blood-pressure pair can be edit
 
 ## Issue #6 Reading Status Verification
 
+### Issue #31 Overview accessibility follow-up
+
+Windows and website Overview reading cards expose the metric name and recorded value as their accessible name and the badge text as their accessible description. Unlogged cards expose the metric name and the “Not logged” description. The shared reading-status tests passed, including both theme palettes, distinct icons and mood handling. Windows passed TypeScript and 37 frontend tests. The website production build and two focused headless Edge tests passed, covering accessible descriptions, contrast in both themes, forced colours, the Help legend and responsive Overview layout. Clean-source verification matched 42 shared files per target. Installed screen-reader verification remains open.
+
+### Earlier cross-platform verification
+
 On November 14, 2026, the working changes based on `bc13d33` passed TypeScript checks and 128 tests across shared, website, desktop, and Android harness suites on Windows with Node `24.22.1`. The website and desktop frontend builds passed. Clean-source verification confirmed all 39 shared files matched across each of the three targets.
 
 The focused Playwright test ran in headless Microsoft Edge and passed at 390 CSS pixels. It checked all six Overview badges, accessible descriptions for mood and unlogged glucose, axe contrast in both themes, forced colors, and the five-entry Help legend. Badge text contrast ranged from 7.22:1 to 10.67:1. Each status uses a distinct symbol and label. Physical Android and installed desktop assistive technology were outside this verification run.
