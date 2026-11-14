@@ -213,6 +213,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ---
 
+## 1A. Bundled 3D Model (`shared/assets/models/`)
+
+- `crewsignal-body.glb` and its base64 copy `shared/src/bodyModelAsset.ts` are CrewSignal's own work. POP N' SEB built them procedurally with `shared/scripts/build-body-model.mjs`, under the project's Apache License 2.0. They contain no third-party mesh, scan or texture. Provenance, reproduction steps and the region mapping are in `shared/assets/models/MODEL-SOURCE.md`.
+
+---
+
 ## 2. Shared Core Dependencies (`source/shared/`)
 
 Inspected from `shared/package.json` and `shared/package-lock.json`:
@@ -278,7 +284,7 @@ Transitive lockfile license breakdown across all `539` locked entries in `websit
 
 ## 4. Desktop Dependencies (`source/desktop/`)
 
-Inspected from `desktop/package-lock.json` (`168` locked npm packages) and `desktop/src-tauri/Cargo.lock` (`257` locked Windows MSVC Rust crates via `cargo metadata --offline --filter-platform x86_64-pc-windows-msvc`).
+Inspected from `desktop/package-lock.json` (`176` locked npm packages) and `desktop/src-tauri/Cargo.lock` (`257` locked Windows MSVC Rust crates via `cargo metadata --offline --filter-platform x86_64-pc-windows-msvc`).
 
 ### 4.1 Frontend / npm Packages (`source/desktop/package-lock.json`)
 
@@ -290,6 +296,7 @@ Inspected from `desktop/package-lock.json` (`168` locked npm packages) and `desk
 | `lucide-react` | `1.72.0` | ISC | UI icons (runtime) |
 | `react` | `19.3.1` | MIT | UI runtime |
 | `react-dom` | `19.3.1` | MIT | WebView DOM renderer (runtime) |
+| `three` | `0.187.0` | MIT (Copyright © 2010-2026 three.js authors) | WebGL renderer for the Health Explorer 3D navigation model, loaded on demand (runtime) |
 | `zod` | `4.6.7` | MIT | Shared schema validation (runtime) |
 | `@axe-core/playwright` | `4.14.0` | MPL-2.0 | Accessibility tests (dev) |
 | `@playwright/test` | `1.65.0` | Apache-2.0 | Desktop UI E2E suite (dev) |
@@ -297,13 +304,14 @@ Inspected from `desktop/package-lock.json` (`168` locked npm packages) and `desk
 | `@testing-library/jest-dom` | `7.0.1` | MIT | DOM matchers (dev) |
 | `@testing-library/react` | `16.3.3` | MIT | Component tests (dev) |
 | `@types/react` / `@types/react-dom` | `19.3.0` | MIT | TypeScript definitions (dev) |
+| `@types/three` | `0.187.0` | MIT | three.js TypeScript definitions (dev) |
 | `@vitejs/plugin-react` | `6.3.0` | MIT | Vite React plugin (dev) |
 | `jsdom` | `31.0.0` | MIT | DOM test environment (dev) |
 | `typescript` | `7.0.2` | Apache-2.0 | Typechecking (dev) |
 | `vite` | `8.3.8` | MIT | Frontend bundler (dev) |
 | `vitest` | `5.1.0` | MIT | Unit test runner (dev) |
 
-Transitive lockfile license breakdown across all `168` locked entries in `desktop/package-lock.json`: `MIT` (`102`), `Apache-2.0` (`28`), `MPL-2.0` (`14`), `Apache-2.0 OR MIT` (`13`), `ISC` (`3`), `BSD-2-Clause` (`2`), `MIT OR Apache-2.0` (`2`), `BSD-3-Clause` (`2`), `BlueOak-1.0.0` (`1`), `0BSD` (`1`).
+Transitive lockfile license breakdown across all `176` locked entries in `desktop/package-lock.json`: `MIT` (`109`), `Apache-2.0` (`29`), `MPL-2.0` (`14`), `Apache-2.0 OR MIT` (`13`), `ISC` (`3`), `BSD-2-Clause` (`2`), `MIT OR Apache-2.0` (`2`), `BSD-3-Clause` (`2`), `BlueOak-1.0.0` (`1`), `0BSD` (`1`).
 
 ### 4.2 Rust / Cargo Crates (`source/desktop/src-tauri/Cargo.lock`)
 
@@ -334,7 +342,7 @@ Transitive Cargo crate license breakdown across all `257` `x86_64-pc-windows-msv
 
 ## 5. Mobile Dependencies (`source/mobile/`)
 
-Inspected from `mobile/package.json` and `mobile/package-lock.json` (`1,066` locked npm entries total; Expo SDK `58.0.25`):
+Inspected from `mobile/package.json` and `mobile/package-lock.json` (`1,075` locked npm entries total; Expo SDK `58.0.25`):
 
 ### 5.1 JavaScript / Expo / React Native Packages (`source/mobile/package-lock.json`)
 
@@ -346,6 +354,7 @@ Inspected from `mobile/package.json` and `mobile/package-lock.json` (`1,066` loc
 | `expo-constants` | `58.0.16` | MIT | App manifest/constants access (runtime) |
 | `expo-document-picker` | `58.0.5` | MIT | Import CSV, backup, and draft-recovery files (runtime) |
 | `expo-file-system` | `58.0.13` | MIT | Document/SAF local file export writes (runtime) |
+| `expo-gl` | `58.0.4` | MIT | Native OpenGL ES context for the Health Explorer 3D navigation model (runtime) |
 | `expo-font` | `58.0.12` | MIT | Offline Inter & Geist Mono TTF loading (runtime) |
 | `expo-linking` | `58.0.17` | MIT | External source URL verification & opening (runtime) |
 | `expo-print` | `58.0.9` | MIT | Light `#ffffff` A4 monochrome HTML report printing (runtime) |
@@ -356,19 +365,21 @@ Inspected from `mobile/package.json` and `mobile/package-lock.json` (`1,066` loc
 | `react-native` | `0.88.1` | MIT | Native mobile runtime |
 | `react-native-safe-area-context` | `5.11.1` | MIT | Safe-area & notch inset handling (runtime) |
 | `react-native-svg` | `15.16.0` | MIT | Interactive 2D body diagram & trend charts (runtime) |
+| `three` | `0.187.0` | MIT (Copyright © 2010-2026 three.js authors) | 3D navigation model renderer on Expo GL (runtime) |
 | `zod` | `4.6.7` | MIT | Shared schema validation (runtime) |
 | `@testing-library/react-native` | `14.1.0` | MIT | RNTL UI & accessibility tests (dev) |
 | `@types/jest` | `30.0.0` | MIT | Jest TypeScript typings (dev) |
 | `@types/react` | `19.3.0` | MIT | React TypeScript typings (dev) |
+| `@types/three` | `0.187.0` | MIT | three.js TypeScript typings (dev) |
 | `babel-preset-expo` | `58.0.25` | MIT | Expo Babel transform preset (dev) |
 | `jest` | `30.5.2` | MIT | Unit & SQLite transaction test runner (dev) |
 | `jest-expo` | `58.0.14` | MIT | Expo Jest preset (dev) |
 | `test-renderer` | `1.3.1` | MIT | React test renderer (dev) |
 | `typescript` | `6.0.3` | Apache-2.0 | Typechecking (dev) |
 
-Transitive lockfile license breakdown across all `1,066` locked entries in `mobile/package-lock.json`: `MIT` (`877`), `ISC` (`97`), `BSD-3-Clause` (`33`), `BlueOak-1.0.0` (`16`), `BSD-2-Clause` (`12`), `MPL-2.0` (`12`), `Apache-2.0` (`8`), `Unlicense` (`2`), `(MIT OR CC0-1.0)` (`2`), `MIT-0` (`1`), `Python-2.0` (`1`), `CC-BY-4.0` (`1`), `(MIT OR Apache-2.0)` (`1`), `0BSD` (`1`), `CC0-1.0` (`1`), `(BSD-3-Clause OR GPL-2.0)` (`1`).
+Transitive lockfile license breakdown across all `1,075` locked entries in `mobile/package-lock.json`: `MIT` (`885`), `ISC` (`97`), `BSD-3-Clause` (`33`), `BlueOak-1.0.0` (`16`), `BSD-2-Clause` (`12`), `MPL-2.0` (`12`), `Apache-2.0` (`9`), `Unlicense` (`2`), `(MIT OR CC0-1.0)` (`2`), `MIT-0` (`1`), `Python-2.0` (`1`), `CC-BY-4.0` (`1`), `(MIT OR Apache-2.0)` (`1`), `0BSD` (`1`), `CC0-1.0` (`1`), `(BSD-3-Clause OR GPL-2.0)` (`1`).
 
-### 5.2 Native Android / iOS Modules
+### 5.2 Native Android Modules
 
-- Native prebuild (`android/`, `ios/`) and `.apk`/`.ipa` compilation were not executed on this Windows host (no Android SDK / Gradle, `eas` CLI, or macOS Xcode installed).
-- **Action before native APK/IPA distribution:** Generate and include Android Gradle/AAR and iOS CocoaPods third-party license notices alongside packaged `.apk`/`.ipa` artifacts while keeping signing keys, `.keystore`/`.jks`, and `.mobileprovision` files strictly outside the repository.
+- Native Android prebuild and APK compilation were pending on the Windows verification host, which lacked the Android SDK, Gradle, and EAS CLI.
+- Generate Android Gradle/AAR third-party license notices before distributing APKs. Include the notices alongside the APKs and keep signing keys and `.keystore` / `.jks` files outside the repository.

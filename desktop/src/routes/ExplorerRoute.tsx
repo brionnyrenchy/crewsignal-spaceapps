@@ -7,7 +7,7 @@ import {
   getObservedMissionDay,
   METRIC_DEFINITIONS,
 } from "../shared/src";
-import { BodyDiagram } from "../components/BodyDiagram";
+import { BodyExplorerVisual } from "../components/BodyExplorerVisual";
 import { useTabList } from "../components/useTabList";
 import { useApp } from "../state/AppContext";
 
@@ -98,12 +98,12 @@ export function ExplorerRoute() {
           </div>
         </section>
 
-        {/* Center neutral 2D navigation diagram */}
+        {/* Center anatomical navigation: 3D model with SVG diagram fallback */}
         <section className="panel-card" aria-labelledby="body-diagram-heading">
           <h2 id="body-diagram-heading" className="panel-heading" style={{ textAlign: "center" }}>
             Regional map
           </h2>
-          <BodyDiagram selectedId={selectedBodySystem} onSelect={setSelectedBodySystem} />
+          <BodyExplorerVisual selectedId={selectedBodySystem} onSelect={setSelectedBodySystem} />
         </section>
 
         {/* Right synchronized detail card */}

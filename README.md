@@ -22,7 +22,7 @@ This directory is designed to build and run cleanly from a standalone `source/` 
 | `shared/` | Canonical domain contracts, math, timing, references, guidance, CSV/JSON interchange, tokens, bundled fonts, fixtures & vectors | Pure TypeScript (`ES2022`), `zod@4.6.7`, zero browser/Tauri/RN/Node runtime imports in `src/` |
 | `website/` | Responsive public landing page (`/`) and synthetic browser demo (`/demo`) | React, Vite, TypeScript, Recharts, Dexie/IndexedDB, PWA offline cache |
 | `desktop/` | Installable Windows desktop application | Tauri 2, React, Vite, TypeScript, local SQLite, NSIS installer |
-| `mobile/` | Installable iOS and Android application | Expo, React Native, TypeScript, local SQLite |
+| `mobile/` | Installable application for Android phones and tablets | Expo, React Native, TypeScript, local SQLite |
 | `scripts/verify-clean-source.mjs` | Verifies root release files, license, zero `../docs` / `../plan` runtime dependencies, secret/DB hygiene, and `shared/` target parity | Zero-dependency Node ESM |
 | `LICENSE` | Apache License, Version 2.0 | Applies to CrewSignal source code |
 | `CREDITS.md` | Spaceflight/measurement references, design credits, team attribution & AI/tool-assistance disclosure | Includes checked `2026-11-13` citations |
@@ -37,7 +37,7 @@ This directory is designed to build and run cleanly from a standalone `source/` 
 
 - **Shared core & Website:** Node.js `>= 22` and npm (verified on Node `v24.18.0` / npm `11.16.0`).
 - **Windows Desktop (`desktop/`):** Rust MSVC toolchain (verified `rustc 1.96.0` / `cargo 1.96.0`), Visual Studio 2022 Build Tools MSVC (`14.44.35207`), Windows SDK (`10.0.26100.0`), and Microsoft Edge WebView2 Runtime (host `157.0.4341.46`; offline WebView2 installer option documented in `desktop/README.md`).
-- **Mobile (`mobile/`):** Node.js (`v24.18.0` / `npm 11.16.0` verified for Jest + `node:sqlite` + `expo export`), JDK (`26.0.1`), plus Android SDK (`ANDROID_HOME`, `adb` / `gradle`) for Android `.apk` builds or macOS Xcode / EAS CLI for signed iOS builds (see `mobile/README.md`).
+- **Mobile (`mobile/`):** Node.js (`v24.18.0` / `npm 11.16.0` verified for Jest + `node:sqlite` + `expo export`), JDK (`26.0.1`), plus Android SDK (`ANDROID_HOME`, `adb` / `gradle`) for Android `.apk` builds (see `mobile/README.md`).
 
 ### 1. Canonical Shared Core (`shared/`)
 
@@ -88,17 +88,17 @@ npx tauri build
 - Built binary `desktop/src-tauri/target/release/crewsignal-desktop.exe` (`13,736,960` bytes, `NotSigned`).
 - Per-user NSIS installer `desktop/src-tauri/target/release/bundle/nsis/CrewSignal_0.1.0_x64-setup.exe` (`4,729,901` bytes, `NotSigned`). See [EVIDENCE.md §6.10](./EVIDENCE.md#610-pr-1-backup-and-restore-lifecycle-one-app-level-operation-owner-review-of-a66df87) for the tested revision and full SHA-256 hashes.
 
-### 4. Mobile — iOS & Android (`mobile/`)
+### 4. Mobile — Android Phones & Tablets (`mobile/`)
 
 ```bash
 cd mobile
 npm ci
 npm run typecheck
 npm test          # Jest + node:sqlite transaction, vector, & RNTL UI suites (5 suites, 45 passed)
-npm run export    # npx expo export --platform ios --platform android --output-dir dist
+npm run export    # npx expo export --platform android --output-dir dist
 ```
 
-- See [`mobile/README.md`](./mobile/README.md) and [`mobile/eas.json`](./mobile/eas.json) for Expo SDK `58.0.25`, React Native `0.88.1`, `expo-sqlite@58.0.17`, and native prebuild / EAS `.apk` / iOS build instructions (`ANDROID_HOME`, EAS CLI, and macOS Xcode are not present on this Windows build host, so native `.apk`/`.ipa` compilation and physical VoiceOver/TalkBack runs remain pending a native SDK/macOS build host).
+- See the [mobile build guide](./mobile/README.md) for native Android builds and EAS APK profiles. Native APK compilation and TalkBack checks on Android phones and tablets remain pending.
 
 ### 5. Clean-Source Hygiene & Parity Check
 
@@ -134,4 +134,4 @@ See [`EVIDENCE.md`](./EVIDENCE.md) for the complete verification report, accepta
 | Shared Core | `shared/` | Verified (`@verifier` `#32`) | `npm run typecheck` (exit `0`), `npm test` (`4` files, `28` tests passed), `37/37` target parity | `main` |
 | Website & Browser Demo | `website/` | Verified (`@verifier` `#32`) | Clean-checkout `npm run build` (`21` precache entries, `3143.84 KiB`), `npm test` (`8` passed), `npx playwright test` (`6` passed), live Playwright/axe/SW/viewport audit (`0` violations) | `main` |
 | Windows Desktop | `desktop/` | Verified (`@verifier` `#29`, `#32`) | Clean-checkout `cargo test` (`11` passed), `npm run typecheck`, `npm test` (`7` passed), `npm run test:e2e` (`4` passed), live Playwright/axe/forced-colors audit (`0` violations), rebuilt `CrewSignal_0.1.0_x64-setup.exe` (`NotSigned`) | `main` |
-| Android & iOS Mobile | `mobile/` | JS/Hermes verified (`@verifier` `#26`, `#32`); native SDKs absent on host | Isolated clean-checkout `npm run typecheck`, bare `npm test` (`3` suites / `18` passed, `38.037 s`), `npx expo export` (iOS `929` / Android `937` modules `.hbc`); `.apk`/`.ipa` & device screen-reader checks require native SDK / macOS Xcode host | `main` |
+| Android Mobile | `mobile/` | JS/Hermes verified (`@verifier` `#26`, `#32`); native SDKs absent on host | Isolated clean-checkout `npm run typecheck`, bare `npm test` (`3` suites / `18` passed, `38.037 s`), `npx expo export` (Android `937` modules, `.hbc`); APK compilation and device screen-reader checks remain pending | `main` |

@@ -1,6 +1,6 @@
 # CrewSignal Mobile (`source/mobile`)
 
-Packaged offline-first iOS and Android client for **CrewSignal** (NASA Space Apps 2026 · Team POP N' SEB), built with **Expo SDK 58**, **React Native**, **TypeScript**, and **`expo-sqlite`**.
+Packaged offline-first **CrewSignal** client for Android phones and tablets (NASA Space Apps 2026 · Team POP N' SEB), built with **Expo SDK 58**, **React Native**, **TypeScript**, and **`expo-sqlite`**.
 
 > **Safety & scope notice**: CrewSignal is a personal physiological wellness logbook and synthetic scenario prototype (`SIM-01`). It does not diagnose, treat, cure, or prevent any medical condition.
 
@@ -24,6 +24,7 @@ Versions pinned in [package.json](package.json) (Expo SDK `58.0.25` was pinned i
 | Offline fonts | `expo-font` | `~58.0.12` | Loads bundled `Inter` and `GeistMono` TTF files offline |
 | Links & clipboard | `expo-linking` / `expo-clipboard` | `~58.0.17` / `~58.0.4` | External source link verification (`canOpenURL`) and URL copy |
 | Vector graphics | `react-native-svg` | `15.16.0` | Interactive 2D body diagram (`BodyDiagramSvg`) and trend charts |
+| 3D model | `expo-gl` / `three` | `~58.0.4` / `0.187.0` | Opt-in Explorer 3D navigation model (`components/bodyModel/`); the diagram stays the default until device verification |
 | Safe areas | `react-native-safe-area-context` | `~5.11.1` | Top/bottom notches, bottom tabs, and sticky keyboard dock |
 | Test harness | `jest`, `jest-expo`, `@testing-library/react-native` | `^30.0.0`, `~58.0.14`, `14.1.0` | Unit, SQLite transaction (`node:sqlite`), vector, and RNTL UI tests |
 
@@ -41,7 +42,7 @@ Loaded locally via `src/platform/fonts.ts` (`loadBundledFonts`) with zero CDN/ne
 
 ### Transactional SQLite Persistence (`src/storage/`)
 - **`schema.ts` (`CREWSIGNAL_DB_SCHEMA_VERSION = 1`)**: WAL journal mode, foreign keys enforced, `PRIMARY KEY (profile_id, ...)` scoping across `profiles`, `observations`, `check_in_drafts`, `check_in_events`, `personal_references`, `insight_reviews`, and `import_batches`, plus `idx_observations_profile_draft` idempotence unique index on `(profile_id, source_draft_id)`.
-- **`driver.ts` / `expoDriver.ts` / `nodeDriver.ts`**: Shared `SqliteDriver` interface implemented by `ExpoSqliteDriver` (`withExclusiveTransactionAsync` on iOS/Android) and `NodeSqliteDriver` (`node:sqlite` `DatabaseSync` in Jest), ensuring tests run directly against the real SQL/transaction queries in `sqliteStore.ts`.
+- **`driver.ts` / `expoDriver.ts` / `nodeDriver.ts`**: Shared `SqliteDriver` interface implemented by `ExpoSqliteDriver` (`withExclusiveTransactionAsync` on Android) and `NodeSqliteDriver` (`node:sqlite` `DatabaseSync` in Jest), ensuring tests run directly against the real SQL/transaction queries in `sqliteStore.ts`.
 - **Atomic operations**: Observation commit + draft closure + workflow event in one transaction, lost-acknowledgement idempotence recovery, failed commit rollback preserving draft state, 5-row CSV staged reconciliation with whole-pair Blood Pressure correction history, full profile backup export/restore (`separate_profile` default + guarded `replace_existing`; one app-level operation owner in `CrewSignalProvider` refuses any second backup, Replace, demo reset or Personal deletion until the first finishes, even after the dialog closes or Reports is left; the safety backup goes to a native-picked folder and repeat saves get a `name (2).json` filename), uncommitted `DraftRecoveryBundle` export/resume, scoped `SIM-01` demo reset, and blank pseudonymous Personal profiles.
 
 ### Native UI, Themes & Accessibility (`src/`)
@@ -51,7 +52,7 @@ Loaded locally via `src/platform/fonts.ts` (`loadBundledFonts`) with zero CDN/ne
   - **Tablet (`>= 600` dp width)**: Persistent labelled navigation rail (`>= 88` dp min width, intrinsic labels without clipping), 3×2 reading cards, and split-friendly views.
 - **Core Workflows & Recovery**:
   - **Check-in (`CheckInScreen.tsx`)**: `Record -> Review -> Saved` across all 6 metrics (Heart Rate, Blood Pressure paired entry, Blood Glucose with unit-change Cancel/Convert/Clear modal, Body Temperature, Sleep duration / window + `"Reported no sleep"` `0h 0m`, and Mood ordinal 1–5 + custom prompt), measurement procedure Help modal, `Skip` / `Unavailable` workflow logging without fake observations, and `ER-01`–`ER-04` error recovery.
-  - **Explorer & Trends**: Interactive `react-native-svg` 2D body diagram (`BodyDiagramSvg.tsx`) synchronized with an accessible system list (`Musculoskeletal` unassessed, `Immune context` context-only), plus 7/30-day SVG trend plots (`SleepChartSvg.tsx`) and data-table toggle.
+  - **Explorer & Trends**: Interactive `react-native-svg` 2D body diagram (`BodyDiagramSvg.tsx`), plus an opt-in "3D model (preview)" (`BodyExplorerVisual.tsx` → `bodyModel/BodyModelGL.tsx`, Expo GL + three.js, same shared GLB and mapping as Windows), synchronized with an accessible system list (`Musculoskeletal` unassessed, `Immune context` context-only), plus 7/30-day SVG trend plots (`SleepChartSvg.tsx`) and data-table toggle.
   - **Actions, Sources & Reports**: Offline cached summaries, safe external `Linking` verification + clipboard fallback, `ReportsScreen.tsx` live observation counts, distinct native file save (`File saved`), share sheet (`Share sheet opened`), and light `#ffffff` A4 print (`expo-print`).
   - **Accessibility**: `>= 48 × 48` dp touch targets, `accessibilityRole`, `accessibilityLabel`, `accessibilityState`, polite `accessibilityLiveRegion` status announcements, font scaling, and `AccessibilityInfo.isReduceMotionEnabled` support.
 
@@ -74,13 +75,12 @@ npm run typecheck
 # Run SQLite transaction, canonical-vector, and RNTL mobile UI suites
 npm test
 
-# Export production iOS & Android Hermes JS bundles + font assets to ./dist
+# Export production Android Hermes JS bundle + font assets to ./dist
 npm run export
 
-# Local native Android / iOS builds (requires native SDK prerequisites below)
+# Local native Android builds (requires native SDK prerequisites below)
 npm run prebuild:android
 npm run android
-npm run ios
 ```
 
 Verify shared-bundle parity from the `source/` workspace root:
@@ -89,13 +89,13 @@ Verify shared-bundle parity from the `source/` workspace root:
 node shared/scripts/sync-to-targets.mjs --check mobile
 ```
 
-EAS build profiles (`development`, `preview`, `production`) are defined in [eas.json](eas.json) with Android `buildType: "apk"` and iOS `simulator` / `internal` configurations; [app.json](app.json) defines `crewsignal`, bundle ID `org.spaceapps.popnseb.crewsignal`, `supportsTablet: true`, and `userInterfaceStyle: "automatic"`.
+[eas.json](eas.json) defines Android APK build profiles for `development`, `preview`, and `production`. [app.json](app.json) defines the `crewsignal` scheme, Android package `org.spaceapps.popnseb.crewsignal`, and `userInterfaceStyle: "automatic"`.
 
 ---
 
 ## Native Build Prerequisites & Environment Status
 
 The following toolchain status was observed during verification on the Windows 11 host:
-- **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1` (`tsc --noEmit`, Jest suites, and `npx expo export --platform ios --platform android` all ran cleanly).
-- **Not installed on this Windows host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent), `eas` CLI, and macOS Xcode / CocoaPods (required for iOS native compilation).
-- Generating installable `.apk` / `.ipa` binaries or testing physical devices (VoiceOver / TalkBack / native print preview) requires an Android SDK environment (`npm run android` or `eas build --profile preview --platform android`) and macOS Xcode (or `eas build --profile preview --platform ios`).
+- **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1`, TypeScript, Jest, and Android Hermes export.
+- **Unavailable on the verification host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent) and EAS CLI.
+- Build and run locally with `npm run android` in an Android SDK environment. To generate a preview APK with EAS, run `eas build --profile preview --platform android`. Install the APK on Android phones and tablets to test TalkBack and native print preview.

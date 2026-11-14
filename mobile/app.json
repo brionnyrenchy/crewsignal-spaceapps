@@ -6,18 +6,12 @@
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "scheme": "crewsignal",
+    "platforms": ["android"],
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#08090a"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "org.spaceapps.popnseb.crewsignal",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
     },
     "android": {
       "package": "org.spaceapps.popnseb.crewsignal",

@@ -19,7 +19,9 @@ function findCachedChromium(): string | undefined {
   return undefined;
 }
 
-const executablePath = findCachedChromium();
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || findCachedChromium();
+// Deterministic software WebGL2 so the 3D Explorer model renders headless.
+const webglArgs = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"];
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -28,7 +30,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:1420",
     trace: "retain-on-failure",
-    launchOptions: executablePath ? { executablePath } : undefined,
+    launchOptions: executablePath ? { executablePath, args: webglArgs } : { args: webglArgs },
   },
   webServer: {
     command: "npm run dev -- --host 127.0.0.1 --port 1420",
