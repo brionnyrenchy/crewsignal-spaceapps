@@ -20,6 +20,8 @@ import {
   resolveUnknownCommitOutcome,
   SIM_01_OPTIONAL_BP_DRAFT,
   SLEEP_TYPE_LABELS,
+  ENTRY_CONFIRMED_NOTE,
+  ENTRY_WARNING_HELP,
   validateDraftForReview,
   type CheckInDraft,
   type MetricId,
@@ -266,7 +268,7 @@ export function CheckInRoute() {
     }
   };
 
-  const handleCommitToLog = async () => {
+  const handleCommitToLog = async (confirmedUnusualValue: boolean) => {
     if (!activeDraft) return;
     setCommitErrorKind("none");
     setCommitErrorMsg(null);
@@ -290,6 +292,7 @@ export function CheckInRoute() {
         existingObservations: snapshot.profileData.observations,
         observationId: stableObsId,
         committedAtUtc,
+        confirmedUnusualValue,
       });
 
       if (!plan.ok || !plan.observation) {
@@ -475,6 +478,9 @@ export function CheckInRoute() {
             {savedReceipt.observation.quality === "questionable" ? (
               <div className="dl-row"><dt>Quality</dt><dd>{NEEDS_RECHECK_LABEL}</dd></div>
             ) : null}
+            {savedReceipt.observation.qualityNote === ENTRY_CONFIRMED_NOTE && (
+              <div className="dl-row"><dt>Confirmation</dt><dd>{ENTRY_CONFIRMED_NOTE}</dd></div>
+            )}
           </dl>
 
           <div className="row-wrap">
@@ -1446,6 +1452,14 @@ export function CheckInRoute() {
             ) : null}
           </dl>
 
+          {reviewPreview.warning && (
+            <div id="entry-warning" className="notice-banner notice-banner-review" role="status">
+              <div>
+                <strong>Confirm unusual value</strong>
+                <p>{reviewPreview.warning} {ENTRY_WARNING_HELP}</p>
+              </div>
+            </div>
+          )}
           <div className="field-group">
             <label className="row-wrap">
               <input
@@ -1489,9 +1503,10 @@ export function CheckInRoute() {
               type="button"
               className="btn-primary"
               disabled={busy || retainingReview || commitErrorKind === "unknown_outcome" || commitErrorKind === "unconfirmed"}
-              onClick={() => void handleCommitToLog()}
+              aria-describedby={reviewPreview.warning ? "entry-warning" : undefined}
+              onClick={() => void handleCommitToLog(Boolean(reviewPreview.warning))}
             >
-              {busy ? "Adding…" : "Add to log"}
+              {busy ? "Adding…" : reviewPreview.warning ? "Confirm and add to log" : "Add to log"}
             </button>
           </div>
         </section>

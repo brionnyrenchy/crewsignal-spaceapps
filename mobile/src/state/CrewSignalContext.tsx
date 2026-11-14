@@ -224,7 +224,7 @@ export interface CrewSignalContextValue {
   cancelUnitChange: () => void;
   backToRecordStage: () => Promise<void>;
   proceedToReviewStage: () => Promise<{ valid: boolean; firstInvalidField: string | null }>;
-  commitCurrentDraft: (simulateMode?: CommitFailureSimulationMode) => Promise<void>;
+  commitCurrentDraft: (simulateMode?: CommitFailureSimulationMode, confirmedUnusualValue?: boolean) => Promise<void>;
   checkCurrentDraftCommitStatus: (simulateReadFailure?: boolean) => Promise<void>;
   discardCurrentDraft: () => Promise<void>;
   markCurrentUnavailable: (params: {
@@ -264,6 +264,7 @@ export interface CrewSignalContextValue {
     conflictChoices: Record<string, CsvConflictChoice>;
     possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
     acknowledgedExclusions: boolean;
+    confirmedUnusualValues?: boolean;
     batchId: string;
   }) => Promise<ImportBatchCommitResult>;
   /**
@@ -910,7 +911,7 @@ export function CrewSignalProvider({
   }, [activeDraft, announce, nowUtc, persistDraft]);
 
   const commitCurrentDraft = useCallback(
-    async (simulateMode: CommitFailureSimulationMode = 'none') => {
+    async (simulateMode: CommitFailureSimulationMode = 'none', confirmedUnusualValue?: boolean) => {
       if (!activeDraft) return;
       setCommitState({
         phase: 'submitting',
@@ -925,6 +926,7 @@ export function CrewSignalProvider({
           draft: activeDraft,
           committedAtUtc: nowUtc(),
           simulateFailureMode: simulateMode,
+          confirmedUnusualValue,
         });
 
         if (res.outcome === 'validation_error') {
@@ -1268,6 +1270,7 @@ export function CrewSignalProvider({
       conflictChoices: Record<string, CsvConflictChoice>;
       possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
       acknowledgedExclusions: boolean;
+      confirmedUnusualValues?: boolean;
       batchId: string;
     }) => {
       if (!activeProfile) {
@@ -1286,6 +1289,7 @@ export function CrewSignalProvider({
         conflictChoices: params.conflictChoices,
         possibleDuplicateChoices: params.possibleDuplicateChoices,
         acknowledgedExclusions: params.acknowledgedExclusions,
+        confirmedUnusualValues: params.confirmedUnusualValues,
         nowUtc: nowUtc(),
         batchId: params.batchId,
       });

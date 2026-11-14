@@ -212,20 +212,35 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
     expect(parsed.includedMetricIds).not.toContain('mood');
   });
 
-  test('3. Measurement forms, unit conversion modal (Cancel/Escape/Confirm), ER-03 validation focus, and Theme switching preserves state', async ({
+  test('unusual blood pressure saves the entered pair after confirmation', async ({ page }) => {
+    await page.goto('/demo/check-in');
+    await page.getByLabel('Systolic (mmHg)').fill('80');
+    await page.getByLabel('Diastolic (mmHg)').fill('120');
+    await page.getByLabel('Observed time (UTC HH:MM)').fill('07:18');
+    await page.getByRole('button', { name: 'Next: Review' }).click();
+    await expect(page.getByText(/Systolic is equal to or below diastolic/)).toBeVisible();
+    await page.getByRole('button', { name: 'Confirm and add to log' }).click();
+    await expect(page.getByRole('heading', { name: 'Added to your log' })).toBeVisible();
+    await expect(page.getByText('80/120 mmHg', { exact: true })).toBeVisible();
+    await expect(page.getByText('Unusual value confirmed as entered.')).toBeVisible();
+  });
+
+  test('3. Measurement forms, unusual-value review, unit conversion modal, and theme switching preserve inputs', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/demo/check-in');
 
-    // ER-03: invalid BP pair keeps 07:18 and focuses systolic input cleanly
+    // Reversed BP reaches review with a warning and can be edited without losing inputs.
     await page.getByLabel('Systolic (mmHg)').fill('80');
     await page.getByLabel('Diastolic (mmHg)').fill('120');
     await page.getByLabel('Observed time (UTC HH:MM)').fill('07:18');
     await page.getByRole('button', { name: 'Next: Review' }).click();
     await expect(
-      page.getByRole('alert').getByText(/higher than diastolic/i),
+      page.getByText(/Systolic is equal to or below diastolic/i),
     ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Confirm and add to log' })).toBeVisible();
+    await page.getByRole('button', { name: 'Edit details' }).click();
     await expect(page.getByLabel('Observed time (UTC HH:MM)')).toHaveValue('07:18');
     await expect(page.getByLabel('Diastolic (mmHg)')).toHaveValue('120');
 

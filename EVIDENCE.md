@@ -1,5 +1,11 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Issue #9 Unusual Entry Verification
+
+On November 14, 2026, the working changes based on `996afdf` passed TypeScript checks across the shared, website, desktop, and Android projects. The 72 shared tests covered unusual entries, both temperature and glucose units, per-row CSV warnings, confirmation before commit, and preservation of the entered values and the Needs recheck flag. The website and desktop frontend builds, 15 website harness tests, and 33 desktop harness tests passed.
+
+Two headless Edge tests verified that a reversed blood-pressure pair can be edited from Review or saved unchanged with a confirmation marker. All 52 Android harness tests passed, and the Android JavaScript bundle exported with `--no-bytecode`. Installed-device verification was outside this run.
+
 ## Issue #6 Reading Status Verification
 
 On November 14, 2026, the working changes based on `bc13d33` passed TypeScript checks and 128 tests across shared, website, desktop, and Android harness suites on Windows with Node `24.22.1`. The website and desktop frontend builds passed. Clean-source verification confirmed all 39 shared files matched across each of the three targets.
