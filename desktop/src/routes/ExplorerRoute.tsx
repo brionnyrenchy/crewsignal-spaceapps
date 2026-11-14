@@ -1,13 +1,17 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import { useState } from "react";
 import {
   BODY_SYSTEM_DEFINITIONS,
   compareObservationToReference,
+  evaluateMetricSchedule,
   formatObservationDisplay,
   getLatestObservationsByMetric,
   getObservedMissionDay,
+  getReadingStatus,
   METRIC_DEFINITIONS,
 } from "../shared/src";
 import { BodyExplorerVisual } from "../components/BodyExplorerVisual";
+import { ReadingStatusBadge } from "../components/ReadingStatusBadge";
 import { useTabList } from "../components/useTabList";
 import { useApp } from "../state/AppContext";
 
@@ -19,6 +23,7 @@ export function ExplorerRoute() {
     selectedBodySystem,
     setSelectedBodySystem,
     activeReferencesByMetric,
+    currentReferenceNowUtc,
     navigate,
     setSelectedTrendMetric,
     openDraftForMetric,
@@ -153,6 +158,12 @@ export function ExplorerRoute() {
                     const obs = latestByMetric[metricId];
                     const ref = activeReferencesByMetric[metricId];
                     const cmp = obs ? compareObservationToReference(obs, ref) : null;
+                    const status = getReadingStatus(obs, cmp, evaluateMetricSchedule({
+                      metricId,
+                      latestObservation: obs,
+                      schedule: activeProfile.schedules[metricId],
+                      referenceNowUtc: currentReferenceNowUtc,
+                    }));
                     const display = obs
                       ? formatObservationDisplay(obs, preferences.displayUnits)
                       : null;
@@ -174,10 +185,9 @@ export function ExplorerRoute() {
                             <div className="reading-value tabular-value" style={{ fontSize: 22 }}>
                               {display.primaryText}
                             </div>
-                          ) : (
-                            <span className="badge-neutral">Not recorded</span>
-                          )}
+                          ) : null}
                         </div>
+                        <ReadingStatusBadge status={status} />
 
                         {obs ? (
                           <div style={{ fontSize: 13, color: "var(--text-body)" }}>
@@ -196,6 +206,7 @@ export function ExplorerRoute() {
                           </div>
                         )}
 
+                        <MeasurementEducation definition={def} />
                         <div className="row-wrap">
                           <button
                             type="button"

@@ -12,11 +12,11 @@ import {
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
   getObservedMissionDay,
+  getReadingStatus,
   isInsightReviewCurrent,
   resolveActiveReference,
-  type MetricId,
+  READING_STATUSES,
   type Observation,
-  type PersonalReference,
 } from '../shared/src';
 import {
   ActionButton,
@@ -27,39 +27,10 @@ import {
   StatusBadge,
 } from '../components/AppPrimitives';
 import { SleepChartSvg, type TrendPlotPoint } from '../components/SleepChartSvg';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import { useCrewSignal } from '../state/CrewSignalContext';
 import { useCrewTheme } from '../theme/ThemeProvider';
 import { MIN_NATIVE_TARGET_DP } from '../theme/tokens';
-
-function comparisonSummaryText(params: {
-  profileId: string;
-  metricId: MetricId;
-  observation: Observation | null;
-  references: readonly PersonalReference[];
-  observations: readonly Observation[];
-  nowUtc: string;
-}): string {
-  const { profileId, metricId, observation, references, observations, nowUtc } = params;
-  if (!observation) return 'No entry yet';
-
-  const resolvedRef = resolveActiveReference({
-    profileId,
-    metricId,
-    references,
-    observations,
-    nowUtc,
-  });
-
-  const comparison = compareObservationToReference(observation, resolvedRef);
-
-  if (comparison.comparisonAvailable && comparison.differenceText) {
-    return comparison.differenceText;
-  }
-  if (!comparison.comparisonAvailable && comparison.unavailableReason) {
-    return comparison.unavailableReason;
-  }
-  return 'No personal reference yet';
-}
 
 export function OverviewScreen(): React.ReactElement {
   const {
@@ -95,7 +66,7 @@ export function OverviewScreen(): React.ReactElement {
   );
   const coveredTypes = useMemo(() => countCoveredMetricTypes(observations), [observations]);
 
-  const dueSchedules = useMemo(() => {
+  const schedules = useMemo(() => {
     if (!activeProfile) return [];
     return METRIC_ORDER.map((metricId) => ({
       metricId,
@@ -105,11 +76,11 @@ export function OverviewScreen(): React.ReactElement {
         schedule: activeProfile.schedules[metricId] ?? null,
         referenceNowUtc: currentUtc,
       }),
-    })).filter(
-      (item) =>
-        item.result.status === 'due_no_entries' || item.result.status === 'past_interval',
-    );
+    }));
   }, [activeProfile, currentUtc, latestByMetric]);
+  const dueSchedules = schedules.filter(({ result }) =>
+    result.status === 'due_no_entries' || result.status === 'past_interval',
+  );
 
   const sleepRef = useMemo(() => {
     if (!activeProfile) return null;
@@ -376,7 +347,7 @@ export function OverviewScreen(): React.ReactElement {
       <View style={{ gap: 8 }}>
         <EyebrowLabel>Latest readings</EyebrowLabel>
         <View style={styles.readingsGrid}>
-          {METRIC_ORDER.map((metricId) => {
+          {schedules.map(({ metricId, result }) => {
             const def = METRIC_DEFINITIONS[metricId];
             const obs = latestByMetric[metricId] ?? null;
             const formatted = obs
@@ -388,14 +359,16 @@ export function OverviewScreen(): React.ReactElement {
                 ? formatUtcTimeHHMM(obs.timing.observedAtUtc)
                 : formatUtcTimeHHMM(obs.timing.reportedAtUtc)
               : null;
-            const compText = comparisonSummaryText({
+            const reference = resolveActiveReference({
               profileId: activeProfile.profileId,
               metricId,
-              observation: obs,
               references,
               observations,
               nowUtc: currentUtc,
             });
+            const comparison = obs ? compareObservationToReference(obs, reference) : null;
+            const status = getReadingStatus(obs, comparison, result);
+            const compText = comparison?.differenceText ?? comparison?.unavailableReason;
 
             return (
               <Pressable
@@ -403,7 +376,8 @@ export function OverviewScreen(): React.ReactElement {
                 testID={`reading-card-${metricId}`}
                 onPress={() => startOrResumeCheckIn(metricId)}
                 accessibilityRole="button"
-                accessibilityLabel={`${def.name}: ${formatted ? formatted.primaryText : 'Not entered'}. ${compText}. Tap to log or update.`}
+                accessibilityLabel={`${def.name}. ${formatted ? `${formatted.primaryText}. ` : ''}${READING_STATUSES[status].label}.`}
+                accessibilityHint="Opens check-in to log or update this reading"
                 style={({ pressed }) => [
                   {
                     width: colWidthPct,
@@ -456,16 +430,17 @@ export function OverviewScreen(): React.ReactElement {
                   {formatted ? formatted.primaryText : 'Not entered'}
                 </Text>
 
-                <Text
-                  style={{
+                <ReadingStatusBadge status={status} />
+                {compText && (
+                  <Text style={{
                     fontFamily: fontSansRegular,
                     fontSize: 12,
                     lineHeight: 17,
                     color: palette.textSupporting,
-                  }}
-                >
-                  {compText}
-                </Text>
+                  }}>
+                    {compText}
+                  </Text>
+                )}
               </Pressable>
             );
           })}

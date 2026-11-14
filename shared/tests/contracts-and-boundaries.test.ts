@@ -4,6 +4,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   BackupBundleSchema,
+  EVIDENCE_REGISTRY,
+  METRIC_DEFINITIONS,
+  MEASUREMENT_EDUCATION_SECTIONS,
+  MetricDefinitionSchema,
   CANONICAL_ACCEPTANCE_VECTORS,
   DraftRecoveryBundleSchema,
   EXAMPLE_BACKUP_BUNDLE,
@@ -79,6 +83,18 @@ describe('source/shared runtime boundary & asset integrity', () => {
       DraftRecoveryBundleSchema.parse(EXAMPLE_DRAFT_RECOVERY_BUNDLE),
     ).toBeTruthy();
     expect(MF_FIXTURES).toHaveLength(5);
+  });
+
+  it('links all three explanations for each metric to its registered evidence', () => {
+    const fixture = JSON.parse(fs.readFileSync(path.join(SHARED_ROOT, 'fixtures/evidence-and-help.json'), 'utf8'));
+    for (const metric of Object.values(METRIC_DEFINITIONS)) {
+      expect(MetricDefinitionSchema.parse(metric)).toEqual(fixture.metricDefinitions[metric.id]);
+      for (const { field } of MEASUREMENT_EDUCATION_SECTIONS) {
+        const { sourceId } = metric[field];
+        expect(metric.evidenceIds).toContain(sourceId);
+        expect(EVIDENCE_REGISTRY[sourceId]?.url).toMatch(/^https:\/\//);
+      }
+    }
   });
 
   it('maintains parity between TypeScript exports and generated JSON/CSV fixture & token files', () => {

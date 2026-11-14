@@ -94,7 +94,7 @@ export interface AppStateContextValue {
   saveDraft: (draft: CheckInDraft) => Promise<CheckInDraft>;
   discardDraft: (draftId: string) => Promise<void>;
   discardAllProfileDrafts: (profileId: string) => Promise<void>;
-  commitDraft: (draft: CheckInDraft) => Promise<CommitDraftOutcome>;
+  commitDraft: (draft: CheckInDraft, confirmedUnusualValue?: boolean) => Promise<CommitDraftOutcome>;
   verifyDraftCommit: (draftId: string, profileId: string) => ReturnType<typeof repository.verifyDraftCommitStatus>;
   recordWorkflowEvent: (params: Parameters<typeof repository.recordWorkflowEventAtomically>[0]) => Promise<CheckInEvent>;
   commitCsvBatch: (params: {
@@ -103,6 +103,7 @@ export interface AppStateContextValue {
     conflictChoices: Record<string, CsvConflictChoice>;
     possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
     acknowledgedExclusions: boolean;
+    confirmedUnusualValues?: boolean;
   }) => ReturnType<typeof repository.commitCsvBatchAtomically>;
   restoreBackup: (params: {
     rawInput: unknown;
@@ -470,8 +471,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 
   const commitDraft = useCallback(
-    async (draft: CheckInDraft) => {
-      const outcome = await repository.commitDraftAtomically(draft);
+    async (draft: CheckInDraft, confirmedUnusualValue?: boolean) => {
+      const outcome = await repository.commitDraftAtomically(draft, undefined, confirmedUnusualValue);
       await reloadSnapshot();
       announce(`${outcome.receiptTitle}. ${outcome.receiptSubtitle}`);
       return outcome;
@@ -509,6 +510,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       conflictChoices: Record<string, CsvConflictChoice>;
       possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
       acknowledgedExclusions: boolean;
+      confirmedUnusualValues?: boolean;
     }) => {
       const result = await repository.commitCsvBatchAtomically(params);
       await reloadSnapshot();

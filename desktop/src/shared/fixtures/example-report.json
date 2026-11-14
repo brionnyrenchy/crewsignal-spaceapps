@@ -531,11 +531,46 @@
       "url": "https://www.nasa.gov/reference/standard-measures/"
     },
     {
+      "sourceId": "nlm-pulse",
+      "title": "Pulse",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://medlineplus.gov/ency/article/003399.htm"
+    },
+    {
+      "sourceId": "nasa-standing-risk",
+      "title": "Orthostatic Intolerance Technical Brief",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/03/orthostatic-intolerance-technical-brief-ochmo.pdf"
+    },
+    {
+      "sourceId": "aha-blood-pressure",
+      "title": "Home Blood Pressure Monitoring",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/monitoring-your-blood-pressure-at-home"
+    },
+    {
       "sourceId": "nist-temperature-units",
       "title": "NIST SI Units: Temperature",
       "summaryVersion": "Version 1",
       "checkedDate": "2026-11-13",
       "url": "https://www.nist.gov/pml/owm/si-units-temperature"
+    },
+    {
+      "sourceId": "nlm-temperature",
+      "title": "Temperature Measurement",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://medlineplus.gov/ency/article/003400.htm"
+    },
+    {
+      "sourceId": "nasa-body-temperature",
+      "title": "Monitoring Astronaut Body Temperature",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://www.nasa.gov/help-nasa-find-practical-ways-to-monitor-astronaut-body-temperature-in-low-earth-orbit/"
     },
     {
       "sourceId": "nasa-sleep-risk",
@@ -557,6 +592,13 @@
       "summaryVersion": "Version 1",
       "checkedDate": "2026-11-13",
       "url": "https://ntrs.nasa.gov/api/citations/20220013722/downloads/IAC_ISM-2022-manuscript-final.pdf"
+    },
+    {
+      "sourceId": "nih-sleep-diary",
+      "title": "Sleep Diary",
+      "summaryVersion": "Version 1",
+      "checkedDate": "2026-11-14",
+      "url": "https://www.nhlbi.nih.gov/resources/sleep-diary"
     }
   ],
   "disclaimers": [

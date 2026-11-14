@@ -14,6 +14,7 @@ import {
   computeBackupSummaryCounts,
   computeMissionDay,
   parseAndReconcileCsv,
+  ENTRY_WARNING_HELP,
   serializeObservationsToCsv,
   type CsvConflictChoice,
   type CsvPossibleDuplicateChoice,
@@ -109,6 +110,7 @@ export function ReportsScreen(): React.ReactElement {
     Record<string, CsvPossibleDuplicateChoice>
   >({});
   const [ackExclusions, setAckExclusions] = useState(false);
+  const [confirmCsvValues, setConfirmCsvValues] = useState(false);
   const [csvImportResultMsg, setCsvImportResultMsg] = useState<string | null>(null);
 
   // Backup restore state
@@ -363,6 +365,7 @@ export function ReportsScreen(): React.ReactElement {
     setConflictChoices({});
     setPossibleDupChoices({});
     setAckExclusions(false);
+    setConfirmCsvValues(false);
     setCsvImportResultMsg(null);
     announce(preview.summaryLine);
   };
@@ -385,6 +388,7 @@ export function ReportsScreen(): React.ReactElement {
       conflictChoices,
       possibleDuplicateChoices: possibleDupChoices,
       acknowledgedExclusions: ackExclusions,
+      confirmedUnusualValues: confirmCsvValues,
       batchId: `csv-batch-${Date.now()}`,
     });
     if (!res.ready) {
@@ -865,6 +869,11 @@ export function ReportsScreen(): React.ReactElement {
                       />
                     </View>
 
+                    {row.warning && row.candidate && (
+                      <Text style={{ color: palette.textBody }}>
+                        {formatObservationDisplay(row.candidate, preferences.displayUnits).enteredText}. {row.warning}
+                      </Text>
+                    )}
                     {row.reason ? (
                       <Text style={{ fontFamily: fontSansRegular, fontSize: 13, color: palette.textSupporting }}>
                         {row.reason}
@@ -926,6 +935,16 @@ export function ReportsScreen(): React.ReactElement {
                 </PanelCard>
               ))}
 
+              {csvPreview.rows.some((row) => row.warning && row.classification !== 'duplicate') && (
+                <View style={{ gap: 6 }}>
+                  <Text style={{ color: palette.textBody }}>{ENTRY_WARNING_HELP}</Text>
+                  <SelectableChip
+                    label="Confirm unusual values in rows being imported"
+                    selected={confirmCsvValues}
+                    onPress={() => setConfirmCsvValues((value) => !value)}
+                  />
+                </View>
+              )}
               <SelectableChip
                 testID="csv-ack-exclusions"
                 label="I acknowledge skipped, duplicate, or rejected rows"

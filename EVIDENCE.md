@@ -1,5 +1,19 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Issue #9 Unusual Entry Verification
+
+On November 14, 2026, the working changes based on `996afdf` passed TypeScript checks across the shared, website, desktop, and Android projects. The 72 shared tests covered unusual entries, both temperature and glucose units, per-row CSV warnings, confirmation before commit, and preservation of the entered values and the Needs recheck flag. The website and desktop frontend builds, 15 website harness tests, and 33 desktop harness tests passed.
+
+Two headless Edge tests verified that a reversed blood-pressure pair can be edited from Review or saved unchanged with a confirmation marker. All 52 Android harness tests passed, and the Android JavaScript bundle exported with `--no-bytecode`. Installed-device verification was outside this run.
+
+## Issue #6 Reading Status Verification
+
+On November 14, 2026, the working changes based on `bc13d33` passed TypeScript checks and 128 tests across shared, website, desktop, and Android harness suites on Windows with Node `24.22.1`. The website and desktop frontend builds passed. Clean-source verification confirmed all 39 shared files matched across each of the three targets.
+
+The focused Playwright test ran in headless Microsoft Edge and passed at 390 CSS pixels. It checked all six Overview badges, accessible descriptions for mood and unlogged glucose, axe contrast in both themes, forced colors, and the five-entry Help legend. Badge text contrast ranged from 7.22:1 to 10.67:1. Each status uses a distinct symbol and label. Physical Android and installed desktop assistive technology were outside this verification run.
+
+The Android JavaScript export completed with `--no-bytecode`. Windows Application Control blocked `hermesc.exe`, which prevented the standard Hermes bytecode export on this host.
+
 ## Issue #1 Mobile Verification
 
 On November 14, 2026, the issue #1 changes based on `8b67a8c` passed mobile typechecking and all 45 tests across 5 suites on Windows with Node `26.12.1` and npm `11.20.0`. The offline `npm run export` produced one Android Hermes bundle and six bundled fonts. The export metadata listed only Android.

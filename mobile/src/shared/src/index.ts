@@ -3,6 +3,7 @@ export * from './conversions';
 export * from './timing';
 export * from './metrics';
 export * from './references';
+export * from './readingStatus';
 export * from './guidance';
 export * from './interchange';
 export * from './transactions';

@@ -1,6 +1,7 @@
 import {
   buildRaiseReadingPrompt,
   buildSleepInsight,
+  compareObservationToReference,
   computeMissionDay,
   describeMissionContact,
   evaluateMetricSchedule,
@@ -9,6 +10,7 @@ import {
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
   getObservedMissionDay,
+  getReadingStatus,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
   RAISE_READING_LIMIT,
@@ -18,6 +20,7 @@ import {
 } from "../shared/src";
 import { useApp } from "../state/AppContext";
 import { TrendChart } from "../components/TrendChart";
+import { ReadingStatusBadge } from "../components/ReadingStatusBadge";
 
 export function OverviewRoute() {
   const {
@@ -321,6 +324,9 @@ export function OverviewRoute() {
                   schedule,
                   referenceNowUtc: currentReferenceNowUtc,
                 });
+                const comparison = obs ? compareObservationToReference(obs, activeReferencesByMetric[metricId]) : null;
+                const status = getReadingStatus(obs, comparison, schedStatus);
+                const statusId = `reading-status-${metricId}`;
 
                 const display = obs
                   ? formatObservationDisplay(obs, preferences.displayUnits)
@@ -334,9 +340,9 @@ export function OverviewRoute() {
                       : null;
 
                 return (
-                  <div key={metricId} className="reading-cell">
+                  <div key={metricId} className="reading-cell" role="group" aria-labelledby={`${statusId}-name`} aria-describedby={statusId}>
                     <div className="row-wrap" style={{ justifyContent: "space-between", gap: 4 }}>
-                      <span className="mono-label">{def.shortLabel}</span>
+                      <span id={`${statusId}-name`} className="mono-label">{def.shortLabel}</span>
                       {schedStatus.status === "past_interval" ? (
                         <span className="badge-review" title="Optional scheduled check-in interval elapsed">
                           Past interval
@@ -354,6 +360,7 @@ export function OverviewRoute() {
                           {display.valueOnlyText}
                           <span className="reading-unit">{display.unitLabel}</span>
                         </div>
+                        <ReadingStatusBadge status={status} id={statusId} />
                         <div className="reading-sub">
                           Day {obsDay} · {obsTime}
                           {schedStatus.status === "past_interval" &&
@@ -372,6 +379,7 @@ export function OverviewRoute() {
                           type="button"
                           className="btn-link"
                           style={{ marginTop: 4, fontSize: 12 }}
+                          aria-describedby={statusId}
                           onClick={() => openMetricTrend(metricId)}
                         >
                           Trend & history
@@ -380,6 +388,7 @@ export function OverviewRoute() {
                     ) : (
                       <>
                         <div className="reading-missing">Not recorded</div>
+                        <ReadingStatusBadge status={status} id={statusId} />
                         <div className="reading-sub">
                           {metricId === "blood_glucose"
                             ? "Optional measurement"
@@ -389,6 +398,7 @@ export function OverviewRoute() {
                           type="button"
                           className="btn-link"
                           style={{ marginTop: 6, fontSize: 12 }}
+                          aria-describedby={statusId}
                           onClick={() => void openDraftForMetric(metricId)}
                         >
                           Record {def.shortLabel.toLowerCase()}

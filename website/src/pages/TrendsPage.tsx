@@ -9,11 +9,13 @@ import {
   formatUtcTimeHHMM,
   getObservationSortTimestampMs,
   getObservedMissionDay,
+  getReadingStatus,
   resolveActiveReference,
   type MetricId,
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 import { SleepChart } from '../components/SleepChart';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 
 export function TrendsPage() {
   const {
@@ -21,6 +23,8 @@ export function TrendsPage() {
     currentMissionDay,
     profileObservations,
     profileReferences,
+    latestByMetric,
+    scheduleStatusByMetric,
     preferences,
   } = useAppState();
 
@@ -48,6 +52,18 @@ export function TrendsPage() {
       (a, b) => getObservationSortTimestampMs(b) - getObservationSortTimestampMs(a),
     );
   }, [profileObservations, filterMetric]);
+
+  const latestSleep = latestByMetric.sleep;
+  const sleepComparison = latestSleep ? compareObservationToReference(latestSleep, sleepRef) : null;
+  const filteredLatest = filterMetric === 'all' ? null : latestByMetric[filterMetric];
+  const filteredReference = filterMetric === 'all' ? null : resolveActiveReference({
+    profileId: activeProfile?.profileId ?? '',
+    metricId: filterMetric,
+    references: profileReferences,
+    observations: profileObservations,
+    nowUtc: activeProfile?.snapshotUtc ?? new Date().toISOString(),
+  });
+  const filteredComparison = filteredLatest ? compareObservationToReference(filteredLatest, filteredReference) : null;
 
   return (
     <div className="cs-stack" style={{ gap: '20px' }}>
@@ -84,6 +100,10 @@ export function TrendsPage() {
             <h2 id="sleep-trend-heading" className="cs-section-title">
               Sleep duration trend
             </h2>
+            <div className="cs-row">
+              <span className="cs-helper">Latest reading</span>
+              <ReadingStatusBadge status={getReadingStatus(latestSleep, sleepComparison, scheduleStatusByMetric.sleep)} />
+            </div>
             <p className="cs-helper">
               Main sleep observations compared against active personal reference (7h 24m for SIM-01).
             </p>
@@ -137,6 +157,12 @@ export function TrendsPage() {
             <h2 id="obs-log-heading" className="cs-section-title">
               Observation log ({sortedObservations.length})
             </h2>
+            {filterMetric !== 'all' && (
+              <div className="cs-row">
+                <span className="cs-helper">Latest {METRIC_DEFINITIONS[filterMetric].shortLabel.toLowerCase()} reading</span>
+                <ReadingStatusBadge status={getReadingStatus(filteredLatest, filteredComparison, scheduleStatusByMetric[filterMetric])} />
+              </div>
+            )}
             <p className="cs-helper">
               Displays both entered values and canonical conversions matching your display units.
             </p>

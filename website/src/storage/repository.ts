@@ -264,6 +264,7 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
   async function commitDraftAtomically(
     draft: CheckInDraft,
     committedAtUtc = new Date().toISOString(),
+    confirmedUnusualValue?: boolean,
   ): Promise<CommitDraftOutcome> {
     const result = await db.transaction(
       'rw',
@@ -279,6 +280,7 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
           existingObservations,
           observationId: makeId(`obs-${draft.metricId}`),
           committedAtUtc,
+          confirmedUnusualValue,
         });
 
         if (plan.outcome === 'already_in_log' && plan.existingObservation) {
@@ -427,6 +429,7 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
     conflictChoices: Record<string, CsvConflictChoice>;
     possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
     acknowledgedExclusions: boolean;
+    confirmedUnusualValues?: boolean;
     nowUtc?: string;
   }) {
     const nowUtc = params.nowUtc ?? new Date().toISOString();
@@ -441,6 +444,7 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
         conflictChoices: params.conflictChoices,
         possibleDuplicateChoices: params.possibleDuplicateChoices,
         acknowledgedExclusions: params.acknowledgedExclusions,
+        confirmedUnusualValues: params.confirmedUnusualValues,
         nowUtc,
       });
       if (!plan.ready || !plan.nextObservations) {

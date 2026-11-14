@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, ClipboardPlus } from 'lucide-react';
@@ -9,6 +10,7 @@ import {
   formatDurationHoursMinutes,
   formatObservationDisplay,
   getObservedMissionDay,
+  getReadingStatus,
   resolveActiveReference,
   type BodySystemId,
   type MetricId,
@@ -16,6 +18,7 @@ import {
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 import { BodyExplorerVisual } from '../components/BodyExplorerVisual';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import { useTabList } from '../components/useTabList';
 
 export function ExplorerPage() {
@@ -24,6 +27,7 @@ export function ExplorerPage() {
     profileObservations,
     profileReferences,
     latestByMetric,
+    scheduleStatusByMetric,
     preferences,
     createReferenceVersion,
   } = useAppState();
@@ -246,11 +250,7 @@ export function ExplorerPage() {
                         }}
                       >
                         <strong>{def.name}</strong>
-                        <span className="cs-pill">
-                          {obs
-                            ? `Day ${getObservedMissionDay(obs)}`
-                            : 'Not logged'}
-                        </span>
+                        {obs && <span className="cs-pill">Day {getObservedMissionDay(obs)}</span>}
                       </div>
 
                       {obs ? (
@@ -262,11 +262,8 @@ export function ExplorerPage() {
                             Method: {obs.method} · Context: {obs.context}
                           </div>
                         </>
-                      ) : (
-                        <div className="cs-helper">
-                          Not yet logged in check-in.
-                        </div>
-                      )}
+                      ) : null}
+                      <ReadingStatusBadge status={getReadingStatus(obs, cmp, scheduleStatusByMetric[mId])} />
 
                       <div
                         style={{
@@ -316,7 +313,9 @@ export function ExplorerPage() {
                         )}
                       </div>
 
+                      <MeasurementEducation definition={def} />
                       <div className="cs-row" style={{ gap: '8px' }}>
+
                         <Link
                           to={`/demo/check-in?metric=${mId}`}
                           className="cs-btn cs-btn-secondary"

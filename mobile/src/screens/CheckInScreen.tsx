@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -10,6 +11,8 @@ import {
 } from 'react-native';
 import {
   METRIC_DEFINITIONS,
+  ENTRY_CONFIRMED_NOTE,
+  ENTRY_WARNING_HELP,
   METRIC_ORDER,
   MOOD_QUESTION_TEXT,
   MOOD_SCALE_SPEC,
@@ -22,6 +25,7 @@ import {
   NEEDS_RECHECK_LABEL,
   formatReviewEquivalent,
   parseHHMM,
+  validateDraftForReview,
   type CheckInDraft,
   type MetricId,
   type SleepType,
@@ -181,6 +185,9 @@ export function CheckInScreen(): React.ReactElement {
             >
               {commitState.message ?? 'Stored on this device in one SQLite transaction.'}
             </Text>
+            {saved.qualityNote === ENTRY_CONFIRMED_NOTE && (
+              <Text style={{ color: palette.textBody }}>{ENTRY_CONFIRMED_NOTE}</Text>
+            )}
             <Text
               style={{
                 fontFamily: fontMonoRegular,
@@ -280,6 +287,7 @@ export function CheckInScreen(): React.ReactElement {
 
   // Review Stage
   if (draft.stage === 'review') {
+    const entryWarning = validateDraftForReview(draft).warning;
     const sleepH = Number.parseInt(draft.rawFields.hours?.trim() || '0', 10) || 0;
     const sleepM = Number.parseInt(draft.rawFields.minutes?.trim() || '0', 10) || 0;
     const sleepMins = sleepH * 60 + sleepM;
@@ -508,12 +516,15 @@ export function CheckInScreen(): React.ReactElement {
           </View>
         </PanelCard>
 
+        {entryWarning && (
+          <CalmBanner title="Confirm unusual value" message={`${entryWarning} ${ENTRY_WARNING_HELP}`} tone="review" />
+        )}
         <View style={{ gap: 10 }}>
           <ActionButton
             testID="checkin-add-to-log"
-            label={commitState.phase === 'submitting' ? 'Adding to log…' : 'Add to log'}
+            label={commitState.phase === 'submitting' ? 'Adding to log…' : entryWarning ? 'Confirm and add to log' : 'Add to log'}
             disabled={retainingReview || commitPending}
-            onPress={() => void commitCurrentDraft('none')}
+            onPress={() => void commitCurrentDraft('none', Boolean(entryWarning))}
             variant="primary"
             fullWidth
           />
@@ -648,6 +659,7 @@ export function CheckInScreen(): React.ReactElement {
 
         <PanelCard>
           <View style={{ gap: 14 }}>
+            <MeasurementEducation key={metricDef.id} definition={metricDef} collapsible />
             {draft.metricId === 'heart_rate' ? (
               <LabeledField
                 testID="input-primary"

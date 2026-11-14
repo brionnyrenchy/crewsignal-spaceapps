@@ -145,6 +145,10 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     const primaryCta = await screen.findByTestId('overview-primary-checkin-cta');
     expect(screen.getByText(/Continue check-in/)).toBeTruthy();
     expect(screen.getByText(/5 of 6 indicators logged · 11 committed entries/)).toBeTruthy();
+    expect(screen.getAllByTestId(/^reading-card-/)).toHaveLength(6);
+    const moodReading = screen.getByRole('button', { name: /^Mood\..*No reference\.$/ });
+    expect(within(moodReading).getByText('No reference')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Blood glucose. Not logged.' })).toBeTruthy();
 
     // Phone bottom 5-tab bar + persistent >=48dp Help button
     expect(screen.getByTestId('phone-bottom-tabs')).toBeTruthy();

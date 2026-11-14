@@ -23,10 +23,12 @@ import {
   formatObservationDisplay,
   formatUtcTimeHHMM,
   getObservedMissionDay,
+  getReadingStatus,
   resolveActiveReference,
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 import { SleepChart } from '../components/SleepChart';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 
 export function OverviewPage() {
   const {
@@ -251,23 +253,19 @@ export function OverviewPage() {
                     : formatUtcTimeHHMM(obs.timing.reportedAtUtc)
                   : null;
                 // Sleep's difference is already the next-step heading; avoid repeating it.
-                const referenceLine = !cmp
-                  ? null
-                  : !cmp.comparisonAvailable
-                    ? metricId === 'mood'
-                      ? '1–5 self-report scale'
-                      : 'No reference set'
-                    : metricId === 'sleep'
-                      ? `Reference v${cmp.referenceVersion ?? '—'}`
-                      : cmp.differenceText;
+                const referenceLine = cmp?.comparisonAvailable
+                  ? metricId === 'sleep' ? `Reference v${cmp.referenceVersion}` : cmp.differenceText
+                  : cmp?.unavailableReason;
+                const statusId = `reading-status-${metricId}`;
                 return (
-                  <li key={metricId} className="cs-reading">
-                    <span className="cs-mono-stamp">{def.shortLabel}</span>
+                  <li key={metricId} className="cs-reading" aria-labelledby={`${statusId}-name`} aria-describedby={statusId}>
+                    <span id={`${statusId}-name`} className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
                         <span className="cs-mono-value cs-reading-value">
                           {formatted.primaryText}
                         </span>
+                        <ReadingStatusBadge id={statusId} status={getReadingStatus(obs, cmp, sched)} />
                         {formatted.isConvertedDisplay && (
                           <span className="cs-helper">Entered: {formatted.enteredText}</span>
                         )}
@@ -280,6 +278,7 @@ export function OverviewPage() {
                           to={`/demo/check-in?metric=${metricId}`}
                           className="cs-reading-link"
                           aria-label={`Log ${def.shortLabel.toLowerCase()}`}
+                          aria-describedby={statusId}
                         >
                           Log
                         </Link>
@@ -287,11 +286,12 @@ export function OverviewPage() {
                     ) : (
                       <>
                         <span className="cs-reading-value cs-reading-missing">Not recorded</span>
-                        <span className="cs-helper">No entry yet</span>
+                        <ReadingStatusBadge id={statusId} status="not_logged" />
                         <Link
                           to={`/demo/check-in?metric=${metricId}`}
                           className="cs-reading-link"
                           aria-label={`Add ${def.shortLabel.toLowerCase()}`}
+                          aria-describedby={statusId}
                         >
                           Add
                         </Link>

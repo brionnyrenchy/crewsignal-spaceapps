@@ -87,7 +87,19 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'Use the time the reading was observed.',
       'Record measurement method and resting context when known.',
     ],
-    evidenceIds: ['nasa-hrp-hazards', 'nasa-standard-measures'],
+    whyItMatters: {
+      text: "Pulse tells you how many times your heart beats in one minute.",
+      sourceId: "nlm-pulse",
+    },
+    spaceflightContext: {
+      text: "After time in low gravity, standing back in gravity can put extra demands on the heart and circulation.",
+      sourceId: "nasa-standing-risk",
+    },
+    howToMeasure: {
+      text: "While resting, feel for your pulse at your wrist with two fingers. Count the beats for one minute.",
+      sourceId: "nlm-pulse",
+    },
+    evidenceIds: ["nasa-hrp-hazards","nasa-standard-measures","nlm-pulse","nasa-standing-risk"],
     supportsUnavailableInstrument: true,
     optionalSchedulingSupported: true,
   },
@@ -109,7 +121,19 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'Use the time the reading was observed.',
       'Record cuff method and body context when known.',
     ],
-    evidenceIds: ['nasa-hrp-hazards', 'nasa-standard-measures'],
+    whyItMatters: {
+      text: "The top number shows pressure when the heart beats. The bottom number shows pressure between beats.",
+      sourceId: "aha-blood-pressure",
+    },
+    spaceflightContext: {
+      text: "After time in low gravity, the body can have trouble keeping blood pressure steady when standing back in gravity.",
+      sourceId: "nasa-standing-risk",
+    },
+    howToMeasure: {
+      text: "Follow your cuff instructions. For a seated reading, rest first and support your bare upper arm at heart level. Record both numbers from the same reading.",
+      sourceId: "aha-blood-pressure",
+    },
+    evidenceIds: ["nasa-hrp-hazards","nasa-standard-measures","aha-blood-pressure","nasa-standing-risk"],
     supportsUnavailableInstrument: true,
     optionalSchedulingSupported: true,
   },
@@ -134,7 +158,19 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'This app converts concentration units for review. It does not supply a measurement procedure.',
       'Follow your approved mission and device instructions.',
     ],
-    evidenceIds: ['cdc-nhanes-glucose', 'nasa-standard-measures'],
+    whyItMatters: {
+      text: "Blood glucose tells you how much sugar is in your blood at the time of the check.",
+      sourceId: "fda-glucose-meter",
+    },
+    spaceflightContext: {
+      text: "NASA reports early signs that spaceflight may change how the body handles blood sugar. Evidence from flight is limited.",
+      sourceId: "nasa-human-adaptation",
+    },
+    howToMeasure: {
+      text: "Follow your meter instructions for using a blood sample and test strip. Record the result with the unit shown.",
+      sourceId: "fda-glucose-meter",
+    },
+    evidenceIds: ["cdc-nhanes-glucose","nasa-standard-measures","fda-glucose-meter","nasa-human-adaptation"],
     supportsUnavailableInstrument: true,
     optionalSchedulingSupported: true,
   },
@@ -156,7 +192,19 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'Record the measurement site/method when known; incompatible methods remain distinct.',
       'Use the observed mission time.',
     ],
-    evidenceIds: ['nist-temperature-units', 'nasa-standard-measures'],
+    whyItMatters: {
+      text: "Body temperature helps track changes such as fever. Readings can differ depending on where you measure.",
+      sourceId: "nlm-temperature",
+    },
+    spaceflightContext: {
+      text: "Early NASA evidence suggests body temperature may rise faster during exercise in low gravity.",
+      sourceId: "nasa-body-temperature",
+    },
+    howToMeasure: {
+      text: "Follow your thermometer instructions. Record the result, the unit, and where you measured, such as your mouth or ear.",
+      sourceId: "nlm-temperature",
+    },
+    evidenceIds: ["nist-temperature-units","nasa-standard-measures","nlm-temperature","nasa-body-temperature"],
     supportsUnavailableInstrument: true,
     optionalSchedulingSupported: true,
   },
@@ -178,12 +226,19 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'Entering 0h 0m explicitly logs Reported no sleep; leave blank if unrecorded.',
       'Only compatible Main sleep periods enter the sleep reference.',
     ],
-    evidenceIds: [
-      'nasa-sleep-risk',
-      'nasa-seven-ways-sleep',
-      'nasa-isolation-standard-measures',
-      'nasa-standard-measures',
-    ],
+    whyItMatters: {
+      text: "Too little sleep can make it harder to stay alert and do your work.",
+      sourceId: "nasa-sleep-risk",
+    },
+    spaceflightContext: {
+      text: "Irregular work hours can disrupt sleep during spaceflight.",
+      sourceId: "nasa-sleep-risk",
+    },
+    howToMeasure: {
+      text: "Estimate how long you actually slept and record the hours and minutes for that period.",
+      sourceId: "nih-sleep-diary",
+    },
+    evidenceIds: ["nasa-sleep-risk","nasa-seven-ways-sleep","nasa-isolation-standard-measures","nasa-standard-measures","nih-sleep-diary"],
     supportsUnavailableInstrument: false,
     optionalSchedulingSupported: true,
   },
@@ -205,11 +260,29 @@ export const METRIC_DEFINITIONS: Record<MetricId, MetricDefinition> = {
       'Mood starts unselected; no default score is chosen.',
       'Notes are optional and excluded from reports unless selected.',
     ],
-    evidenceIds: ['nasa-isolation-standard-measures', 'nasa-standard-measures'],
+    whyItMatters: {
+      text: "A mood check records how you feel. NASA studies mood as one sign of crew well-being.",
+      sourceId: "nasa-behavioral-measures",
+    },
+    spaceflightContext: {
+      text: "Living and working with the same small crew in a confined space for a long time can affect how people feel and behave.",
+      sourceId: "nasa-hrp-hazards",
+    },
+    howToMeasure: {
+      text: "Choose the option that best matches how you feel now. CrewSignal uses its own five choices.",
+      sourceId: "nasa-behavioral-measures",
+    },
+    evidenceIds: ["nasa-isolation-standard-measures","nasa-standard-measures","nasa-behavioral-measures","nasa-hrp-hazards"],
     supportsUnavailableInstrument: false,
     optionalSchedulingSupported: true,
   },
 };
+
+export const MEASUREMENT_EDUCATION_SECTIONS = [
+  { field: 'whyItMatters', label: 'Why it matters' },
+  { field: 'spaceflightContext', label: 'In spaceflight' },
+  { field: 'howToMeasure', label: 'How to measure' },
+] as const;
 
 export const METRIC_ORDER: readonly MetricId[] = [
   'heart_rate',
@@ -303,9 +376,47 @@ export function parseStrictNonNegativeInt(raw: string): number | null {
 
 export interface ValidatedDraftOutput {
   validationState: DraftValidationState;
+  warning: string | null;
   entered: EnteredObservationValue | null;
   canonical: CanonicalObservationValue | null;
   timing: ObservationTiming | null;
+}
+
+export const ENTRY_WARNING_HELP = 'Check the value and unit against the original reading. This is an entry-error check and cannot assess health.';
+export const ENTRY_CONFIRMED_NOTE = 'Unusual value confirmed as entered.';
+
+// Broad entry-error guards. Alternate-unit bounds use the same unit conversions as storage.
+const entryBounds: Record<string, readonly [number, number]> = {
+  bpm: [15, 350],
+  'mg/dL': [10, 1500],
+  'mmol/L': [convertGlucose(10, 'mg/dL', 'mmol/L').exact, convertGlucose(1500, 'mg/dL', 'mmol/L').exact],
+  C: [20, 50],
+  F: [convertTemperature(20, 'C', 'F').exact, convertTemperature(50, 'C', 'F').exact],
+};
+
+export function getEntryWarning(entered: EnteredObservationValue): string | null {
+  if (entered.kind === 'blood_pressure') {
+    const { systolic, diastolic } = entered;
+    if (systolic <= diastolic) return 'Systolic is equal to or below diastolic. Check the order of the two values.';
+    if (systolic < 30 || systolic > 350 || diastolic < 10 || diastolic > 250) {
+      return 'This blood pressure pair is outside the entry-check range.';
+    }
+  }
+  if (entered.kind === 'sleep_duration' && entered.durationMinutes > 1440) {
+    return 'This sleep duration is longer than 24 hours. Check the hours and minutes.';
+  }
+  if (entered.kind !== 'scalar') return null;
+
+  const { value, unit } = entered;
+  const bounds = entryBounds[unit];
+  if (!bounds || (value >= bounds[0] && value <= bounds[1])) return null;
+  const alternateUnit = ({ C: 'F', F: 'C', 'mg/dL': 'mmol/L', 'mmol/L': 'mg/dL' } as Record<string, string>)[unit];
+  const alternateBounds = alternateUnit && entryBounds[alternateUnit];
+  if (alternateBounds && value >= alternateBounds[0] && value <= alternateBounds[1]) {
+    const label = alternateUnit === 'C' || alternateUnit === 'F' ? `°${alternateUnit}` : alternateUnit;
+    return `This number fits the entry-check range for ${label}. Check the selected unit.`;
+  }
+  return 'This value is outside the entry-check range for the selected unit.';
 }
 
 /**
@@ -593,6 +704,7 @@ export function validateDraftForReview(
       firstInvalidField,
       announcement,
     },
+    warning: valid && entered ? getEntryWarning(entered) : null,
     entered: valid ? entered : null,
     canonical: valid ? canonical : null,
     timing: valid ? timing : null,

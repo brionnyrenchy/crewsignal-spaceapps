@@ -185,6 +185,187 @@
       "relatedActionIds": [
         "action-check-measurement-context"
       ]
+    },
+    {
+      "sourceId": "nlm-pulse",
+      "title": "Pulse",
+      "shortTitle": "Pulse",
+      "publisher": "MedlinePlus",
+      "url": "https://medlineplus.gov/ency/article/003399.htm",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Describes what pulse measures and how to count it at the wrist.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "heart_rate"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "aha-blood-pressure",
+      "title": "Home Blood Pressure Monitoring",
+      "shortTitle": "Home Blood Pressure Monitoring",
+      "publisher": "American Heart Association",
+      "url": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/monitoring-your-blood-pressure-at-home",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Explains upper-arm cuff use and the two blood pressure numbers.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "blood_pressure"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nasa-standing-risk",
+      "title": "Orthostatic Intolerance Technical Brief",
+      "shortTitle": "Orthostatic Intolerance Technical Brief",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/03/orthostatic-intolerance-technical-brief-ochmo.pdf",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Describes heart rate and blood pressure responses when returning to gravity.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "heart_rate",
+        "blood_pressure"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "fda-glucose-meter",
+      "title": "Blood Glucose Monitoring Devices",
+      "shortTitle": "Blood Glucose Monitoring Devices",
+      "publisher": "FDA",
+      "url": "https://www.fda.gov/medical-devices/in-vitro-diagnostics/blood-glucose-monitoring-devices",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Explains what glucose meters measure and how to use a meter and test strip.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "blood_glucose"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nasa-human-adaptation",
+      "title": "Human Adaptation to Spaceflight",
+      "shortTitle": "Human Adaptation to Spaceflight",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/wp-content/uploads/2024/08/human-adaptation-2021-final-b.pdf",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Reviews limited evidence on changes in how the body handles blood sugar during spaceflight.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "blood_glucose"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nlm-temperature",
+      "title": "Temperature Measurement",
+      "shortTitle": "Temperature Measurement",
+      "publisher": "MedlinePlus",
+      "url": "https://medlineplus.gov/ency/article/003400.htm",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Explains how to measure body temperature and why measurement site matters.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "body_temperature"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nasa-body-temperature",
+      "title": "Monitoring Astronaut Body Temperature",
+      "shortTitle": "Monitoring Astronaut Body Temperature",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/help-nasa-find-practical-ways-to-monitor-astronaut-body-temperature-in-low-earth-orbit/",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Summarizes early evidence about temperature changes during exercise in low gravity.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "body_temperature"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nih-sleep-diary",
+      "title": "Sleep Diary",
+      "shortTitle": "Sleep Diary",
+      "publisher": "NHLBI, NIH",
+      "url": "https://www.nhlbi.nih.gov/resources/sleep-diary",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Provides a diary for recording how much and how well you slept.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "sleep"
+      ],
+      "relatedActionIds": []
+    },
+    {
+      "sourceId": "nasa-behavioral-measures",
+      "title": "Standardized Behavioral Measures for Exploration Missions",
+      "shortTitle": "Standardized Behavioral Measures for Exploration Missions",
+      "publisher": "NASA Human Research Roadmap",
+      "url": "https://humanresearchroadmap.nasa.gov/Tasks/task.aspx?i=1623",
+      "checkedDate": "2026-11-14",
+      "sourceUpdatedDate": null,
+      "summaryVersion": "Version 1",
+      "summaryText": "Identifies self-reported mood as one of several behavioral health indicators.",
+      "limitations": "Background for the check-in. Follow approved mission procedures for measurements.",
+      "cachedAvailable": true,
+      "offlineAccessNote": "Available offline: summary",
+      "knownUpdateAvailableVersion": null,
+      "knownUpdateCheckedDate": null,
+      "relatedMetricIds": [
+        "mood"
+      ],
+      "relatedActionIds": []
     }
   ],
   "actions": [
@@ -282,6 +463,7 @@
     "versionLabel": "Version demo 1 · Cached example",
     "cachedAvailable": true,
     "body": "Example content for navigation and offline access testing only. Real mission guidance requires supplied applicable reviewed content before enabling it.",
+    "contactRoute": "Example contact route (test fixture only): use the onboard mission communications channel to reach the crew medical officer.",
     "steps": [
       "Verify the local cached procedure version and check date before relying on offline copy.",
       "Follow your team-supplied onboard procedure document rather than this test placeholder."
@@ -325,10 +507,24 @@
       ],
       "evidenceIds": [
         "nasa-hrp-hazards",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "nlm-pulse",
+        "nasa-standing-risk"
       ],
       "supportsUnavailableInstrument": true,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "Pulse tells you how many times your heart beats in one minute.",
+        "sourceId": "nlm-pulse"
+      },
+      "spaceflightContext": {
+        "text": "After time in low gravity, standing back in gravity can put extra demands on the heart and circulation.",
+        "sourceId": "nasa-standing-risk"
+      },
+      "howToMeasure": {
+        "text": "While resting, feel for your pulse at your wrist with two fingers. Count the beats for one minute.",
+        "sourceId": "nlm-pulse"
+      }
     },
     "blood_pressure": {
       "id": "blood_pressure",
@@ -361,10 +557,24 @@
       ],
       "evidenceIds": [
         "nasa-hrp-hazards",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "aha-blood-pressure",
+        "nasa-standing-risk"
       ],
       "supportsUnavailableInstrument": true,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "The top number shows pressure when the heart beats. The bottom number shows pressure between beats.",
+        "sourceId": "aha-blood-pressure"
+      },
+      "spaceflightContext": {
+        "text": "After time in low gravity, the body can have trouble keeping blood pressure steady when standing back in gravity.",
+        "sourceId": "nasa-standing-risk"
+      },
+      "howToMeasure": {
+        "text": "Follow your cuff instructions. For a seated reading, rest first and support your bare upper arm at heart level. Record both numbers from the same reading.",
+        "sourceId": "aha-blood-pressure"
+      }
     },
     "blood_glucose": {
       "id": "blood_glucose",
@@ -400,10 +610,24 @@
       ],
       "evidenceIds": [
         "cdc-nhanes-glucose",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "fda-glucose-meter",
+        "nasa-human-adaptation"
       ],
       "supportsUnavailableInstrument": true,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "Blood glucose tells you how much sugar is in your blood at the time of the check.",
+        "sourceId": "fda-glucose-meter"
+      },
+      "spaceflightContext": {
+        "text": "NASA reports early signs that spaceflight may change how the body handles blood sugar. Evidence from flight is limited.",
+        "sourceId": "nasa-human-adaptation"
+      },
+      "howToMeasure": {
+        "text": "Follow your meter instructions for using a blood sample and test strip. Record the result with the unit shown.",
+        "sourceId": "fda-glucose-meter"
+      }
     },
     "body_temperature": {
       "id": "body_temperature",
@@ -437,10 +661,24 @@
       ],
       "evidenceIds": [
         "nist-temperature-units",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "nlm-temperature",
+        "nasa-body-temperature"
       ],
       "supportsUnavailableInstrument": true,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "Body temperature helps track changes such as fever. Readings can differ depending on where you measure.",
+        "sourceId": "nlm-temperature"
+      },
+      "spaceflightContext": {
+        "text": "Early NASA evidence suggests body temperature may rise faster during exercise in low gravity.",
+        "sourceId": "nasa-body-temperature"
+      },
+      "howToMeasure": {
+        "text": "Follow your thermometer instructions. Record the result, the unit, and where you measured, such as your mouth or ear.",
+        "sourceId": "nlm-temperature"
+      }
     },
     "sleep": {
       "id": "sleep",
@@ -474,10 +712,23 @@
         "nasa-sleep-risk",
         "nasa-seven-ways-sleep",
         "nasa-isolation-standard-measures",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "nih-sleep-diary"
       ],
       "supportsUnavailableInstrument": false,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "Too little sleep can make it harder to stay alert and do your work.",
+        "sourceId": "nasa-sleep-risk"
+      },
+      "spaceflightContext": {
+        "text": "Irregular work hours can disrupt sleep during spaceflight.",
+        "sourceId": "nasa-sleep-risk"
+      },
+      "howToMeasure": {
+        "text": "Estimate how long you actually slept and record the hours and minutes for that period.",
+        "sourceId": "nih-sleep-diary"
+      }
     },
     "mood": {
       "id": "mood",
@@ -506,10 +757,24 @@
       ],
       "evidenceIds": [
         "nasa-isolation-standard-measures",
-        "nasa-standard-measures"
+        "nasa-standard-measures",
+        "nasa-behavioral-measures",
+        "nasa-hrp-hazards"
       ],
       "supportsUnavailableInstrument": false,
-      "optionalSchedulingSupported": true
+      "optionalSchedulingSupported": true,
+      "whyItMatters": {
+        "text": "A mood check records how you feel. NASA studies mood as one sign of crew well-being.",
+        "sourceId": "nasa-behavioral-measures"
+      },
+      "spaceflightContext": {
+        "text": "Living and working with the same small crew in a confined space for a long time can affect how people feel and behave.",
+        "sourceId": "nasa-hrp-hazards"
+      },
+      "howToMeasure": {
+        "text": "Choose the option that best matches how you feel now. CrewSignal uses its own five choices.",
+        "sourceId": "nasa-behavioral-measures"
+      }
     }
   },
   "bodySystems": [

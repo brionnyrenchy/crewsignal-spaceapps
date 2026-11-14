@@ -35,6 +35,8 @@ import {
 } from './conversions';
 import { EVIDENCE_REGISTRY } from './guidance';
 import {
+  ENTRY_CONFIRMED_NOTE,
+  getEntryWarning,
   getMoodLabel,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
@@ -63,6 +65,7 @@ export interface BuildReportOptions {
   startDay: number;
   endDay: number;
   selectedMetricIds?: readonly MetricId[];
+  selectedObservationIds?: readonly string[];
   includeMood?: boolean;
   includeNotes?: boolean;
   generatedAtUtc: string;
@@ -90,10 +93,12 @@ export function buildReportBundle(options: BuildReportOptions): ReportBundle {
   const excludedMetricIds = METRIC_ORDER.filter((m) => !includedSet.has(m));
 
   const filteredObservations: Observation[] = [];
+  const selectedObservations = options.selectedObservationIds && new Set(options.selectedObservationIds);
   const countsByMetric: Partial<Record<MetricId, number>> = {};
 
   for (const obs of options.observations) {
     if (obs.profileId !== options.profile.profileId) continue;
+    if (selectedObservations && !selectedObservations.has(obs.observationId)) continue;
     if (!includedSet.has(obs.metricId)) continue;
     const day = getObservedMissionDay(obs);
     if (day < options.startDay || day > options.endDay) continue;
@@ -598,6 +603,7 @@ export interface CsvReconciledRow {
   metricId: string;
   classification: CsvRowClassification;
   reason: string | null;
+  warning?: string;
   candidate: Observation | null;
   existingObservation: Observation | null;
 }
@@ -1054,6 +1060,7 @@ export function parseAndReconcileCsv(params: {
       canonical = { ...entered, conversionVersion: CONVERSION_RULE_VERSION };
     }
 
+    const warning = getEntryWarning(entered) ?? undefined;
     const candidate: Observation = {
       observationId: row.observation_id,
       profileId: params.profileId,
@@ -1084,6 +1091,7 @@ export function parseAndReconcileCsv(params: {
           metricId,
           classification: 'duplicate',
           reason: 'Exact match with existing observation ID and content.',
+          warning,
           candidate,
           existingObservation: existingById,
         });
@@ -1096,6 +1104,7 @@ export function parseAndReconcileCsv(params: {
           classification: 'conflict',
           reason:
             'Same observation ID has different values or details from the existing entry.',
+          warning,
           candidate,
           existingObservation: existingById,
         });
@@ -1116,6 +1125,7 @@ export function parseAndReconcileCsv(params: {
         classification: 'possible_duplicate',
         reason:
           'The value and observed time match an existing entry with a different ID.',
+        warning,
         candidate,
         existingObservation: matchingOther,
       });
@@ -1130,6 +1140,7 @@ export function parseAndReconcileCsv(params: {
       metricId,
       classification: 'valid',
       reason: null,
+      warning,
       candidate,
       existingObservation: null,
     });
@@ -1176,6 +1187,7 @@ export function buildCsvCommitPlan(params: {
   conflictChoices: Record<string, CsvConflictChoice>;
   possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
   acknowledgedExclusions: boolean;
+  confirmedUnusualValues?: boolean;
   nowUtc: string;
 }): CsvCommitPlanResult {
   const { preview } = params;
@@ -1208,6 +1220,19 @@ export function buildCsvCommitPlan(params: {
       return {
         ready: false,
         error: `Choose Keep separate or Skip for ${r.observationId} before importing.`,
+        nextObservations: null,
+        insertedCount: 0,
+        updatedCount: 0,
+        skippedCount: 0,
+      };
+    }
+    const willImport = r.classification === 'valid'
+      || (r.classification === 'conflict' && params.conflictChoices[r.observationId] === 'use_imported')
+      || (r.classification === 'possible_duplicate' && params.possibleDuplicateChoices[r.observationId] === 'keep_separate');
+    if (willImport && r.candidate && getEntryWarning(r.candidate.entered) && !params.confirmedUnusualValues) {
+      return {
+        ready: false,
+        error: `Confirm unusual CSV values before importing row ${r.rowIndex}.`,
         nextObservations: null,
         insertedCount: 0,
         updatedCount: 0,
@@ -1248,20 +1273,23 @@ export function buildCsvCommitPlan(params: {
   let skippedCount = 0;
 
   for (const r of preview.rows) {
-    if (r.classification === 'valid' && r.candidate) {
-      nextMap.set(r.candidate.observationId, r.candidate);
+    const candidate = r.candidate && getEntryWarning(r.candidate.entered)
+      ? { ...r.candidate, qualityNote: ENTRY_CONFIRMED_NOTE }
+      : r.candidate;
+    if (r.classification === 'valid' && candidate) {
+      nextMap.set(candidate.observationId, candidate);
       insertedCount += 1;
     } else if (r.classification === 'duplicate' || r.classification === 'rejected') {
       skippedCount += 1;
-    } else if (r.classification === 'possible_duplicate' && r.candidate) {
+    } else if (r.classification === 'possible_duplicate' && candidate) {
       const choice = params.possibleDuplicateChoices[r.observationId];
       if (choice === 'keep_separate') {
-        nextMap.set(r.candidate.observationId, r.candidate);
+        nextMap.set(candidate.observationId, candidate);
         insertedCount += 1;
       } else {
         skippedCount += 1;
       }
-    } else if (r.classification === 'conflict' && r.candidate && r.existingObservation) {
+    } else if (r.classification === 'conflict' && candidate && r.existingObservation) {
       const choice = params.conflictChoices[r.observationId];
       if (choice === 'use_imported') {
         const prev = r.existingObservation;
@@ -1276,7 +1304,7 @@ export function buildCsvCommitPlan(params: {
           previousContext: prev.context,
         };
         const replaced: Observation = {
-          ...r.candidate,
+          ...candidate,
           correctionHistory: [...prev.correctionHistory, correction],
         };
         nextMap.set(replaced.observationId, replaced);
