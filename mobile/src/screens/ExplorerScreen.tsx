@@ -21,7 +21,7 @@ import {
   SelectableChip,
   StatusBadge,
 } from '../components/AppPrimitives';
-import { BodyDiagramSvg } from '../components/BodyDiagramSvg';
+import { BodyExplorerVisual } from '../components/BodyExplorerVisual';
 import { useCrewSignal } from '../state/CrewSignalContext';
 import { useCrewTheme } from '../theme/ThemeProvider';
 import { MIN_NATIVE_TARGET_DP } from '../theme/tokens';
@@ -348,7 +348,7 @@ export function ExplorerScreen(): React.ReactElement {
     >
       <ScreenTitle
         title="Explorer"
-        subtitle="Synchronized 2D body map and system readings (neutral clinical reference)"
+        subtitle="Synchronized body map and system readings (neutral navigation illustration)"
       />
 
       {!isTablet ? (
@@ -372,7 +372,7 @@ export function ExplorerScreen(): React.ReactElement {
         <View style={styles.tabletSplit}>
           <View style={{ flex: 1, gap: 14 }}>
             <PanelCard>
-              <BodyDiagramSvg
+              <BodyExplorerVisual
                 selectedSystemId={selectedBodySystem}
                 onSelectSystem={setSelectedBodySystem}
                 statusBySystem={statusBySystem}
@@ -385,7 +385,7 @@ export function ExplorerScreen(): React.ReactElement {
       ) : mobileSubView === 'map' ? (
         <>
           <PanelCard>
-            <BodyDiagramSvg
+            <BodyExplorerVisual
               selectedSystemId={selectedBodySystem}
               onSelectSystem={setSelectedBodySystem}
               statusBySystem={statusBySystem}

@@ -456,6 +456,8 @@ The automated lifecycle checks for `S10`, `G07` and `G12` passed on the fix bran
 | Clean-VM install of the Windows installer | `G11` | OPEN | Fresh Windows 10/11 VM with no dev tools: one online (Evergreen bootstrapper) and one offline run with the `offlineInstaller` variant |
 | Hosted website and signed-out device matrix | `G01`, `G09`, `G11` | OPEN | The team deploys the synthetic demo with SPA routing while keeping the repository private. Check the landing page and `/demo/*` deep links signed out in Firefox, Safari and Android Chrome, plus PWA installation and offline reload on supported browsers. |
 | NASA Space Apps portal submission | `G01` | OPEN — **team owner** | Verify the live requirements, judging links, media limits and tool disclosures in the team portal. Check any public judging material signed out and record the submission receipt. |
+| Explorer 3D model on installed Windows app (§10.4) | `S13`, `G09`, `G11` | OPEN | NSIS-installed build on Windows 10/11 with WebView2. Open Explorer offline, rotate, reset and select each region, then repeat from the list. Check Narrator, keyboard focus, High Contrast (forced colours) and minimise/restore. Record cold load and responsiveness on that hardware. |
+| Explorer 3D model on installed Android phone and tablet (§10.4) | `S13`, `G09`, `G11` | OPEN, needs an installed APK | The APK must be prebuilt with `expo-gl`. Choose "3D model (preview)" in portrait and landscape and check that rotation coexists with page scrolling. Check TalkBack, large text, reduced motion and background/return. Record GL errors, model size and cold load. Set `ANDROID_MODEL_DEFAULT = true` only after this passes. |
 | Automated security review of `47324b8` | Review coverage | NO VERDICT (HTTP 429) | Run the review explicitly against the implementation revision once the service is available. |
 
 ---
@@ -520,6 +522,43 @@ Workspace documentation was organized outside the application repository. Curren
 
 The workspace audit verified 488 local Markdown links and all moved manifest artifact/authority paths. It verified 247 image and exact-prompt hashes and both original style-reference hashes. The organized inventory contains 194 PNGs, including 137 approved/handoff references, 54 historical studies and 3 review screenshots, plus 13 round manifests. Both GitHub issue forms parsed as valid YAML with unique field IDs. The source-only verifier passed after adding the recording templates, with all 37 shared files matching each target.
 
+## 10. Health Explorer interactive 3D model — November 14, 2026
+
+This section covers the 3D navigation model added to the Health Explorer on Windows (Tauri) and Android (Expo). The automated harness ran in a Linux container: Node `22.23.4`, npm `10.9.9`, Google Chrome headless with software WebGL2 (ANGLE SwiftShader), on top of `42265af`. No installed app or physical device was used, so those checks are in §10.4 and §7 and remain open.
+
+### 10.1 What changed
+
+- **Asset.** `shared/assets/models/crewsignal-body.glb` is a glTF 2.0 binary built by `shared/scripts/build-body-model.mjs`. It is original POP N' SEB work under Apache-2.0, with no third-party mesh, so it is safe to distribute. Its source, attribution and reproduction steps are in `shared/assets/models/MODEL-SOURCE.md`. `shared/src/bodyModelAsset.ts` embeds the same bytes, so the model always loads locally from the app bundle.
+- **Mapping.** `BODY_MODEL_REGION_MAP` in `shared/src/bodyModel.ts` maps named nodes to existing `BodySystemId` values: head → `sleep_cognition`, torso → `cardiovascular`, limbs → `musculoskeletal`. The neck is shape only. `immune_context` and `nutrition_metabolism` stay whole-body context in the list, with no region, and the caption names them as whole-body context. Each GLB node repeats its mapping in `extras.bodySystemId`, and `loadMappedBodyModel` rejects any disagreement.
+- **Renderer.** three.js `0.187.0` sits behind view components. On Windows it is `BodyModelView`, a lazy chunk inside `BodyExplorerVisual`. On Android it is `BodyModelGL` on `expo-gl` `~58.0.4`, the version in Expo SDK 58's `bundledNativeModules.json`, inside `BodyExplorerVisual`. Both platforms share one GLB parser, mapping, camera model and fallback policy (`resolveBodyVisualMode`). Rendering is on demand, with no auto-rotation and no network. Leaving the view, or `visibilitychange` hidden / `AppState` background, disposes the geometry, materials, renderer and context. Windows creates a new canvas for each renderer because a released context cannot be reused.
+- **Selection.** The existing `selectedId` / `onSelect` semantics are unchanged. Canvas taps, labelled region buttons, the whole-body chips and the Systems list all set the same state. The selection colour always comes with a text caption that carries the shared coverage label, for example "Limbs: Musculoskeletal, Not assessed". Rotate left, Rotate right and Reset view are labelled buttons.
+- **Fallback.** The SVG diagram is used automatically when WebGL2 is missing, the model fails to load, the context is lost (a retry button is offered) or reduced motion is on (the model stays one click away). A failure always takes priority over a manual choice. Windows defaults to the model. **Android keeps the diagram as the default (`ANDROID_MODEL_DEFAULT = false`) and offers "3D model (preview)" until an installed build is verified.** The Android choice also waits until the reduced-motion setting has been read, so the model never flashes up first.
+
+### 10.2 Harness results (automated, container)
+
+| Check | Result |
+| --- | --- |
+| Khronos glTF Validator `2.0.0-dev.3.10` on the GLB | 0 errors, 0 warnings, 0 infos, 0 hints. 7 meshes, 2,363 vertices, 3,996 triangles, 7 draw calls |
+| Model size | 86,240 B GLB; 122,324 B embedded TS module |
+| Reproducibility | `node shared/scripts/build-body-model.mjs --check`: both outputs byte-identical |
+| `shared` typecheck and Vitest | PASS, 50/50 across 5 files, including 12 new tests in `body-model.test.ts` for asset hash, reproducibility, mapping guard, tamper rejection, labels, camera, gesture claim and fallback policy |
+| `scripts/verify-clean-source.mjs` | PASS. 39 shared files match in website, desktop and mobile; secret scan 0 hits |
+| Desktop typecheck, Vitest, `vite build` | PASS. 31/31 across 8 files, including 8 new tests (shared selection, drag vs tap, reset, hide/restore with a fresh canvas, load failure plus retry, context loss, no WebGL, reduced motion, route without WebGL). Main chunk 571.57 → 586.52 kB (gzip 155.85 → 161.42 kB). The new lazy `bodyModelScene` chunk is 649.09 kB (gzip 168.00 kB) and loads only when the model opens |
+| Desktop Playwright (real three.js, Chrome with SwiftShader) | PASS, 15/15: 6 existing and 9 new in `tests/e2e/body-model.spec.ts`. The new tests canvas-select every region at 1440×900 and 900×1200 portrait, with the list, panel and next actions in agreement; check that a drag never selects; rotate a half turn and hit-test from behind; reset; select by keyboard with visible focus; run axe WCAG 2.2 AA in dark, light and forced colours (0 serious or critical); start on the diagram under reduced motion; fall back when WebGL2 is removed; fall back on `WEBGL_lose_context` and retry; free the canvas on hidden and restore it on visible |
+| Desktop harness timing (software GL, not device data) | Cold load from route click to first model frame 790 ms. 30-step drag 766 ms. List select 85 ms. 2 long tasks, longest 57 ms |
+| Mobile typecheck and Jest | PASS, 51/51 across 6 suites, including 6 new tests (diagram default with preview offered, shared selection, rotate/reset, background release and active restore, real three.js path failing on a fake GL context with fallback and retry, reduced-motion gating either way) |
+| Android Hermes export (`expo export --platform android`) | PASS. One Android bundle; `.hbc` 3,018,909 → 4,301,296 B (+1.28 MB for three.js plus the model). Metro does not tree-shake three.js. The scene module is evaluated only when the model first opens |
+| Website typecheck and Vitest | PASS, 14/14. The model asset is not in the website bundle |
+
+### 10.3 Not run in the harness
+
+- Windows Tauri production build (`tauri build`, NSIS). No Rust or Tauri config changed, and the CSP needs no change because three.js loads from a same-origin chunk with no `eval`.
+- Android native prebuild and APK. Adding `expo-gl` means the native binary must be rebuilt; it cannot ride over the air.
+- Touch scrolling coexisting with rotation, Narrator, TalkBack, Android large text, real minimise/background and real GPU drivers.
+
+### 10.4 Device results
+
+No installed-app or device results are recorded yet. Both rows in §7 stay OPEN until someone runs them on the target hardware and records the results here, separately from §10.2.
 ## 10. Needs recheck on Review (S05 / G04)
 
 Implementation checkout `8b67a8cc959c16aa261addcd53ba8e8232147875`. The audited commit `373a265750d2e9288b07ab51c33031330c501937` and its tree were unavailable in this clone.

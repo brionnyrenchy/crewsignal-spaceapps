@@ -12,7 +12,7 @@ CrewSignal is an offline-first spaceflight & extreme-environment physiological s
 - **Rust / Cargo:** `rustc 1.96.0` / `cargo 1.96.0`
 - **MSVC & Windows SDK:** Visual Studio 2022 Build Tools MSVC `14.44.35207`, Windows SDK `10.0.26100.0`
 - **Node.js / npm:** `node v24.18.0` / `npm 11.16.0`
-- **Core packages:** `tauri 2.12.5`, `@tauri-apps/cli 2.12.4`, `rusqlite 0.32.1` (`bundled`), `tauri-plugin-dialog 2.8.4`, `tauri-plugin-opener 2.7.3`, `react 19.3.1`, `zod 4.6.7`, `vite 8.3.8`, `vitest 5.1.0`, `@playwright/test 1.65.0`
+- **Core packages:** `tauri 2.12.5`, `@tauri-apps/cli 2.12.4`, `rusqlite 0.32.1` (`bundled`), `tauri-plugin-dialog 2.8.4`, `tauri-plugin-opener 2.7.3`, `react 19.3.1`, `three 0.187.0` (lazy-loaded Explorer 3D model), `zod 4.6.7`, `vite 8.3.8`, `vitest 5.1.0`, `@playwright/test 1.65.0`
 - **Bundled offline fonts:** `Inter` (`v4.1`, OFL-1.1) and `Geist Mono` (`v1.9.2`, OFL-1.1) in `src/shared/assets/fonts/` (zero external network font requests)
 
 ---
@@ -52,6 +52,12 @@ CrewSignal is an offline-first spaceflight & extreme-environment physiological s
    - `WindowEvent::CloseRequested` intercepts closing and emits `crewsignal://close-requested` when an unfinished or unretained draft is active.
 
 ---
+
+## Health Explorer 3D model
+
+The Explorer's regional map defaults to an interactive 3D navigation model (`src/components/BodyExplorerVisual.tsx` → `bodyModel/BodyModelView.tsx` → lazy `bodyModel/bodyModelScene.ts`, three.js WebGL2). The asset, mapping and fallback policy come from `shared/` (`shared/assets/models/MODEL-SOURCE.md`). The SVG diagram takes over automatically when WebGL2 is missing, the model fails to load, the context is lost or reduced motion is on, and it is always one click away. The renderer is disposed when you leave the route or the window is hidden.
+
+Playwright runs WebGL through software (`--use-angle=swiftshader --enable-unsafe-swiftshader`). Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to use a specific Chromium or Chrome binary.
 
 ## Standalone Development & Verification Commands
 

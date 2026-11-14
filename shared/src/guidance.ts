@@ -9,10 +9,8 @@ import {
   type Observation,
   type PersonalReference,
 } from './contracts';
-import { compareObservationToReference, isObservationQualityEligible } from './references';
-import { formatDurationHoursMinutes, getObservedMissionDay } from './timing';
 import { roundToDecimals } from './conversions';
-import { compareObservationToReference } from './references';
+import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservationSortTimestampMs, getObservedMissionDay } from './timing';
 
 export const RULE_VERSION_RAISE_READING = 'crewsignal-raise-reading-v1' as const;

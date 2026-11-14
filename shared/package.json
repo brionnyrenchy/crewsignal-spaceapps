@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:check": "node ./scripts/sync-to-targets.mjs --check"
+    "sync:check": "node ./scripts/sync-to-targets.mjs --check",
+    "model:build": "node ./scripts/build-body-model.mjs",
+    "model:check": "node ./scripts/build-body-model.mjs --check"
   },
   "dependencies": {
     "zod": "4.6.7"

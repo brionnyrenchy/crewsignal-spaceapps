@@ -24,6 +24,7 @@ Versions pinned in [package.json](package.json) (Expo SDK `58.0.25` was pinned i
 | Offline fonts | `expo-font` | `~58.0.12` | Loads bundled `Inter` and `GeistMono` TTF files offline |
 | Links & clipboard | `expo-linking` / `expo-clipboard` | `~58.0.17` / `~58.0.4` | External source link verification (`canOpenURL`) and URL copy |
 | Vector graphics | `react-native-svg` | `15.16.0` | Interactive 2D body diagram (`BodyDiagramSvg`) and trend charts |
+| 3D model | `expo-gl` / `three` | `~58.0.4` / `0.187.0` | Opt-in Explorer 3D navigation model (`components/bodyModel/`); the diagram stays the default until device verification |
 | Safe areas | `react-native-safe-area-context` | `~5.11.1` | Top/bottom notches, bottom tabs, and sticky keyboard dock |
 | Test harness | `jest`, `jest-expo`, `@testing-library/react-native` | `^30.0.0`, `~58.0.14`, `14.1.0` | Unit, SQLite transaction (`node:sqlite`), vector, and RNTL UI tests |
 
@@ -51,7 +52,7 @@ Loaded locally via `src/platform/fonts.ts` (`loadBundledFonts`) with zero CDN/ne
   - **Tablet (`>= 600` dp width)**: Persistent labelled navigation rail (`>= 88` dp min width, intrinsic labels without clipping), 3×2 reading cards, and split-friendly views.
 - **Core Workflows & Recovery**:
   - **Check-in (`CheckInScreen.tsx`)**: `Record -> Review -> Saved` across all 6 metrics (Heart Rate, Blood Pressure paired entry, Blood Glucose with unit-change Cancel/Convert/Clear modal, Body Temperature, Sleep duration / window + `"Reported no sleep"` `0h 0m`, and Mood ordinal 1–5 + custom prompt), measurement procedure Help modal, `Skip` / `Unavailable` workflow logging without fake observations, and `ER-01`–`ER-04` error recovery.
-  - **Explorer & Trends**: Interactive `react-native-svg` 2D body diagram (`BodyDiagramSvg.tsx`) synchronized with an accessible system list (`Musculoskeletal` unassessed, `Immune context` context-only), plus 7/30-day SVG trend plots (`SleepChartSvg.tsx`) and data-table toggle.
+  - **Explorer & Trends**: Interactive `react-native-svg` 2D body diagram (`BodyDiagramSvg.tsx`), plus an opt-in "3D model (preview)" (`BodyExplorerVisual.tsx` → `bodyModel/BodyModelGL.tsx`, Expo GL + three.js, same shared GLB and mapping as Windows), synchronized with an accessible system list (`Musculoskeletal` unassessed, `Immune context` context-only), plus 7/30-day SVG trend plots (`SleepChartSvg.tsx`) and data-table toggle.
   - **Actions, Sources & Reports**: Offline cached summaries, safe external `Linking` verification + clipboard fallback, `ReportsScreen.tsx` live observation counts, distinct native file save (`File saved`), share sheet (`Share sheet opened`), and light `#ffffff` A4 print (`expo-print`).
   - **Accessibility**: `>= 48 × 48` dp touch targets, `accessibilityRole`, `accessibilityLabel`, `accessibilityState`, polite `accessibilityLiveRegion` status announcements, font scaling, and `AccessibilityInfo.isReduceMotionEnabled` support.
 

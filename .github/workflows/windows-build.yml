@@ -1,0 +1,35 @@
+name: Windows build
+
+on:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'package.json'
+      - '.github/workflows/windows-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Install Rust 1.90
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup default 1.90.0
+          rustc --version
+      - run: npm run setup:windows
+      - run: npm run build:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crewsignal-windows-installer
+          path: desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error

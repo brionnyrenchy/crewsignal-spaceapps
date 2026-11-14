@@ -72,6 +72,8 @@ All cached summaries bundled in `shared/src/guidance.ts` and `shared/fixtures/ev
 - **Light Theme System:** Adapted from Vercel Geist light design token structure for high-legibility daylight and print usage.
 - **Inter Typeface (v4.1):** Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter). Licensed under SIL Open Font License 1.1 (`shared/assets/fonts/Inter-OFL-LICENSE.txt`).
 - **Geist Mono Typeface (v1.9.2):** Copyright (c) 2023 Vercel, in collaboration with basement.studio (https://www.npmjs.com/package/geist). Licensed under SIL Open Font License 1.1 (`shared/assets/fonts/GeistMono-OFL-LICENSE.txt`).
+- **Health Explorer 3D navigation model:** Original procedural figure by POP N' SEB (2026), Apache License 2.0. Source and reproduction: `shared/scripts/build-body-model.mjs` and `shared/assets/models/MODEL-SOURCE.md`. It is an illustration for navigation, not anatomical or measurement data.
+- **three.js (r187):** Copyright © 2010-2026 three.js authors, MIT License. It renders the 3D model on Windows (Tauri WebView) and Android (Expo GL, MIT, © 650 Industries).
 
 ---
 
