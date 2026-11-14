@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import { useState } from "react";
 import {
   BODY_SYSTEM_DEFINITIONS,
@@ -196,6 +197,7 @@ export function ExplorerRoute() {
                           </div>
                         )}
 
+                        <MeasurementEducation definition={def} />
                         <div className="row-wrap">
                           <button
                             type="button"

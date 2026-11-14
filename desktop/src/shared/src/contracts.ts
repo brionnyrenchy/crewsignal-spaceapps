@@ -222,6 +222,8 @@ export const MetricScheduleSchema = z.object({
 });
 export type MetricSchedule = z.infer<typeof MetricScheduleSchema>;
 
+const SourcedMeasurementTextSchema = z.object({ text: z.string().min(1), sourceId: z.string().min(1) });
+
 export const MetricDefinitionSchema = z.object({
   id: MetricIdSchema,
   name: z.string().min(1),
@@ -234,6 +236,9 @@ export const MetricDefinitionSchema = z.object({
   methodOptions: z.array(z.string().min(1)).min(1),
   contextOptions: z.array(z.string().min(1)).min(1),
   purpose: z.string().min(1),
+  whyItMatters: SourcedMeasurementTextSchema,
+  spaceflightContext: SourcedMeasurementTextSchema,
+  howToMeasure: SourcedMeasurementTextSchema,
   instructions: z.array(z.string().min(1)).min(1),
   evidenceIds: z.array(z.string().min(1)).min(1),
   supportsUnavailableInstrument: z.boolean(),

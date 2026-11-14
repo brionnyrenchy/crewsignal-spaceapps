@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import { useEffect, useState } from "react";
 import { HelpCircle } from "lucide-react";
 import {
@@ -687,6 +688,8 @@ export function CheckInRoute() {
                 <div>{activeDraft.validationState.announcement}</div>
               </div>
             ) : null}
+
+            <MeasurementEducation key={def.id} definition={def} collapsible />
 
             {/* Metric-specific fields */}
             {activeDraft.metricId === "heart_rate" ? (

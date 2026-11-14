@@ -5,11 +5,141 @@ import {
   type EvidenceReference,
   type HelpProcedureCard,
   type Insight,
+  type MetricId,
   type Observation,
   type PersonalReference,
 } from './contracts';
 import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservedMissionDay } from './timing';
+import { roundToDecimals } from './conversions';
+import { compareObservationToReference } from './references';
+import { formatDurationHoursMinutes, getObservationSortTimestampMs, getObservedMissionDay } from './timing';
+
+export const RULE_VERSION_RAISE_READING = 'crewsignal-raise-reading-v1' as const;
+export const RAISE_READING_SUGGESTION = 'Consider sharing a scoped report with your crew medical officer or flight surgeon.';
+export const RAISE_READING_LIMIT = 'This reflects a pattern in self-logged data and cannot diagnose a health condition.';
+
+export interface ReadingReportScope {
+  profileId: string;
+  observationIds: string[];
+  metricIds: MetricId[];
+  startDay: number;
+  endDay: number;
+}
+
+export interface ReadingToRaise {
+  observation: Observation;
+  referenceId: string;
+  referenceVersion: number;
+  differenceText: string;
+}
+
+export const RAISE_READING_REASONS = {
+  sustained: 'An indicator differed from its personal reference on three consecutive mission days.',
+  multiple: 'Multiple indicators differed from their personal references on the same mission day.',
+  recheck: 'A flagged reading and its repeat differed from the personal reference in the same direction.',
+} as const;
+
+/** Compare current patterns using stored, locked references and observed mission days. */
+export function buildRaiseReadingPrompt(params: {
+  profileId: string;
+  observations: readonly Observation[];
+  references: readonly PersonalReference[];
+  rechecks?: readonly { flaggedObservationId: string; repeatObservationId: string }[];
+}) {
+  const observations = params.observations.filter((o) => o.profileId === params.profileId);
+  if (observations.length === 0) return null;
+
+  const references = new Map(params.references
+    .filter((r) => r.profileId === params.profileId && r.status === 'active' && r.locked)
+    .map((r) => [r.metricId, r]));
+  const latestDay = observations.reduce((day, o) => Math.max(day, getObservedMissionDay(o)), 1);
+  const latestByDay = new Map<number, Map<MetricId, Observation>>();
+  const byId = new Map(observations.map((o) => [o.observationId, o]));
+  for (const observation of observations) {
+    const day = getObservedMissionDay(observation);
+    if (observation.metricId === 'mood' || day < latestDay - 2) continue;
+    if (observation.timing.kind === 'period' && observation.timing.sleepType !== 'main_sleep') continue;
+    const byMetric = latestByDay.get(day) ?? new Map<MetricId, Observation>();
+    latestByDay.set(day, byMetric);
+    const previous = byMetric.get(observation.metricId);
+    if (!previous || getObservationSortTimestampMs(observation) > getObservationSortTimestampMs(previous)
+      || (getObservationSortTimestampMs(observation) === getObservationSortTimestampMs(previous)
+        && observation.observationId < previous.observationId)) {
+      byMetric.set(observation.metricId, observation);
+    }
+  }
+
+  function difference(observation: Observation, flagged = false) {
+    const reference = references.get(observation.metricId);
+    if (!reference || reference.selectedObservationIds.includes(observation.observationId)) return null;
+    const result = compareObservationToReference(
+      flagged ? { ...observation, quality: 'valid' } : observation,
+      reference,
+    );
+    if (!result.comparisonAvailable || !result.differenceText || result.deltaNumeric === null) return null;
+    const diastolic = observation.canonical.kind === 'blood_pressure' && reference.value?.kind === 'blood_pressure'
+      ? Math.sign(roundToDecimals(observation.canonical.diastolic - reference.value.diastolic, 1))
+      : 0;
+    const direction = `${Math.sign(result.deltaNumeric)}/${diastolic}`;
+    if (direction === '0/0') return null;
+    const reading: ReadingToRaise = {
+      observation,
+      referenceId: reference.referenceId,
+      referenceVersion: reference.version,
+      differenceText: result.differenceText,
+    };
+    return { reading, direction };
+  }
+
+  const reasons = new Set<keyof typeof RAISE_READING_REASONS>();
+  const readings = new Map<string, ReadingToRaise>();
+  function add(reason: keyof typeof RAISE_READING_REASONS, ...items: ReadingToRaise[]) {
+    reasons.add(reason);
+    for (const item of items) readings.set(item.observation.observationId, item);
+  }
+
+  const differingToday: ReadingToRaise[] = [];
+  for (const observation of latestByDay.get(latestDay)?.values() ?? []) {
+    const latest = difference(observation);
+    if (!latest) continue;
+    differingToday.push(latest.reading);
+    const previous = latestByDay.get(latestDay - 1)?.get(observation.metricId);
+    const earliest = latestByDay.get(latestDay - 2)?.get(observation.metricId);
+    const middle = previous && difference(previous);
+    const first = earliest && difference(earliest);
+    if (middle?.direction === latest.direction && first?.direction === latest.direction) {
+      add('sustained', first.reading, middle.reading, latest.reading);
+    }
+  }
+  if (differingToday.length >= 2) add('multiple', ...differingToday);
+
+  for (const pair of params.rechecks ?? []) {
+    const flagged = byId.get(pair.flaggedObservationId);
+    const repeat = byId.get(pair.repeatObservationId);
+    if (!flagged || !repeat || flagged.metricId !== repeat.metricId
+      || getObservedMissionDay(repeat) !== latestDay
+      || getObservationSortTimestampMs(flagged) >= getObservationSortTimestampMs(repeat)) continue;
+    const initialDifference = difference(flagged, true);
+    const repeatedDifference = difference(repeat);
+    if (initialDifference && initialDifference.direction === repeatedDifference?.direction) {
+      add('recheck', initialDifference.reading, repeatedDifference.reading);
+    }
+  }
+
+  if (readings.size === 0) return null;
+  const sortedReadings = [...readings.values()].sort((a, b) =>
+    getObservationSortTimestampMs(a.observation) - getObservationSortTimestampMs(b.observation)
+    || a.observation.observationId.localeCompare(b.observation.observationId));
+  const reportScope: ReadingReportScope = {
+    profileId: params.profileId,
+    observationIds: sortedReadings.map(({ observation }) => observation.observationId),
+    metricIds: [...new Set(sortedReadings.map(({ observation }) => observation.metricId))],
+    startDay: getObservedMissionDay(sortedReadings[0]!.observation),
+    endDay: latestDay,
+  };
+  return { ruleVersion: RULE_VERSION_RAISE_READING, reasons: [...reasons], readings: sortedReadings, reportScope };
+}
 
 export const EVIDENCE_CHECKED_DATE = '2026-11-13' as const;
 
@@ -186,6 +316,187 @@ export const EVIDENCE_REGISTRY: Record<string, EvidenceReference> = {
     relatedMetricIds: ['body_temperature'],
     relatedActionIds: ['action-check-measurement-context'],
   },
+  "nlm-pulse": {
+    sourceId: "nlm-pulse",
+    title: "Pulse",
+    shortTitle: "Pulse",
+    publisher: "MedlinePlus",
+    url: "https://medlineplus.gov/ency/article/003399.htm",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Describes what pulse measures and how to count it at the wrist.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "heart_rate"
+    ],
+    relatedActionIds: []
+  },
+  "aha-blood-pressure": {
+    sourceId: "aha-blood-pressure",
+    title: "Home Blood Pressure Monitoring",
+    shortTitle: "Home Blood Pressure Monitoring",
+    publisher: "American Heart Association",
+    url: "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/monitoring-your-blood-pressure-at-home",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains upper-arm cuff use and the two blood pressure numbers.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_pressure"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-standing-risk": {
+    sourceId: "nasa-standing-risk",
+    title: "Orthostatic Intolerance Technical Brief",
+    shortTitle: "Orthostatic Intolerance Technical Brief",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/wp-content/uploads/2023/03/orthostatic-intolerance-technical-brief-ochmo.pdf",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Describes heart rate and blood pressure responses when returning to gravity.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "heart_rate",
+      "blood_pressure"
+    ],
+    relatedActionIds: []
+  },
+  "fda-glucose-meter": {
+    sourceId: "fda-glucose-meter",
+    title: "Blood Glucose Monitoring Devices",
+    shortTitle: "Blood Glucose Monitoring Devices",
+    publisher: "FDA",
+    url: "https://www.fda.gov/medical-devices/in-vitro-diagnostics/blood-glucose-monitoring-devices",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains what glucose meters measure and how to use a meter and test strip.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_glucose"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-human-adaptation": {
+    sourceId: "nasa-human-adaptation",
+    title: "Human Adaptation to Spaceflight",
+    shortTitle: "Human Adaptation to Spaceflight",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/wp-content/uploads/2024/08/human-adaptation-2021-final-b.pdf",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Reviews limited evidence on changes in how the body handles blood sugar during spaceflight.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_glucose"
+    ],
+    relatedActionIds: []
+  },
+  "nlm-temperature": {
+    sourceId: "nlm-temperature",
+    title: "Temperature Measurement",
+    shortTitle: "Temperature Measurement",
+    publisher: "MedlinePlus",
+    url: "https://medlineplus.gov/ency/article/003400.htm",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains how to measure body temperature and why measurement site matters.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "body_temperature"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-body-temperature": {
+    sourceId: "nasa-body-temperature",
+    title: "Monitoring Astronaut Body Temperature",
+    shortTitle: "Monitoring Astronaut Body Temperature",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/help-nasa-find-practical-ways-to-monitor-astronaut-body-temperature-in-low-earth-orbit/",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Summarizes early evidence about temperature changes during exercise in low gravity.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "body_temperature"
+    ],
+    relatedActionIds: []
+  },
+  "nih-sleep-diary": {
+    sourceId: "nih-sleep-diary",
+    title: "Sleep Diary",
+    shortTitle: "Sleep Diary",
+    publisher: "NHLBI, NIH",
+    url: "https://www.nhlbi.nih.gov/resources/sleep-diary",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Provides a diary for recording how much and how well you slept.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "sleep"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-behavioral-measures": {
+    sourceId: "nasa-behavioral-measures",
+    title: "Standardized Behavioral Measures for Exploration Missions",
+    shortTitle: "Standardized Behavioral Measures for Exploration Missions",
+    publisher: "NASA Human Research Roadmap",
+    url: "https://humanresearchroadmap.nasa.gov/Tasks/task.aspx?i=1623",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Identifies self-reported mood as one of several behavioral health indicators.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "mood"
+    ],
+    relatedActionIds: []
+  },
 };
 
 export const EVIDENCE_LIST: readonly EvidenceReference[] = Object.values(EVIDENCE_REGISTRY);
@@ -290,6 +601,7 @@ export const CONFIGURED_HELP_TEST_FIXTURE: HelpProcedureCard = {
   versionLabel: 'Version demo 1 · Cached example',
   cachedAvailable: true,
   body: 'Example content for navigation and offline access testing only. Real mission guidance requires supplied applicable reviewed content before enabling it.',
+  contactRoute: 'Example contact route (test fixture only): use the onboard mission communications channel to reach the crew medical officer.',
   steps: [
     'Verify the local cached procedure version and check date before relying on offline copy.',
     'Follow your team-supplied onboard procedure document rather than this test placeholder.',
@@ -309,6 +621,10 @@ export function resolveHelpContent(
   return helpMode === 'configured_fixture'
     ? CONFIGURED_HELP_TEST_FIXTURE
     : DEFAULT_UNCONFIGURED_HELP;
+}
+
+export function describeMissionContact(helpMode: AppPreferences['helpMode']): string {
+  return resolveHelpContent(helpMode).contactRoute ?? 'No mission contact route is configured in Help.';
 }
 
 /**

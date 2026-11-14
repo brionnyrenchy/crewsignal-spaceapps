@@ -316,6 +316,187 @@ export const EVIDENCE_REGISTRY: Record<string, EvidenceReference> = {
     relatedMetricIds: ['body_temperature'],
     relatedActionIds: ['action-check-measurement-context'],
   },
+  "nlm-pulse": {
+    sourceId: "nlm-pulse",
+    title: "Pulse",
+    shortTitle: "Pulse",
+    publisher: "MedlinePlus",
+    url: "https://medlineplus.gov/ency/article/003399.htm",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Describes what pulse measures and how to count it at the wrist.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "heart_rate"
+    ],
+    relatedActionIds: []
+  },
+  "aha-blood-pressure": {
+    sourceId: "aha-blood-pressure",
+    title: "Home Blood Pressure Monitoring",
+    shortTitle: "Home Blood Pressure Monitoring",
+    publisher: "American Heart Association",
+    url: "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/monitoring-your-blood-pressure-at-home",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains upper-arm cuff use and the two blood pressure numbers.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_pressure"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-standing-risk": {
+    sourceId: "nasa-standing-risk",
+    title: "Orthostatic Intolerance Technical Brief",
+    shortTitle: "Orthostatic Intolerance Technical Brief",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/wp-content/uploads/2023/03/orthostatic-intolerance-technical-brief-ochmo.pdf",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Describes heart rate and blood pressure responses when returning to gravity.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "heart_rate",
+      "blood_pressure"
+    ],
+    relatedActionIds: []
+  },
+  "fda-glucose-meter": {
+    sourceId: "fda-glucose-meter",
+    title: "Blood Glucose Monitoring Devices",
+    shortTitle: "Blood Glucose Monitoring Devices",
+    publisher: "FDA",
+    url: "https://www.fda.gov/medical-devices/in-vitro-diagnostics/blood-glucose-monitoring-devices",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains what glucose meters measure and how to use a meter and test strip.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_glucose"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-human-adaptation": {
+    sourceId: "nasa-human-adaptation",
+    title: "Human Adaptation to Spaceflight",
+    shortTitle: "Human Adaptation to Spaceflight",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/wp-content/uploads/2024/08/human-adaptation-2021-final-b.pdf",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Reviews limited evidence on changes in how the body handles blood sugar during spaceflight.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "blood_glucose"
+    ],
+    relatedActionIds: []
+  },
+  "nlm-temperature": {
+    sourceId: "nlm-temperature",
+    title: "Temperature Measurement",
+    shortTitle: "Temperature Measurement",
+    publisher: "MedlinePlus",
+    url: "https://medlineplus.gov/ency/article/003400.htm",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Explains how to measure body temperature and why measurement site matters.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "body_temperature"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-body-temperature": {
+    sourceId: "nasa-body-temperature",
+    title: "Monitoring Astronaut Body Temperature",
+    shortTitle: "Monitoring Astronaut Body Temperature",
+    publisher: "NASA",
+    url: "https://www.nasa.gov/help-nasa-find-practical-ways-to-monitor-astronaut-body-temperature-in-low-earth-orbit/",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Summarizes early evidence about temperature changes during exercise in low gravity.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "body_temperature"
+    ],
+    relatedActionIds: []
+  },
+  "nih-sleep-diary": {
+    sourceId: "nih-sleep-diary",
+    title: "Sleep Diary",
+    shortTitle: "Sleep Diary",
+    publisher: "NHLBI, NIH",
+    url: "https://www.nhlbi.nih.gov/resources/sleep-diary",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Provides a diary for recording how much and how well you slept.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "sleep"
+    ],
+    relatedActionIds: []
+  },
+  "nasa-behavioral-measures": {
+    sourceId: "nasa-behavioral-measures",
+    title: "Standardized Behavioral Measures for Exploration Missions",
+    shortTitle: "Standardized Behavioral Measures for Exploration Missions",
+    publisher: "NASA Human Research Roadmap",
+    url: "https://humanresearchroadmap.nasa.gov/Tasks/task.aspx?i=1623",
+    checkedDate: "2026-11-14",
+    sourceUpdatedDate: null,
+    summaryVersion: "Version 1",
+    summaryText: "Identifies self-reported mood as one of several behavioral health indicators.",
+    limitations: "Background for the check-in. Follow approved mission procedures for measurements.",
+    cachedAvailable: true,
+    offlineAccessNote: "Available offline: summary",
+    knownUpdateAvailableVersion: null,
+    knownUpdateCheckedDate: null,
+    relatedMetricIds: [
+      "mood"
+    ],
+    relatedActionIds: []
+  },
 };
 
 export const EVIDENCE_LIST: readonly EvidenceReference[] = Object.values(EVIDENCE_REGISTRY);

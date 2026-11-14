@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -261,6 +262,7 @@ export function ExplorerScreen(): React.ReactElement {
                       />
                     </View>
                   </View>
+                  <MeasurementEducation definition={def} />
                 </PanelCard>
               );
             })}

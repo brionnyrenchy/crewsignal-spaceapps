@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, ClipboardPlus } from 'lucide-react';
@@ -316,7 +317,9 @@ export function ExplorerPage() {
                         )}
                       </div>
 
+                      <MeasurementEducation definition={def} />
                       <div className="cs-row" style={{ gap: '8px' }}>
+
                         <Link
                           to={`/demo/check-in?metric=${mId}`}
                           className="cs-btn cs-btn-secondary"

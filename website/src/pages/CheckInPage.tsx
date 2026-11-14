@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -932,6 +933,7 @@ export function CheckInPage() {
           >
             <div>
               <h2 className="cs-section-title">{metricDef.name}</h2>
+              <MeasurementEducation key={metricDef.id} definition={metricDef} collapsible />
               <p className="cs-helper">{metricDef.purpose}</p>
               {scheduleStatusByMetric[draft.metricId].status !== 'not_scheduled' && (
                 <p className="cs-helper" style={{ marginTop: '4px' }}>

@@ -1,3 +1,4 @@
+import { MeasurementEducation } from '../components/MeasurementEducation';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -648,6 +649,7 @@ export function CheckInScreen(): React.ReactElement {
 
         <PanelCard>
           <View style={{ gap: 14 }}>
+            <MeasurementEducation key={metricDef.id} definition={metricDef} collapsible />
             {draft.metricId === 'heart_rate' ? (
               <LabeledField
                 testID="input-primary"
