@@ -472,12 +472,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return allProfiles.find((p) => p.profileId === snapshot.activeProfileId) ?? allProfiles[0] ?? null;
   }, [snapshot, allProfiles]);
 
+  const [wallClockUtc, setWallClockUtc] = useState(() => new Date().toISOString());
+  useEffect(() => {
+    const update = () => setWallClockUtc(new Date().toISOString());
+    update();
+    const timer = window.setInterval(update, 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const currentReferenceNowUtc = useMemo(() => {
     if (activeProfile?.mode === "demo" && activeProfile.snapshotUtc) {
       return activeProfile.snapshotUtc;
     }
-    return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
-  }, [activeProfile]);
+    return wallClockUtc.replace(/\.\d{3}Z$/, "Z");
+  }, [activeProfile, wallClockUtc]);
 
   const [scheduleNowUtc, setScheduleNowUtc] = useState(() => new Date().toISOString());
   const hasSchedules = Object.values(activeProfile?.schedules ?? {}).some((schedule) => schedule?.enabled);
@@ -796,6 +804,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const hhmm = formatUtcTimeHHMM(nowUtc);
       const draft: CheckInDraft =
         initialDraft ??
+        (activeDraftRef.current?.profileId === activeProfile.profileId && activeDraftRef.current.metricId === metricId
+          ? activeDraftRef.current : snapshot?.profileData.drafts.find((draft) => draft.metricId === metricId)) ??
         createBlankDraft({
           draftId: `draft-${metricId}-${Date.now()}`,
           profileId: activeProfile.profileId,
@@ -821,6 +831,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       currentReferenceNowUtc,
       navigate,
       preferences.displayUnits,
+      snapshot?.profileData.drafts,
       saveDraftToStore,
     ],
   );

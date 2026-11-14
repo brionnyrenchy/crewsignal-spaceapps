@@ -229,6 +229,17 @@ describe("CrewSignal Desktop Canonical Vectors & UI Flows", () => {
     expect(await screen.findByLabelText("Heart rate (bpm)")).toHaveValue("");
   });
 
+  it("opens a due blood pressure check-in from SIM-SCHEDULE", async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Load SIM-SCHEDULE fixture" }));
+    fireEvent.click(screen.getAllByRole("button", { name: /^Overview$/ })[0]!);
+    await screen.findByRole("heading", { name: "Due now" });
+    expect(screen.getByRole("button", { name: "Check-in, 1 due" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Log blood pressure" }));
+    expect(await screen.findByLabelText("Systolic (mmHg)")).toBeInTheDocument();
+  });
+
   it("opens close guard dialog when unfinished draft exists and triggers close request", async () => {
     render(<App />);
     await screen.findByText(/11 observations across 5 of 6 types/i);

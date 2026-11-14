@@ -7,6 +7,7 @@ import {
   buildSleepInsight,
   getLatestObservationsByMetric,
   isInsightReviewCurrent,
+  findCurrentInsightReview,
   resolveActiveReference,
   type MetricId,
 } from '../shared/src';
@@ -58,23 +59,16 @@ export function ActionsScreen(): React.ReactElement {
       observations,
       nowUtc: nowUtc(),
     });
-    const reviewedIds = new Set(
-      insights.filter((i) => i.status === 'reviewed').map((i) => i.observationId),
-    );
     return buildSleepInsight({
       observation: latestSleep,
       reference: sleepRef,
       createdAtUtc: nowUtc(),
-      reviewedObservationIds: reviewedIds,
     });
   }, [activeProfile, insights, latestByMetric.sleep, nowUtc, observations, references]);
 
   const savedSleepInsight = useMemo(() => {
     if (!sleepInsight) return null;
-    const saved = insights.find(
-      (i) => i.insightId === sleepInsight.insightId && i.observationId === sleepInsight.observationId,
-    );
-    return saved ?? null;
+    return findCurrentInsightReview(insights, sleepInsight);
   }, [insights, sleepInsight]);
 
   if (!activeProfile) {
@@ -90,9 +84,9 @@ export function ActionsScreen(): React.ReactElement {
   const sleepReviewed =
     savedSleepInsight && sleepInsight
       ? isInsightReviewCurrent(savedSleepInsight, sleepInsight)
-      : sleepInsight?.status === 'reviewed';
+      : false;
 
-  const displayedInsight = savedSleepInsight ?? sleepInsight;
+  const displayedInsight = sleepInsight;
 
   const selectedContent =
     ACTION_CONTENT_LIST.find((a) => a.actionId === selectedActionId) ?? ACTION_CONTENT_LIST[0]!;
@@ -144,6 +138,8 @@ export function ActionsScreen(): React.ReactElement {
             >
               {displayedInsight.differenceText}
             </Text>
+            {sleepReviewed ? <Text>Reviewed {savedSleepInsight?.reviewedAtUtc}</Text> : null}
+            {displayedInsight.sourceIds.map(id => <ActionButton key={id} label={id + ' · ' + displayedInsight.sourceVersions[id]} onPress={() => navigateTo('sources')} variant="subtle" />)}
             <View style={styles.rowWrap}>
               {!sleepReviewed ? (
                 <ActionButton

@@ -470,6 +470,7 @@ export const ProfileConfigSchema = z.object({
 export type ProfileConfig = z.infer<typeof ProfileConfigSchema>;
 
 export const AppPreferencesSchema = z.object({
+  checkInNotifications: z.boolean().optional(),
   appearance: AppearancePreferenceSchema,
   activeProfileId: z.string().min(1),
   displayUnits: z.object({

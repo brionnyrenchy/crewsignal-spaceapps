@@ -6,6 +6,7 @@ import {
   EVIDENCE_REGISTRY,
   buildSleepInsight,
   isInsightReviewCurrent,
+  findCurrentInsightReview,
   resolveActiveReference,
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
@@ -85,7 +86,7 @@ export function ActionsPage() {
             {sleepInsightReviewed ? (
               <span className="cs-pill cs-pill-saved">
                 <CheckCircle2 size={14} aria-hidden="true" />
-                <span>Reviewed for current version</span>
+                <span>Reviewed for current version · {findCurrentInsightReview(profileInsights, computedSleepInsight)?.reviewedAtUtc}</span>
               </span>
             ) : (
               <button
@@ -100,6 +101,7 @@ export function ActionsPage() {
             )}
           </div>
 
+          <div>{computedSleepInsight.sourceIds.map(id => <Link key={id} to={`/demo/sources/${id}`}>{id} · {computedSleepInsight.sourceVersions[id]} </Link>)}</div>
           <p className="cs-helper">
             Pinned to observation {computedSleepInsight.observationId}, reference version{' '}
             {computedSleepInsight.referenceVersion ?? 'none'}, and rule {computedSleepInsight.ruleVersion}.

@@ -17,6 +17,7 @@ import {
   RAISE_READING_SUGGESTION,
   buildRaiseReadingPrompt,
   buildSleepInsight,
+  findCurrentInsightReview,
   isObservationQualityEligible,
   compareObservationToReference,
   describeMissionContact,
@@ -78,15 +79,13 @@ export function OverviewPage() {
 
   const currentSleepInsight = useMemo(() => {
     if (!latestSleep || !isObservationQualityEligible(latestSleep)) return null;
-    const saved = profileInsights.find(
-      (i) => i.observationId === latestSleep.observationId,
-    );
-    if (saved) return saved;
-    return buildSleepInsight({
+    const current = buildSleepInsight({
       observation: latestSleep,
       reference: sleepRef,
       createdAtUtc: activeProfile?.snapshotUtc ?? latestSleep.recordedAtUtc,
     });
+    const saved = findCurrentInsightReview(profileInsights, current);
+    return saved ? { ...current!, status: 'reviewed' as const, reviewedAtUtc: saved.reviewedAtUtc ?? null } : current;
   }, [latestSleep, profileInsights, sleepRef, activeProfile]);
 
   const scheduledItems = useMemo(
@@ -169,17 +168,17 @@ export function OverviewPage() {
                   : ''}
               </h2>
               {currentSleepInsight?.status === 'reviewed' && (
-                <p className="cs-helper">Reviewed educational note</p>
+                <p className="cs-helper">Reviewed educational note · {currentSleepInsight.reviewedAtUtc}</p>
               )}
               <div className="cs-row">
                 <Link to="/demo/actions" className="cs-btn cs-btn-secondary">
                   <FileText size={16} aria-hidden="true" />
                   <span>Review sleep routine</span>
                 </Link>
-                <Link to="/demo/sources/nasa-sleep-risk" className="cs-btn cs-btn-ghost">
+                {(currentSleepInsight?.sourceIds ?? []).map(id => <Link key={id} to={`/demo/sources/${id}`} className="cs-btn cs-btn-ghost">
                   <BookOpen size={16} aria-hidden="true" />
-                  <span>View source</span>
-                </Link>
+                  <span>{id} · {currentSleepInsight?.sourceVersions[id]}</span>
+                </Link>)}
               </div>
             </>
           ) : (
@@ -346,7 +345,7 @@ export function OverviewPage() {
                     ? `Overdue · ${sched.ageLabel} since last entry (${sched.intervalLabel} interval)`
                     : sched.status === 'within_interval'
                       ? `Within ${sched.intervalLabel} interval · last logged ${sched.ageLabel} ago`
-                      : `Due · ${sched.intervalLabel} interval configured (no entries yet)`;
+                      : `First check-in due · ${sched.intervalLabel} interval configured`;
                 return (
                   <div key={sched.metricId} style={{ fontSize: '0.875rem' }}>
                     <strong>{name}</strong>: {detail}

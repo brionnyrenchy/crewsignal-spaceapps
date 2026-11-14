@@ -769,6 +769,9 @@ impl Database {
         profile_id: &str,
         review: Value,
     ) -> Result<Value, CommandError> {
+        if review.get("profileId").and_then(Value::as_str).is_some_and(|id| id != profile_id) {
+            return Err(CommandError::new("PROFILE_MISMATCH", "Review belongs to another profile."));
+        }
         let id = str_any(&review, &["reviewId", "id"])?;
         let action_id = str_field(&review, "actionId")?;
         let reviewed_at = str_any(&review, &["reviewedAtUtc", "reviewedAt"])?;
@@ -781,13 +784,18 @@ impl Database {
         tx.execute(
             "INSERT INTO action_reviews (profile_id, id, action_id, reviewed_at, payload_json)
              VALUES (?1, ?2, ?3, ?4, ?5)
-             ON CONFLICT(profile_id, id) DO UPDATE SET payload_json = excluded.payload_json",
+             ON CONFLICT(profile_id, id) DO NOTHING",
             params![profile_id, id, action_id, reviewed_at, review.to_string()],
         )
         .map_err(map_sqlite_err)?;
 
+        let payload: String = tx.query_row(
+            "SELECT payload_json FROM action_reviews WHERE profile_id = ?1 AND id = ?2",
+            params![profile_id, id], |row| row.get(0),
+        ).map_err(map_sqlite_err)?;
+        let saved = serde_json::from_str(&payload).map_err(map_json_err)?;
         tx.commit().map_err(map_sqlite_err)?;
-        Ok(review)
+        Ok(saved)
     }
 
     pub fn save_draft(&self, profile_id: &str, draft: Value) -> Result<SaveDraftOutcome, CommandError> {
@@ -2222,6 +2230,31 @@ mod tests {
             .iter()
             .map(|o| o["observationId"].as_str().unwrap_or_default().to_string())
             .collect()
+    }
+
+    #[test]
+    fn guidance_review_revisions_are_profile_scoped_and_duplicate_taps_preserve_time() {
+        let c = contract();
+        let seed: ProfileSeedInput = serde_json::from_value(c["seed"].clone()).unwrap();
+        let profile = seed.profile.id.clone();
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("reviews.db");
+        let db = Database::open_file(&path).unwrap();
+        db.ensure_demo_seed_if_missing(seed).unwrap();
+        let old = json!({"reviewId":"tuple-v1", "actionId":"action-review-sleep-routine", "profileId":profile,
+            "observationId":"sleep-1", "referenceId":"ref-1", "referenceVersion":1, "ruleId":"sleep-rule", "ruleVersion":"v1",
+            "sourceIds":["a","b"], "sourceVersions":{"a":"v1","b":"v1"}, "reviewed":true, "reviewedAtUtc":"2026-11-14T01:00:00Z"});
+        let saved = db.record_action_review(&profile, old.clone()).unwrap();
+        let mut duplicate = old.clone(); duplicate["reviewedAtUtc"] = json!("2026-11-14T02:00:00Z");
+        assert_eq!(db.record_action_review(&profile, duplicate).unwrap(), saved);
+        let mut fresh = old.clone(); fresh["reviewId"] = json!("tuple-v2"); fresh["sourceVersions"]["b"] = json!("v2");
+        db.record_action_review(&profile, fresh).unwrap();
+        let mut wrong = old.clone(); wrong["profileId"] = json!("another-profile");
+        assert!(db.record_action_review(&profile, wrong).is_err());
+        drop(db);
+        let reopened = Database::open_file(&path).unwrap();
+        let data = reopened.load_profile_bundle(&profile).unwrap();
+        assert_eq!(data.action_reviews.iter().filter(|r| r["reviewId"]=="tuple-v1" || r["reviewId"]=="tuple-v2").count(), 2);
     }
 
     #[test]

@@ -109,7 +109,7 @@ describe("Review P1: Windows backup restore", () => {
     // Export of the restored profile carries the same history.
     const again = exportBackup(restored);
     expect(again.profile.mode).toBe("demo");
-    expect(again.history?.actionReviews).toEqual(bundle.history?.actionReviews);
+    expect(again.history?.actionReviews).toEqual(bundle.history?.actionReviews.map(r => ({ ...r, profileId: "restored-demo-t1" })));
 
     // A repeat import with a colliding ID is refused without touching the first copy.
     await expect(desktopBridge.restoreBackup(request)).rejects.toMatchObject({

@@ -1,10 +1,11 @@
 import {
   ACTION_CONTENT_LIST,
   buildSleepInsight,
+  guidanceReviewIdentity,
   EVIDENCE_REGISTRY,
   getLatestObservationsByMetric,
 } from "../shared/src";
-import { desktopBridge } from "../bridge/desktopBridge";
+import { desktopBridge, currentActionReview } from "../bridge/desktopBridge";
 import { useApp } from "../state/AppContext";
 
 export function ActionsRoute() {
@@ -37,24 +38,16 @@ export function ActionsRoute() {
       })
     : null;
 
-  const isSleepReviewed = Boolean(
-    sleepInsight &&
-      snapshot.profileData.actionReviews.find(
-        (r) =>
-          r.actionId === "action-review-sleep-routine" &&
-          r.observationId === sleepInsight.observationId &&
-          r.referenceVersion === sleepInsight.referenceVersion &&
-          r.ruleVersion === sleepInsight.ruleVersion &&
-          r.sourceVersion === (sleepInsight.sourceVersions["nasa-sleep-risk"] ?? "Version 1") &&
-          r.reviewed,
-      ),
-  );
+  const matchingReview = currentActionReview(snapshot.profileData.actionReviews, sleepInsight);
+  const isSleepReviewed = Boolean(matchingReview);
 
   const handleMarkReviewed = async () => {
-    if (!sleepInsight) return;
+    if (!sleepInsight || !guidanceReviewIdentity(sleepInsight)) return;
     const nowIso = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
     await desktopBridge.recordActionReview(activeProfile.profileId, {
-      reviewId: `rev-${sleepInsight.insightId}`,
+      reviewId: guidanceReviewIdentity(sleepInsight)!,
+      profileId: sleepInsight.profileId, referenceId: sleepInsight.referenceId, ruleId: sleepInsight.ruleId,
+      sourceIds: sleepInsight.sourceIds, sourceVersions: sleepInsight.sourceVersions,
       actionId: "action-review-sleep-routine",
       observationId: sleepInsight.observationId,
       referenceVersion: sleepInsight.referenceVersion,
@@ -150,6 +143,7 @@ export function ActionsRoute() {
                 <strong>Scope limitation:</strong> {action.limitation}
               </div>
 
+              {isSleepAction && matchingReview ? <p>Reviewed {matchingReview.reviewedAtUtc}</p> : null}
               <div className="row-wrap" style={{ justifyContent: "space-between", borderTop: "1px solid var(--border-hairline)", paddingTop: 12 }}>
                 <div className="row-wrap" style={{ fontSize: 12, color: "var(--text-supporting)" }}>
                   <span className="mono-label">
