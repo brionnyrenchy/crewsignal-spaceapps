@@ -1,0 +1,35 @@
+name: Feature request
+description: Plan a requested capability with implementation and acceptance details.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Requested outcome
+      description: Explain the user need and the intended behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Context and evidence
+      description: Link the relevant challenge source, current code, tested revision or product decision.
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Proposed implementation
+      description: Describe architecture, affected components, compatibility and failure handling.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and verification
+      description: List observable outcomes and the checks needed for a usable PR.
+    validations:
+      required: true
+  - type: textarea
+    id: related
+    attributes:
+      label: Related work
+      description: Link dependencies and related issues or PRs.

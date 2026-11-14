@@ -1,0 +1,35 @@
+name: Bug report
+description: Record a reproducible problem and the work needed to fix it.
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and impact
+      description: Describe the affected behavior and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction and evidence
+      description: Include the commit, app/device, steps, expected result and actual result. Use synthetic data.
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Proposed implementation
+      description: Describe the architecture, affected code, compatibility, legacy data and failure handling.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and verification
+      description: List observable outcomes, regression checks and required app/device verification.
+    validations:
+      required: true
+  - type: textarea
+    id: related
+    attributes:
+      label: Related work
+      description: Link dependencies and related issues or PRs.

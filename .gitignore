@@ -1,0 +1,82 @@
+# Dependencies & package caches
+node_modules/
+.pnpm-store/
+.yarn/
+
+# Build outputs
+dist/
+build/
+.vite/
+.turbo/
+.parcel-cache/
+release-artifacts/
+
+# Expo & native mobile outputs
+.expo/
+.expo-shared/
+web-build/
+android/
+ios/
+*.tsbuildinfo
+
+# Rust / Tauri desktop build outputs & compiled binaries/packages
+target/
+src-tauri/target/
+*.exe
+*.msi
+*.nsis
+*.apk
+*.aab
+*.ipa
+*.hbc
+
+# Keep lockfiles tracked explicitly
+!package-lock.json
+!Cargo.lock
+
+# Signing keys, certificates, provisioning profiles & secrets
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+*.cer
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+
+# Test & coverage artifacts
+test-results/
+playwright-report/
+blob-report/
+coverage/
+
+# Local SQLite databases & personal backup/export dumps
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*personal-backup*.json
+*crewsignal-backup*.json
+*crewsignal-report*.json
+*crewsignal-draft-recovery*.json
+!shared/fixtures/example-*.json
+backups/
+exports/
+
+# OS & editor artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
