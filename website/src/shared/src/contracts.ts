@@ -354,7 +354,16 @@ export const ReferenceValueSchema = z.discriminatedUnion('kind', [
 ]);
 export type ReferenceValue = z.infer<typeof ReferenceValueSchema>;
 
+export const ManualReferenceCaptureSchema = z.object({
+  kind: z.literal('explicit_manual_v1'),
+  primaryText: z.string(), secondaryText: z.string().optional(),
+  unit: z.string(), method: z.string(), context: z.string(),
+  confirmedPreviousReferenceId: z.string().optional(),
+});
+export type ManualReferenceCapture = z.infer<typeof ManualReferenceCaptureSchema>;
+
 export const PersonalReferenceSchema = z.object({
+  manualCapture: ManualReferenceCaptureSchema.optional(),
   referenceId: z.string().min(1),
   profileId: z.string().min(1),
   metricId: MetricIdSchema,

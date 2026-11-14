@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   METRIC_DEFINITIONS,
+  validateManualReference,
+  needsManualReferenceConfirmation,
   METRIC_ORDER,
   type AppearancePreference,
   type MetricId,
@@ -48,7 +50,19 @@ export function SettingsScreen(): React.ReactElement {
   const [missionNameEdit, setMissionNameEdit] = useState(activeProfile?.missionName ?? '');
   const [epochEdit, setEpochEdit] = useState(activeProfile?.missionEpochUtc ?? '');
   const [refMetric, setRefMetric] = useState<Exclude<MetricId, 'mood'>>('sleep');
-  const [refValueText, setRefValueText] = useState('444');
+  const [refValueText, setRefValueText] = useState('');
+  const [refSecondaryText, setRefSecondaryText] = useState('');
+  const [refMethod, setRefMethod] = useState('');
+  const [refContext, setRefContext] = useState('');
+  const [refErrors, setRefErrors] = useState<Record<string,string>>({});
+  const [reviewingReferenceId, setReviewingReferenceId] = useState<string | undefined>();
+  const [confirmedReference, setConfirmedReference] = useState(false);
+  const [savingReference, setSavingReference] = useState(false);
+  useEffect(() => setConfirmedReference(false), [refValueText,refSecondaryText,refMethod,refContext]);
+  useEffect(() => {
+    setRefValueText(''); setRefSecondaryText(''); setRefMethod(''); setRefContext(''); setRefErrors({});
+    setReviewingReferenceId(undefined); setConfirmedReference(false); setStatusMessage(null);
+  }, [activeProfile?.profileId, refMetric]);
   const [refNote, setRefNote] = useState('Personal baseline update');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [destructiveMode, setDestructiveMode] = useState<
@@ -93,38 +107,19 @@ export function SettingsScreen(): React.ReactElement {
   };
 
   const handleSaveReferenceVersion = async () => {
-    const parsed = Number.parseFloat(refValueText.trim());
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      setStatusMessage('Enter a positive numeric reference target.');
-      return;
-    }
-
     const metricDef = METRIC_DEFINITIONS[refMetric];
-    let unit = metricDef.canonicalUnit;
-    let value: ReferenceValue;
-    if (refMetric === 'sleep') {
-      unit = 'min';
-      value = { kind: 'sleep_duration', durationMinutes: Math.round(parsed) };
-    } else if (refMetric === 'blood_pressure') {
-      unit = 'mmHg';
-      value = {
-        kind: 'blood_pressure',
-        systolic: Math.round(parsed),
-        diastolic: Math.max(40, Math.round(parsed) - 40),
-      };
-    } else {
-      value = { kind: 'scalar', value: parsed };
-    }
-
-    await savePersonalReference({
-      metricId: refMetric,
-      provenance: 'user_updated',
-      method: metricDef.methodOptions[0] ?? 'manual_entry',
-      context: metricDef.contextOptions[0] ?? 'routine',
-      unit,
-      value,
-    });
-    setStatusMessage(`Saved new personal reference version for ${metricDef.name}.`);
+    const validation = validateManualReference({metricId:refMetric,primaryText:refValueText,secondaryText:refSecondaryText,method:refMethod,context:refContext,unit:metricDef.canonicalUnit,confirmedPreviousReferenceId:reviewingReferenceId});
+    setRefErrors(validation.errors);
+    if (!validation.valid || !validation.value || !validation.capture) return;
+    if (reviewingReferenceId && !confirmedReference) { setStatusMessage('Confirm both BP inputs, method and context before creating a replacement version.'); return; }
+    if (savingReference) return;
+    setSavingReference(true);
+    try {
+      await savePersonalReference({metricId:refMetric,provenance:'user_updated',method:refMethod,context:refContext,unit:metricDef.canonicalUnit,value:validation.value,manualCapture:validation.capture});
+      setRefValueText(''); setRefSecondaryText(''); setRefMethod(''); setRefContext(''); setReviewingReferenceId(undefined);
+      setStatusMessage('Saved new personal reference version.');
+    } catch { setStatusMessage('Reference was not saved. Your entered values are retained; retry when storage is available.'); }
+    finally { setSavingReference(false); }
   };
 
   return (
@@ -320,38 +315,33 @@ export function SettingsScreen(): React.ReactElement {
                 key={m}
                 label={METRIC_DEFINITIONS[m].shortLabel}
                 selected={refMetric === m}
-                onPress={() => {
-                  setRefMetric(m);
-                  if (m === 'sleep') setRefValueText('444');
-                  else if (m === 'heart_rate') setRefValueText('64');
-                  else if (m === 'blood_pressure') setRefValueText('118');
-                  else if (m === 'blood_glucose') setRefValueText('95');
-                  else setRefValueText('36.7');
-                }}
+                onPress={() => setRefMetric(m)}
               />
             ))}
           </View>
-          <LabeledField
-            label={
-              refMetric === 'sleep'
-                ? 'Target minutes (e.g. 444 = 7h 24m)'
-                : `Canonical target (${METRIC_DEFINITIONS[refMetric].canonicalUnit})`
-            }
-            keyboardType="numeric"
-            value={refValueText}
-            onChangeText={setRefValueText}
-          />
+          <LabeledField testID="reference-primary" label={refMetric === 'blood_pressure' ? 'Systolic' : 'Reference value'} unitLabel={METRIC_DEFINITIONS[refMetric].canonicalUnit} keyboardType="decimal-pad" value={refValueText} onChangeText={setRefValueText} errorText={refErrors.primary} />
+          {refMetric === 'blood_pressure' ? <LabeledField testID="reference-secondary" label="Diastolic" unitLabel="mmHg" keyboardType="decimal-pad" value={refSecondaryText} onChangeText={setRefSecondaryText} errorText={refErrors.secondary} /> : null}
+          <EyebrowLabel>Measurement method (required)</EyebrowLabel>
+          <View style={styles.rowWrap}>{METRIC_DEFINITIONS[refMetric].methodOptions.filter(x=>x!=='Not specified').map(x=><SelectableChip key={x} label={x} selected={refMethod===x} onPress={()=>setRefMethod(x)} />)}</View>
+          {refErrors.method ? <Text accessibilityRole="alert">{refErrors.method}</Text> : null}
+          <EyebrowLabel>Measurement context (required)</EyebrowLabel>
+          <View style={styles.rowWrap}>{METRIC_DEFINITIONS[refMetric].contextOptions.filter(x=>x!=='Not specified').map(x=><SelectableChip key={x} label={x} selected={refContext===x} onPress={()=>setRefContext(x)} />)}</View>
+          {refErrors.context ? <Text accessibilityRole="alert">{refErrors.context}</Text> : null}
+          {reviewingReferenceId ? <View><Text>Review saved reference {reviewingReferenceId}. Verify both BP inputs, method and context.</Text><SelectableChip label="I verified both BP inputs, method and context" selected={confirmedReference} onPress={()=>setConfirmedReference(!confirmedReference)} /></View> : null}
           <LabeledField
             label="Reference source note"
             value={refNote}
             onChangeText={setRefNote}
           />
           <ActionButton
-            label="Create new reference version"
+            testID="save-reference" disabled={savingReference} label="Create new reference version"
             onPress={() => void handleSaveReferenceVersion()}
             variant="secondary"
           />
 
+          {references.filter(r=>r.metricId===refMetric).map(r=><View key={r.referenceId}><Text>{r.label} · {r.status} · {JSON.stringify(r.value)} {r.unit} · {r.method} · {r.context}</Text>
+            {needsManualReferenceConfirmation(r) ? <Text>Needs confirmation before comparison</Text> : null}
+            {needsManualReferenceConfirmation(r) && r.value?.kind==='blood_pressure' ? <ActionButton label="Review previous BP values" onPress={()=>{if(r.value?.kind!=='blood_pressure')return;setRefValueText(String(r.value.systolic));setRefSecondaryText(String(r.value.diastolic));setRefMethod(r.method);setRefContext(r.context);setReviewingReferenceId(r.referenceId);setConfirmedReference(false);}} variant="secondary" /> : null}</View>)}
           <Text style={{ fontFamily: fontMonoRegular, fontSize: 12, color: palette.textSupporting }}>
             {`Stored versions in active profile: ${references.length} (${references.filter((r) => r.status === 'active').length} active, ${references.filter((r) => r.status === 'superseded').length} superseded)`}
           </Text>

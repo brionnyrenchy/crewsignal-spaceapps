@@ -38,6 +38,7 @@ import {
   type PersonalReference,
   type ProfileConfig,
   type ReferenceValue,
+  type ManualReferenceCapture,
   type SleepType,
 } from '../shared/src';
 import { defaultPlatformIo, type PlatformIoAdapter } from '../platform/files';
@@ -257,6 +258,7 @@ export interface CrewSignalContextValue {
     context: string;
     unit: string;
     value: ReferenceValue;
+    manualCapture?: ManualReferenceCapture;
   }) => Promise<void>;
   reviewInsight: (insight: Insight) => Promise<void>;
   commitCsvImport: (params: {
@@ -1238,6 +1240,7 @@ export function CrewSignalProvider({
       context: string;
       unit: string;
       value: ReferenceValue;
+    manualCapture?: ManualReferenceCapture;
     }) => {
       if (!activeProfile) return;
       await store.upsertPersonalReference({

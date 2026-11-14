@@ -1,0 +1,38 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @crewsignal/shared@1.0.0 test
+> vitest run
+
+
+ RUN  v5.1.0 H:/crewsignal-desktop/personal-reference-fix/shared
+
+ Γ¥» tests/references-and-guidance.test.ts (18 tests | 1 failed) 39ms
+   Γ¥» Controlled guidance, evidence registry (2026-11-13), and Help registry (3)
+     ├ù bundles all 8 NASA/CDC/NIST sources checked 2026-11-13 with cached summaries 11ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/references-and-guidance.test.ts > Controlled guidance, evidence registry (2026-11-13), and Help registry > bundles all 8 NASA/CDC/NIST sources checked 2026-11-13 with cached summaries
+AssertionError: expected [ { ΓÇª(16) }, { ΓÇª(16) }, ΓÇª(15) ] to have a length of 8 but got 17
+
+- Expected
++ Received
+
+- 8
++ 17
+
+ Γ¥» tests/references-and-guidance.test.ts:360:27
+    358| describe('Controlled guidance, evidence registry (2026-11-13), and HelΓÇª
+    359|   it('bundles all 8 NASA/CDC/NIST sources checked 2026-11-13 with cachΓÇª
+    360|     expect(EVIDENCE_LIST).toHaveLength(8);
+       |                           ^
+    361|     for (const src of EVIDENCE_LIST) {
+    362|       expect(src.checkedDate).toBe(EVIDENCE_CHECKED_DATE);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed | 8 passed (9)
+      Tests  1 failed | 99 passed (100)
+   Start at  16:32:54
+   Duration  1.85s (import 74%, transform 15%, tests 9%, worker 2%)

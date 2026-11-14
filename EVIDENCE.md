@@ -626,3 +626,41 @@ Dependencies available for the website were reused locally through ignored `node
 | Installed Windows application / Tauri IPC / installed Android phone or tablet | NOT RUN. No updated native binaries were built or installed. App close/reopen and restore are verified only in the SQLite harness, not on installed targets. |
 
 Release acceptance remains open until native dependencies can be provisioned, the normal Android UI and Windows UI/Rust suites run, the stale evidence-count assertion is reconciled, and installed Windows/Android restart/profile/restore checks are recorded separately. No installed-app or clinical validation is claimed.
+
+
+## Explicit manual personal references — 2026-11-14
+
+Tested implementation commit: `7cc61f483ca877edefc32ffc50a48c3896c8fee5`, local branch `fix/explicit-personal-references`, based on `4e94c15a46b3653ee96ac92e360bb61f895bb0f2`. Full native source checkout: `H:\crewsignal-desktop\personal-reference-fix`. The original checkout at `H:\spaceapps-crewsignal\crewsignal-spaceapps` is outside this session's writable roots and remains unchanged.
+
+### Behavior and compatibility
+
+- A shared validator uses the existing strict finite-number parser, metric method/context options, canonical units and reference-value contract. Android has separately labelled systolic/diastolic mmHg fields; neither component is generated from the other. Decimal BP/scalar precision is preserved, including the original input strings in capture provenance; sleep references require the integer minutes allowed by the contract rather than rounding silently.
+- Both reference editors start empty, with no selected method/context, and clear their input/review state on profile or metric changes. Display-unit changes do not reinterpret canonical reference inputs. Field-level errors precede the reference save call. Storage failures have a separate error path which retains entered values; successful saves return to an empty editor.
+- Valid saves use the existing profile-scoped versioning/transaction path. The optional `manualCapture` contract field travels through Android's provider/SQLite and Windows' reference JSON/bridge. Older backups remain parseable because this field is optional; there is no bulk rewrite of historical versions.
+- Legacy `user_updated` BP references without capture evidence proving both components require review before comparison. This intentionally includes unverifiable legacy records on either platform: the numeric pair, an arithmetic relationship, or a label alone is not evidence of how Android captured it. Entered-preflight and seven-day-derived references keep their existing eligibility rules.
+- Legacy pairs stay visible in history with a confirmation-required label. Selecting Review previous BP values opens a labelled review flow; a separate confirmation is required before creating a replacement version. Editing any reviewed value/method/context clears that confirmation. The original remains in history, and validation/storage rejection does not supersede it. Ordinary observations, component-wise BP deltas and seven-day derivation rules are unchanged.
+
+### Harness checks
+
+Available website dependencies were reused through ignored local node_modules junctions. The Android storage harness uses the real store and Node SQLite driver, aliases Jest test globals to Vitest, and temporarily bypasses the missing Expo compiler preset for pure storage tests; its wrapper restores the original configuration bytes. The desktop editor harness renders the real Settings editor but mocks app context and bridge writes; unavailable native API imports are explicit rejecting stubs. These are not installed-app tests.
+
+| Command | Outcome |
+| --- | --- |
+| `node website/node_modules/vitest/vitest.mjs run --root shared tests/manual-references.test.ts` | PASS: 17 focused checks. Strict/malformed numbers, missing BP component/context/method, canonical units, full precision, fractional sleep rejection, readable legacy values, explicit version replacement, component deltas and incompatible method/context. See `evidence/personal-reference/shared.txt`. |
+| `npm run typecheck --prefix shared` | PASS, including the focused test types. |
+| `npm test --prefix shared` | 99 passed, 1 failed. The unchanged source-registry assertion still expects 8 sources while the registry has 17. All new reference checks passed. See `evidence/personal-reference/shared-full.txt`. Local CRLF-only CSV/font-license checkout differences were restored to original Git blob bytes before the full run; no fixture/font source changes are included. |
+| `node evidence/personal-reference/run-sqlite.cjs` | PASS: 7 checks (new reference persistence regression plus existing SQLite transactions). Verifies empty Personal reference history; invalid capture with no reference writes; exact 118/76 and selected method/context; actual on-disk database close/reopen; display-unit preference change; injected persistence failure and rollback; preserved input/reference values, observation independence, backup restore and profile scoping. See `evidence/personal-reference/android-sqlite.txt`. |
+| `node website/node_modules/vitest/vitest.mjs run --config evidence/personal-reference/windows.config.ts` | PASS: 2 real editor/bridge-contract UI checks. Empty Personal defaults, single-component and malformed rejection with zero bridge calls, field validation, failed persistence preserving inputs, display-unit/profile changes, and explicit legacy confirmation. See `evidence/personal-reference/windows-editor.txt`. |
+| `npm run typecheck --prefix website` and `npm test --prefix website` | PASS; browser suite has 16 passing tests with the additive reference contract and updated comparison guard. See `evidence/personal-reference/browser.txt`. |
+| `node shared/scripts/sync-to-targets.mjs --write all` | PASS after shared edits; all three consumers carry the shared validator/schema/comparison guard. |
+| `node scripts/verify-clean-source.mjs` | PASS from this native source checkout: 42/42 managed shared files match each target. See `evidence/personal-reference/clean-source.txt`. |
+| `git diff --check` | PASS for the implementation changes. |
+
+### Native harness and installed-app status
+
+- `npm test --prefix mobile -- --runInBand`: BLOCKED before tests because Jest is not installed. Added 390px phone and 834px tablet editor UI cases (empty Personal defaults, explicit pair, malformed input/context, failed save and metric switching), but these normal React Native UI cases have not executed. The Expo/React Native dependency set is unavailable. See `evidence/personal-reference/android-ui.txt`.
+- `npm test --prefix desktop`: BLOCKED during module resolution by missing Tauri API packages. The isolated Settings editor checks above passed; the full Windows suite did not run. See `evidence/personal-reference/windows-full.txt`.
+- Desktop typecheck is blocked by absent Tauri/Three.js types. Android typecheck is blocked by the absent Expo base tsconfig/native packages. Neither is claimed as passing.
+- Installed Windows, Android phone and Android tablet: NOT RUN. No updated native binary was built/installed; relaunch, input accessibility, and backup behavior on installed apps remain open. SQLite reopen is harness evidence only.
+
+Acceptance is not fully verified until the native dependencies are provisioned, the normal UI suites and installed target scenarios run, and the unrelated source-count assertion is reconciled. No installed-app or clinical validation is claimed.

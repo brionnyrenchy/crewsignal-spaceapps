@@ -40,6 +40,7 @@ import {
   type PersonalReference,
   type ProfileConfig,
   type ReferenceValue,
+  type ManualReferenceCapture,
   type UnknownOutcomeResolution,
 } from '../shared/src';
 import type { SqliteDriver, SqliteSession } from './driver';
@@ -987,6 +988,7 @@ export class CrewSignalSqliteStore {
     context: string;
     unit: string;
     value: ReferenceValue;
+    manualCapture?: ManualReferenceCapture;
     nowUtc: string;
   }): Promise<PersonalReference> {
     return this.driver.withTransaction(async (tx) => {
@@ -1004,6 +1006,7 @@ export class CrewSignalSqliteStore {
         context: params.context,
         unit: params.unit,
         value: params.value,
+        manualCapture: params.manualCapture,
         createdAtUtc: params.nowUtc,
         referenceIdPrefix: makeId(`ref-${params.metricId}`),
       });
