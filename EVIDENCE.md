@@ -1,5 +1,15 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Scheduled check-in prompts
+
+| Verification level | Result |
+| --- | --- |
+| Source checks | Shared sync and clean-source verification passed across all three targets. |
+| Harness | Added SIM-SCHEDULE coverage for a past interval, first check-in, removal of a schedule, metric-only notification text, and opening the Windows blood pressure form. Harness execution is pending. Vitest could not load the test module from the sandbox temporary path, and the workspace dependency install failed with EPERM. |
+| Emulator | Pending. No Android emulator or ADB tooling was available. |
+| Installed devices | Pending on offline Android phone, Android tablet and installed Windows. Windows notifications require CrewSignal to be open. The Windows Rust lockfile and native build also remain pending because Cargo was unavailable. |
+
+Device verification should enable notifications explicitly, confirm a due reminder offline with only the metric name, then disable the schedule and confirm no further reminder. Open the prompted check-in and skip it to verify the existing skipped event without creating a reading.
 ## Issue #11 Getting Started Verification
 
 On November 14, 2026, the working changes based on `9f3e66c` passed shared and native-app type checks, 34 Windows UI tests, 54 Android harness tests, the Windows frontend build, and the Android JavaScript export (`expo export --platform android --no-bytecode`). Clean-source verification matched 42 shared files across all targets.

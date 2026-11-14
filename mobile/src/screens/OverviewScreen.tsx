@@ -214,6 +214,28 @@ export function OverviewScreen(): React.ReactElement {
         subtitle={`${activeProfile.missionName} · ${coveredTypes} of 6 indicators logged · ${observations.length} committed ${observations.length === 1 ? 'entry' : 'entries'}`}
       />
 
+      {dueSchedules.length > 0 && (
+        <View style={{ gap: 8 }}>
+          <EyebrowLabel>Due now</EyebrowLabel>
+          {dueSchedules.map((item) => {
+            const name = METRIC_DEFINITIONS[item.metricId].name;
+            const msg =
+              item.result.status === 'due_no_entries'
+                ? `First check-in due (every ${item.result.intervalLabel}).`
+                : `${name} was logged ${item.result.ageLabel} ago (past ${item.result.intervalLabel} interval).`;
+            return (
+              <CalmBanner
+                key={item.metricId}
+                testID={`schedule-due-${item.metricId}`}
+                title={`${name} due`}
+                message={msg}
+                tone="review"
+                actionLabel={`Log ${METRIC_DEFINITIONS[item.metricId].shortLabel}`}
+                onAction={() => startOrResumeCheckIn(item.metricId)}
+              />
+            );
+          })}
+        </View>
       {activeProfile.mode === 'demo' && !gettingStarted && (
         <ActionButton label="Getting started" variant="secondary" onPress={openGettingStarted} />
       )}
@@ -273,25 +295,6 @@ export function OverviewScreen(): React.ReactElement {
       </PanelCard>
 
       {/* Scheduled prompt if configured (e.g. SIM-SCHEDULE 24h BP) */}
-      {dueSchedules.map((item) => {
-        const name = METRIC_DEFINITIONS[item.metricId].name;
-        const msg =
-          item.result.status === 'due_no_entries'
-            ? `${name} is due (every ${item.result.intervalLabel}) — no entries yet.`
-            : `${name} was logged ${item.result.ageLabel} ago (past ${item.result.intervalLabel} interval).`;
-        return (
-          <CalmBanner
-            key={item.metricId}
-            testID={`schedule-due-${item.metricId}`}
-            title={`${name} due`}
-            message={msg}
-            tone="review"
-            actionLabel={`Log ${METRIC_DEFINITIONS[item.metricId].shortLabel}`}
-            onAction={() => startOrResumeCheckIn(item.metricId)}
-          />
-        );
-      })}
-
       {/* Compact Action Row: Review sleep */}
       {generatedSleepInsight && generatedSleepInsight.comparisonAvailable ? (
         <PanelCard testID="overview-review-sleep-card">
