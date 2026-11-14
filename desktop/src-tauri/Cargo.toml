@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "CrewSignal Windows Desktop Application — Spaceflight personal health monitoring research prototype"
 authors = ["POP N' SEB"]
 edition = "2021"
-rust-version = "1.82"
+rust-version = "1.90"
+resolver = "3"
 
 [lib]
 name = "crewsignal_desktop_lib"
