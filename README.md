@@ -1,18 +1,27 @@
-# Commit changes - Shared core
+# Commit changes - Website and browser demo
 
-Branch: `01-shared-core`. Separately editable module snapshot from CrewSignal source commit `46227a7f2d61c19e0d4f4e9ffbe68a878cac1a77`.
+Branch: `02-website`. Separately editable module snapshot from CrewSignal source commit `46227a7f2d61c19e0d4f4e9ffbe68a878cac1a77`.
 
-Includes `shared/`, license, credits, dependency notices and contribution guidance. Other apps and whole-project verification scripts are omitted. Shared core is a TypeScript library, not a standalone application.
+Includes `website/` and `shared/`, license, credits, dependency notices and contribution guidance. Other apps and whole-project verification scripts are omitted. Shared core is a TypeScript library, not a standalone application.
 
 ## Install and develop
 
 Use Node.js 22 or newer and npm.
 
 ```powershell
-cd shared
+cd website
 npm ci
 npm run typecheck
 npm test
+npm run build
+npm run dev
+```
+
+See [website/README.md](website/README.md) for app details. From the repository root, check/update shared files with:
+
+```powershell
+node shared/scripts/sync-to-targets.mjs --check website
+node shared/scripts/sync-to-targets.mjs --write website
 ```
 
 ## Commit changes
@@ -20,7 +29,7 @@ npm test
 From the project root, stage the files you edited, then:
 
 ```powershell
-git commit -m "feat(shared): describe your change"
+git commit -m "feat(website): describe your change"
 git push origin HEAD
 ```
 
