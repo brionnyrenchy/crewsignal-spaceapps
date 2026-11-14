@@ -174,6 +174,8 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     expect(print).toContain('Blood pressure');
     for (const payload of [json, csv, print]) expect(payload).not.toContain('SENTINEL');
     expect((await store.loadProfileSnapshot(row.profileId)).observations[0]).toEqual(legacy);
+  });
+
   test('source-only revision reviews the current Actions tuple from a stale provider snapshot in one click', async () => {
     const { store } = await renderTestApp();
     await screen.findByTestId('overview-review-sleep-btn');
