@@ -786,7 +786,7 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
     expect(ticks.filter((t) => /h$/.test(t))).toEqual(['0h', '5h', '10h']);
     await runAxeCheck(page, 'Calmer Overview desktop');
   });
-  test('10. Review P2: landing page has a phone menu, team entry, planned platforms and credits', async ({ page }) => {
+  test('10. Review P2: landing page has a phone menu, team entry, download status and credits', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Landing navigation' });
@@ -796,8 +796,18 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
     await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden();
     await expect(page.getByText('Manual entry · Local processing · Offline after initial setup.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'View this data in the demo' })).toHaveAttribute('href', '/demo/trends');
-    await expect(page.getByText('Available · synthetic demo')).toBeVisible();
-    await expect(page.getByText('Planned', { exact: true })).toHaveCount(2);
+    await expect(page.getByRole('link', { name: 'Native app downloads' })).toHaveAttribute('href', '#platforms');
+    await expect(page.getByRole('link', { name: 'Open browser demo' })).toHaveAttribute('href', '/demo');
+    await expect(page.getByRole('heading', { name: 'Windows x64' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Android phones and tablets' })).toBeVisible();
+    for (const [heading, platform] of [
+      ['Windows x64', 'Windows'],
+      ['Android phones and tablets', 'Android'],
+    ]) {
+      const card = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: heading }) });
+      await expect(card.getByText('Download pending release verification.', { exact: true })
+        .or(card.getByRole('link', { name: new RegExp(`^Download ${platform} `) }))).toBeVisible();
+    }
     const team = page.getByRole('link', { name: 'Team entry on spaceappschallenge.org' });
     await expect(team).toHaveAttribute(
       'href',

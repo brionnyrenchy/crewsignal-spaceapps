@@ -257,8 +257,8 @@ export function OverviewPage() {
                   : cmp?.unavailableReason;
                 const statusId = `reading-status-${metricId}`;
                 return (
-                  <li key={metricId} className="cs-reading" aria-labelledby={`${statusId}-name`} aria-describedby={statusId}>
-                    <span id={`${statusId}-name`} className="cs-mono-stamp">{def.shortLabel}</span>
+                  <li key={metricId} className="cs-reading">
+                    <span className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
                         <span className="cs-mono-value cs-reading-value">
@@ -344,7 +344,7 @@ export function OverviewPage() {
                     ? `Overdue · ${sched.ageLabel} since last entry (${sched.intervalLabel} interval)`
                     : sched.status === 'within_interval'
                       ? `Within ${sched.intervalLabel} interval · last logged ${sched.ageLabel} ago`
-                      : `Due · ${sched.intervalLabel} interval configured (no entries yet)`;
+                      : `First check-in due · ${sched.intervalLabel} interval configured`;
                 return (
                   <div key={sched.metricId} style={{ fontSize: '0.875rem' }}>
                     <strong>{name}</strong>: {detail}
