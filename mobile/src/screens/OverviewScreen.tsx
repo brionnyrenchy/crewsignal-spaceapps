@@ -162,7 +162,7 @@ export function OverviewScreen(): React.ReactElement {
               marginTop: 6,
             }}
           >
-            Opening encrypted-sandbox SQLite records on this device.
+            Opening your records stored on this device.
           </Text>
         </PanelCard>
       </View>
