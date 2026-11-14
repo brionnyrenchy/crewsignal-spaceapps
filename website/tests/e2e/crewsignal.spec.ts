@@ -25,6 +25,31 @@ async function assertNoHorizontalOverflow(page: Page, contextLabel: string) {
 }
 
 test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
+  test('latest readings show a distinct text status in both themes and forced colors', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/demo');
+
+    const badges = page.locator('.cs-readings .reading-status');
+    await expect(badges).toHaveCount(6);
+    await expect(page.getByRole('link', { name: 'Log mood', exact: true })).toHaveAccessibleDescription('No reference');
+    await expect(page.getByRole('link', { name: 'Add blood glucose', exact: true })).toHaveAccessibleDescription('Not logged');
+
+    for (const theme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme: theme });
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      const audit = await new AxeBuilder({ page }).include('.cs-readings').withRules(['color-contrast']).analyze();
+      expect(audit.violations).toEqual([]);
+      await assertNoHorizontalOverflow(page, `reading statuses in ${theme}`);
+    }
+
+    await page.emulateMedia({ forcedColors: 'active' });
+    await expect(page.getByRole('link', { name: 'Log mood', exact: true })).toHaveAccessibleDescription('No reference');
+    await page.goto('/demo/help');
+    await expect(page.getByRole('heading', { name: 'Reading status legend' })).toBeVisible();
+    await expect(page.locator('.reading-status-legend .reading-status')).toHaveCount(5);
+  });
+
   test('1. Landing page uses local assets only, renders cleanly across themes/viewports, and passes WCAG 2.2 AA', async ({
     page,
   }) => {

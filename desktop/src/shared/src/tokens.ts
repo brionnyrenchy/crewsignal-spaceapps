@@ -1,3 +1,5 @@
+import type { ReadingStatus } from './readingStatus';
+
 /**
  * Canonical CrewSignal semantic design tokens matching root DESIGN.md.
  * Dark theme follows GradientDeck Linear; Light theme follows full Vercel reference.
@@ -19,6 +21,7 @@ export interface ThemePaletteTokens {
   reviewFg: string;
   reviewBadgeBg: string;
   confirmationFg: string;
+  readingStatus: Record<ReadingStatus, { fg: string; bg: string }>;
   radiusCard: number;
   radiusControl: number;
   radiusBadge: number;
@@ -45,6 +48,13 @@ export const DARK_THEME_TOKENS: ThemePaletteTokens = {
   reviewFg: '#f6bf58',
   reviewBadgeBg: '#211c12',
   confirmationFg: '#27a644',
+  readingStatus: {
+    near: { fg: '#9ae6d3', bg: '#132925' },
+    differs: { fg: '#f6cf87', bg: '#302415' },
+    no_reference: { fg: '#d8ccf1', bg: '#282039' },
+    stale: { fg: '#b8d5f9', bg: '#1b2a40' },
+    not_logged: { fg: '#d0d6e0', bg: '#252830' },
+  },
   radiusCard: 12,
   radiusControl: 6,
   radiusBadge: 4,
@@ -71,6 +81,13 @@ export const LIGHT_THEME_TOKENS: ThemePaletteTokens = {
   reviewFg: '#171717',
   reviewBadgeBg: '#f0f0f0',
   confirmationFg: '#297a3a',
+  readingStatus: {
+    near: { fg: '#155349', bg: '#e1f3ee' },
+    differs: { fg: '#714508', bg: '#fff0d5' },
+    no_reference: { fg: '#523b77', bg: '#f1eafa' },
+    stale: { fg: '#264e7f', bg: '#e8f1ff' },
+    not_logged: { fg: '#494f59', bg: '#edf0f4' },
+  },
   radiusCard: 6,
   radiusControl: 6,
   radiusBadge: 6,

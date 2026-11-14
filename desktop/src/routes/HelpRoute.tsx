@@ -1,5 +1,6 @@
 import { ExternalLink, HardDrive } from "lucide-react";
 import { describeMissionContact, EVIDENCE_LIST, resolveHelpContent } from "../shared/src";
+import { ReadingStatusLegend } from "../components/ReadingStatusBadge";
 import { desktopBridge } from "../bridge/desktopBridge";
 import { useApp } from "../state/AppContext";
 
@@ -35,6 +36,10 @@ export function HelpRoute() {
           </button>
         </div>
       </div>
+
+      <section className="panel-card stack-md">
+        <ReadingStatusLegend />
+      </section>
 
       <section className="panel-card stack-md" aria-labelledby="help-procedure-heading">
         <div className="row-wrap" style={{ justifyContent: "space-between" }}>

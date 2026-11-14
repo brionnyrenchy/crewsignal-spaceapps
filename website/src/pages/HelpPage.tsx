@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, HardDriveDownload, ShieldAlert } from 'lucide-react';
 import { describeMissionContact, resolveHelpContent } from '../shared';
 import { useAppState } from '../state/AppStateContext';
+import { ReadingStatusLegend } from '../components/ReadingStatusBadge';
 
 export function HelpPage() {
   const { preferences } = useAppState();
@@ -21,6 +22,10 @@ export function HelpPage() {
           </p>
         </div>
       </header>
+
+      <section className="cs-card cs-stack">
+        <ReadingStatusLegend />
+      </section>
 
       <article className="cs-card cs-stack" style={{ gap: '14px' }}>
         <div
