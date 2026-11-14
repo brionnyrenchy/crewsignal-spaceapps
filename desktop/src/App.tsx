@@ -12,7 +12,7 @@ import { SettingsRoute } from "./routes/SettingsRoute";
 import { HelpRoute } from "./routes/HelpRoute";
 
 function RouteSwitch() {
-  const { route } = useApp();
+  const { route, readingReportScope, activeProfile } = useApp();
 
   switch (route) {
     case "overview":
@@ -28,7 +28,7 @@ function RouteSwitch() {
     case "sources":
       return <SourcesRoute />;
     case "reports":
-      return <ReportsRoute />;
+      return <ReportsRoute key={readingReportScope ? `selected-readings:${activeProfile?.profileId}` : "general-report"} />;
     case "settings":
       return <SettingsRoute />;
     case "help":

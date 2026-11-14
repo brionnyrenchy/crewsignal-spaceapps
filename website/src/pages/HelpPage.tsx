@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, HardDriveDownload, ShieldAlert } from 'lucide-react';
-import { resolveHelpContent } from '../shared';
+import { describeMissionContact, resolveHelpContent } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 
 export function HelpPage() {
@@ -55,6 +55,7 @@ export function HelpPage() {
         <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
           {card.body}
         </p>
+        <p>{describeMissionContact(preferences.helpMode)}</p>
 
         <ol
           style={{

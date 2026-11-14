@@ -282,6 +282,7 @@
     "versionLabel": "Version demo 1 · Cached example",
     "cachedAvailable": true,
     "body": "Example content for navigation and offline access testing only. Real mission guidance requires supplied applicable reviewed content before enabling it.",
+    "contactRoute": "Example contact route (test fixture only): use the onboard mission communications channel to reach the crew medical officer.",
     "steps": [
       "Verify the local cached procedure version and check date before relying on offline copy.",
       "Follow your team-supplied onboard procedure document rather than this test placeholder."

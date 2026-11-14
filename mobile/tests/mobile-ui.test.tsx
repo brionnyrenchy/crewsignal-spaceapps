@@ -83,6 +83,8 @@ function flattenMinWidth(styleProp: unknown): number {
 }
 
 describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflows', () => {
+  const testClockUtc = '2026-11-13T07:18:00Z';
+  const DeviceDate = globalThis.Date;
   const cleanups: Array<() => Promise<void>> = [];
 
   function setViewport(width: number, height: number, scale = 3, fontScale = 1) {
@@ -94,12 +96,19 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
 
   beforeEach(() => {
     jest.restoreAllMocks();
+    // Profile creation reads the device date directly. Keep async timers real.
+    globalThis.Date = new Proxy(DeviceDate, {
+      construct(target, args, newTarget) {
+        return Reflect.construct(target, args.length === 0 ? [testClockUtc] : args, newTarget);
+      },
+    });
     jest.spyOn(ReactNative.Appearance, 'getColorScheme').mockReturnValue('dark');
     jest.spyOn(ReactNative, 'useColorScheme').mockReturnValue('dark');
     setViewport(390, 844, 3, 1);
   });
 
   afterEach(async () => {
+    globalThis.Date = DeviceDate;
     jest.restoreAllMocks();
     while (cleanups.length > 0) {
       const fn = cleanups.pop();
@@ -121,7 +130,7 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
       <App
         store={store}
         io={io}
-        clockOverrideUtc="2026-11-13T07:18:00Z"
+        clockOverrideUtc={testClockUtc}
         simulateLoadFailure={options?.simulateLoadFailure}
         skipFontLoading
       />,

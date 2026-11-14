@@ -5,6 +5,7 @@ import {
   type EvidenceReference,
   type HelpProcedureCard,
   type Insight,
+  type MetricId,
   type Observation,
   type PersonalReference,
 } from './contracts';
@@ -290,6 +291,7 @@ export const CONFIGURED_HELP_TEST_FIXTURE: HelpProcedureCard = {
   versionLabel: 'Version demo 1 · Cached example',
   cachedAvailable: true,
   body: 'Example content for navigation and offline access testing only. Real mission guidance requires supplied applicable reviewed content before enabling it.',
+  contactRoute: 'Example contact route (test fixture only): use the onboard mission communications channel to reach the crew medical officer.',
   steps: [
     'Verify the local cached procedure version and check date before relying on offline copy.',
     'Follow your team-supplied onboard procedure document rather than this test placeholder.',
@@ -309,6 +311,10 @@ export function resolveHelpContent(
   return helpMode === 'configured_fixture'
     ? CONFIGURED_HELP_TEST_FIXTURE
     : DEFAULT_UNCONFIGURED_HELP;
+}
+
+export function describeMissionContact(helpMode: AppPreferences['helpMode']): string {
+  return resolveHelpContent(helpMode).contactRoute ?? 'No mission contact route is configured in Help.';
 }
 
 /**

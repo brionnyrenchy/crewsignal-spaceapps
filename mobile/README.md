@@ -1,6 +1,6 @@
 # CrewSignal Mobile (`source/mobile`)
 
-Packaged offline-first iOS and Android client for **CrewSignal** (NASA Space Apps 2026 · Team POP N' SEB), built with **Expo SDK 58**, **React Native**, **TypeScript**, and **`expo-sqlite`**.
+Packaged offline-first **CrewSignal** client for Android phones and tablets (NASA Space Apps 2026 · Team POP N' SEB), built with **Expo SDK 58**, **React Native**, **TypeScript**, and **`expo-sqlite`**.
 
 > **Safety & scope notice**: CrewSignal is a personal physiological wellness logbook and synthetic scenario prototype (`SIM-01`). It does not diagnose, treat, cure, or prevent any medical condition.
 
@@ -41,7 +41,7 @@ Loaded locally via `src/platform/fonts.ts` (`loadBundledFonts`) with zero CDN/ne
 
 ### Transactional SQLite Persistence (`src/storage/`)
 - **`schema.ts` (`CREWSIGNAL_DB_SCHEMA_VERSION = 1`)**: WAL journal mode, foreign keys enforced, `PRIMARY KEY (profile_id, ...)` scoping across `profiles`, `observations`, `check_in_drafts`, `check_in_events`, `personal_references`, `insight_reviews`, and `import_batches`, plus `idx_observations_profile_draft` idempotence unique index on `(profile_id, source_draft_id)`.
-- **`driver.ts` / `expoDriver.ts` / `nodeDriver.ts`**: Shared `SqliteDriver` interface implemented by `ExpoSqliteDriver` (`withExclusiveTransactionAsync` on iOS/Android) and `NodeSqliteDriver` (`node:sqlite` `DatabaseSync` in Jest), ensuring tests run directly against the real SQL/transaction queries in `sqliteStore.ts`.
+- **`driver.ts` / `expoDriver.ts` / `nodeDriver.ts`**: Shared `SqliteDriver` interface implemented by `ExpoSqliteDriver` (`withExclusiveTransactionAsync` on Android) and `NodeSqliteDriver` (`node:sqlite` `DatabaseSync` in Jest), ensuring tests run directly against the real SQL/transaction queries in `sqliteStore.ts`.
 - **Atomic operations**: Observation commit + draft closure + workflow event in one transaction, lost-acknowledgement idempotence recovery, failed commit rollback preserving draft state, 5-row CSV staged reconciliation with whole-pair Blood Pressure correction history, full profile backup export/restore (`separate_profile` default + guarded `replace_existing`; one app-level operation owner in `CrewSignalProvider` refuses any second backup, Replace, demo reset or Personal deletion until the first finishes, even after the dialog closes or Reports is left; the safety backup goes to a native-picked folder and repeat saves get a `name (2).json` filename), uncommitted `DraftRecoveryBundle` export/resume, scoped `SIM-01` demo reset, and blank pseudonymous Personal profiles.
 
 ### Native UI, Themes & Accessibility (`src/`)
@@ -74,13 +74,12 @@ npm run typecheck
 # Run SQLite transaction, canonical-vector, and RNTL mobile UI suites
 npm test
 
-# Export production iOS & Android Hermes JS bundles + font assets to ./dist
+# Export production Android Hermes JS bundle + font assets to ./dist
 npm run export
 
-# Local native Android / iOS builds (requires native SDK prerequisites below)
+# Local native Android builds (requires native SDK prerequisites below)
 npm run prebuild:android
 npm run android
-npm run ios
 ```
 
 Verify shared-bundle parity from the `source/` workspace root:
@@ -89,13 +88,13 @@ Verify shared-bundle parity from the `source/` workspace root:
 node shared/scripts/sync-to-targets.mjs --check mobile
 ```
 
-EAS build profiles (`development`, `preview`, `production`) are defined in [eas.json](eas.json) with Android `buildType: "apk"` and iOS `simulator` / `internal` configurations; [app.json](app.json) defines `crewsignal`, bundle ID `org.spaceapps.popnseb.crewsignal`, `supportsTablet: true`, and `userInterfaceStyle: "automatic"`.
+[eas.json](eas.json) defines Android APK build profiles for `development`, `preview`, and `production`. [app.json](app.json) defines the `crewsignal` scheme, Android package `org.spaceapps.popnseb.crewsignal`, and `userInterfaceStyle: "automatic"`.
 
 ---
 
 ## Native Build Prerequisites & Environment Status
 
 The following toolchain status was observed during verification on the Windows 11 host:
-- **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1` (`tsc --noEmit`, Jest suites, and `npx expo export --platform ios --platform android` all ran cleanly).
-- **Not installed on this Windows host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent), `eas` CLI, and macOS Xcode / CocoaPods (required for iOS native compilation).
-- Generating installable `.apk` / `.ipa` binaries or testing physical devices (VoiceOver / TalkBack / native print preview) requires an Android SDK environment (`npm run android` or `eas build --profile preview --platform android`) and macOS Xcode (or `eas build --profile preview --platform ios`).
+- **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1`, TypeScript, Jest, and Android Hermes export.
+- **Unavailable on the verification host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent) and EAS CLI.
+- Build and run locally with `npm run android` in an Android SDK environment. To generate a preview APK with EAS, run `eas build --profile preview --platform android`. Install the APK on Android phones and tablets to test TalkBack and native print preview.

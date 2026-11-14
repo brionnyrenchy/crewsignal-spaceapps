@@ -1,5 +1,10 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Issue #1 Mobile Verification
+
+On November 14, 2026, the issue #1 changes based on `8b67a8c` passed mobile typechecking and all 45 tests across 5 suites on Windows with Node `26.12.1` and npm `11.20.0`. The offline `npm run export` produced one Android Hermes bundle and six bundled fonts. The export metadata listed only Android.
+
+Clean-source verification passed after temporarily normalizing CRLF line endings in the website and desktop shared copies. The original checkout line endings were restored. Native APK installation and physical Android device checks remain open.
 
 ## 1. Host Environment & Toolchain Matrix
 
@@ -13,7 +18,6 @@
 | Java Runtime (JDK) | `26.0.1` |
 | Browser E2E & Accessibility | Playwright Chromium (`@playwright/test@1.65.0`, `@axe-core/playwright@4.14.0`) |
 | Android Native SDK / EAS CLI | Not installed on host (`ANDROID_HOME` unset; `adb`, `sdkmanager`, `gradle`, `eas` absent) |
-| macOS / Xcode / CocoaPods | Not available on Windows host (required for signed iOS `.ipa` native compilation) |
 | Windows Authenticode Certificate | Not configured on host (Windows `.exe` and NSIS installer built as `NotSigned`) |
 
 ---
@@ -74,7 +78,7 @@
   - Author suite (`npm run test:e2e`): `4 passed` (`0` failed)
   - Independent `@verifier` live audit: `0` external requests, `0` page/console errors, `0` `axe-core` violations (including `forcedColors: "active"` Windows High Contrast in Light & Dark), `0` horizontal overflows across `1440×900`, `768×1024`, `720×900`, `390×844` (Dark & Light), and `320×568` (`400%` zoom).
 
-### 2.4 Android & iOS Mobile Application (`mobile/`) — **PASS (Headless JS / SQLite / Hermes Export) · HOST-LIMITED (Native `.apk`/`.ipa` & Physical Devices)**
+### 2.4 Android Mobile Application (`mobile/`) — **PASS (Headless JS / SQLite / Hermes Export) · HOST-LIMITED (Native `.apk` & Physical Devices)**
 
 - **Isolated Clean-Checkout Build, SQLite & RNTL Suites (`shared/` + `mobile/`, without workspace siblings):**
   - `npm ci --prefer-offline` (`1,014` packages installed)
@@ -83,8 +87,7 @@
     - `tests/canonical-vectors.test.ts`
     - `tests/sqlite-transactions.test.ts` (executes real SQL schema and atomic transactions via `NodeSqliteDriver` on `node:sqlite`)
     - `tests/mobile-ui.test.tsx` (verifies phone `<600` dp 5-tab shell, keyboard tab-bar collapse, `>=48` dp targets, tablet `>=600` dp `>=88` dp rail, all 6 forms, unit-change modal, `0h 0m` sleep, `ER-01..ER-04`, SVG body diagram/list, SVG 7/30d trend chart/table, file save vs. share sheet vs. A4 print, and Demo/Personal isolation)
-  - `npx expo export --platform ios --platform android --output-dir dist`: exit `0`
-    - iOS Hermes bundle (`929` modules): `dist/_expo/static/js/ios/index-cd3e61d847659426d3b61a34a7f946e7.hbc` (`3 MB`)
+  - Historical Expo export (Android output): exit `0`
     - Android Hermes bundle (`937` modules): `dist/_expo/static/js/android/index-60c860b3340de09ec2f440893c0133d6.hbc` (`3 MB`)
     - Bundled offline fonts: `6` `.ttf` files (`Inter-Regular/Medium/SemiBold.ttf`, `GeistMono-Regular/Medium/SemiBold.ttf`) + `dist/metadata.json`
 
@@ -124,7 +127,7 @@
 | `S10` | Storage denied / full / evicted & guarded backup restore | **PASS** |
 | `S11` | Symptomatic user seeking Help without forced 6-field entry or baseline | **PASS** |
 | `S12` | Shared terminal / report handoff (`mood` & `note` excluded by default, isolated demo reset) | **PASS** |
-| `S13` | Keyboard / screen-reader / chart-table & body-list access | **PASS** (Chromium keyboard, `axe-core` WCAG 2.2 AA, `forced-colors` verified; physical iOS VoiceOver & Android TalkBack noted under host limits) |
+| `S13` | Keyboard / screen-reader / chart-table & body-list access | **PASS** (Chromium keyboard, `axe-core` WCAG 2.2 AA, `forced-colors` verified; physical Android TalkBack noted under host limits) |
 | `S14` | Phone keyboard / zoom (`320px` / `400%` reflow & `200%` text scaling) | **PASS** |
 
 ---
@@ -141,9 +144,9 @@
 | `G06` — Help path | **PASS** | Persistent Help reachable from every route and empty/offline/error states; unconfigured default Help + clearly marked `Example procedure card · Test fixture`. |
 | `G07` — Resilience | **PASS** | Atomic transactions, idempotence (`sourceDraftId`), rollback retry, lost-ack `Check the log` lookup, offline SW reload, and deferred SW update during active drafts verified. |
 | `G08` — Privacy | **PASS** | Demo/Personal profile isolation, public web demo rejection of `personal` bundles, and default exclusion of `mood` and `note` in reports verified. |
-| `G09` — Accessible devices | **PASS (Web/Desktop/RNTL) / HOST-LIMITED (Physical mobile AT)** | Phone (`390×844`), tablet (`768×1024`), desktop (`1440×900`), `320px` reflow, `200%` text scale, Dark & Light themes, `axe-core` WCAG 2.2 AA (`0` violations), and Windows `forced-colors` verified. Physical-device iOS VoiceOver and Android TalkBack runs require provisioned hardware. |
+| `G09` — Accessible devices | **PASS (Web/Desktop/RNTL) / HOST-LIMITED (Physical mobile AT)** | Phone (`390×844`), tablet (`768×1024`), desktop (`1440×900`), `320px` reflow, `200%` text scale, Dark & Light themes, `axe-core` WCAG 2.2 AA (`0` violations), and Windows `forced-colors` verified. Physical-device Android TalkBack runs require provisioned hardware. |
 | `G10` — NASA traceability | **PASS** | All 8 NASA/CDC/NIST sources (`checkedDate: 2026-11-13`) bundled offline with explicit scope/limitation statements and non-endorsement disclosures. |
-| `G11` — Self-contained release | **PASS (Source/Web/Windows/Hermes) / HOST-LIMITED (Native `.apk`/`.ipa` & Signing)** | Isolated clean-checkout builds/tests pass for `shared/`, `website/`, `desktop/`, and `mobile/` without parent workspace folders. Windows `.exe` and NSIS installer are built (`NotSigned`). Native Android `.apk` and signed iOS `.ipa` compilation require Android SDK / macOS Xcode + signing credentials outside this Windows host. |
+| `G11` — Self-contained release | **PASS (Source/Web/Windows/Hermes) / HOST-LIMITED (Native `.apk` & Signing)** | Isolated clean-checkout builds/tests pass for `shared/`, `website/`, `desktop/`, and `mobile/` without parent workspace folders. Windows `.exe` and NSIS installer are built (`NotSigned`). Native Android APK compilation requires an Android SDK environment. |
 | `G12` — Complete journey & scope | **PASS** | Full `Record -> Review -> Saved -> Trends/Explorer -> Actions/Sources -> Scoped Report / Backup / CSV` journey verified across all codebases. |
 
 ---
@@ -183,7 +186,7 @@ All commands run from `source/`. Logs were kept outside the repository.
 | Desktop build | `cd desktop && npm run -s build` | exit `0`; `2213` modules |
 | Desktop E2E + axe | `cd desktop && npx playwright test` | **`6 passed`** (was 4) |
 | Rust / SQLite | `cd desktop/src-tauri && cargo test --quiet` | **`18 passed; 0 failed`** (was 11) |
-| Mobile Hermes export | `cd mobile && npx expo export --platform ios --platform android --output-dir <outside repo>` | exit `0`; iOS `938` modules (`_expo/static/js/ios/index-4011638dc851a9f151c0f42a5ed7d08b.hbc`, 3 MB), Android `937` modules (`_expo/static/js/android/index-7e8a11668b857f1202a03dfa5adc95ba.hbc`, 3 MB), 6 bundled `.ttf` fonts |
+| Mobile Hermes export | Historical Expo export (Android output) | exit `0`; Android `937` modules (`_expo/static/js/android/index-7e8a11668b857f1202a03dfa5adc95ba.hbc`, 3 MB), 6 bundled `.ttf` fonts |
 | Windows release + NSIS | `cd desktop && npx tauri build` (default config) | exit `0`; `desktop/src-tauri/target/release/crewsignal-desktop.exe` `13,720,576` bytes, SHA-256 `75DB77E98D4636ADDEC68EA5A584C09889936CADBBDFE05304BD1F79F48309F3`; `desktop/src-tauri/target/release/bundle/nsis/CrewSignal_0.1.0_x64-setup.exe` `4,724,357` bytes, SHA-256 `766F18D66248AF11ACB9C9B49520BCD1683718DF29ADF1BC683F835CAACBADFB`; both `NotSigned` |
 
 ### 6.3 Windows real runtime (release build, real Tauri `invoke` → `rusqlite`)
@@ -284,7 +287,7 @@ The review held the PR for three draft-recovery P1s: loading `SIM-SCHEDULE` on W
 
 All eight new tests (desktop 5, website 2, mobile 1) were run against the `215c55b` source in a separate worktree. All eight fail there and pass here.
 
-**Rerun on the fix branch (Windows 11 host, 2026-11-13).** Sync check and clean-source parity PASS. Shared **34**, mobile **20** (was 19), mobile type check OK, mobile iOS + Android Hermes export OK, website unit **14** (was 12), website E2E + axe **11**, website build OK, desktop type check OK, desktop unit **23** (was 18), desktop build OK, desktop E2E + axe **6**, Rust / SQLite **21**.
+**Rerun on the fix branch (Windows 11 host, 2026-11-13).** Sync check and clean-source parity PASS. Shared **34**, mobile **20** (was 19), mobile type check OK, mobile Android Hermes export OK, website unit **14** (was 12), website E2E + axe **11**, website build OK, desktop type check OK, desktop unit **23** (was 18), desktop build OK, desktop E2E + axe **6**, Rust / SQLite **21**.
 
 **Windows release build, native journey.** This ran on the §6.3 verify build with a reset database, driven over CDP, with native Save As/Open handled as in §6.5 (temporary probe, not committed; 37 checks, PASS).
 
@@ -321,7 +324,7 @@ All five new tests were run against the `7494f04` source in a separate worktree.
 
 **Parity.** The Windows app already closes the draft on all three confirmation paths: `setActiveDraft(null)`, plus `deleteDraft` on the "Already in your log" paths. Its handoff also skips `committed` drafts. The website deletes the stored draft in the same IndexedDB transaction as the commit (`commitDraftAtomically`). All three of its confirmation paths (add, lost acknowledgement, and the Check log button) call `forgetWorkingDraft`, so no copy is left to save again. Windows and the website only replace the current profile ("Replace current personal profile" / `activeProfile`), so they cannot have the inactive-target case. No shared-core file changed (37/37 identical).
 
-**Rerun on the fix branch (Windows 11 host, 2026-11-13).** Sync check and clean-source parity PASS. Shared **34**, mobile **25** (was 20), mobile type check OK, mobile iOS + Android Hermes export OK, website unit **14**, website E2E + axe **11**, website build OK, desktop type check OK, desktop unit **23**, desktop build OK, desktop E2E + axe **6**, Rust / SQLite **21**. This run was sequential. The two website timing flakes the retest saw only in its concurrent run (the confirmation receipt wait and the 320px overflow straight after a resize) did not reproduce here and were not changed.
+**Rerun on the fix branch (Windows 11 host, 2026-11-13).** Sync check and clean-source parity PASS. Shared **34**, mobile **25** (was 20), mobile type check OK, mobile Android Hermes export OK, website unit **14**, website E2E + axe **11**, website build OK, desktop type check OK, desktop unit **23**, desktop build OK, desktop E2E + axe **6**, Rust / SQLite **21**. This run was sequential. The two website timing flakes the retest saw only in its concurrent run (the confirmation receipt wait and the 320px overflow straight after a resize) did not reproduce here and were not changed.
 
 The Windows build is unchanged from `7494f04`, so the hashes in §6.6 still apply.
 
@@ -366,7 +369,7 @@ The review held the merge at `35501de` with two mobile Reports findings in "Repl
 | --- | --- | --- |
 | **Backup and Replace exclude each other.** `ReportsScreen` holds a synchronous ref for each operation (`safetyBusyRef`, `replaceBusyRef`), so a second press in the same tick is refused, plus matching state for the UI. While the backup's read or file write is pending, the confirm button is disabled and the handler returns before `restoreBackup`; the dialog shows "Saving a safety backup of … Replace is paused until it finishes." (`safety-backup-progress`, polite live region). While a confirmed Replace is running, both the confirm button and "Save safety backup first" are disabled. `ConfirmDestructiveModal` gained an optional `confirmDisabled` prop. | "S10/G07: Replace waits for the safety backup read and write, and the file keeps the original records". (1) It holds `loadProfileSnapshot` on a promise the test releases; the real read runs only on release, as in the review's reproduction. While it is held, the progress text shows, confirm and save are disabled, pressing both does nothing, and both profiles' SQLite records equal their baseline. The write then returns `write_failed`: the status says "not saved … Write failed", the progress text is gone, Replace is enabled again, and "No safety backup … yet" stays. The file content built from that delayed read is parsed: `observations` and `checkInEvents` equal Alpha's stored rows, with Alpha's note and the original 121 mmHg reading. (1b) Same tick: with the read held again, the test takes the press handlers of the enabled Save and Replace buttons from the current render and runs both in one `act()`, so neither button has re-rendered as disabled and only the refs can refuse. `restoreBackupBundle` is never called and SQLite is unchanged. The save then throws: the status says "The file could not be written." and Replace is enabled again. (2) It holds `saveTextFile` the same way: Replace stays held until the write settles, and the written `crewsignal-backup-<AlphaId>.json` has `observations` and `checkInEvents` equal to Alpha's stored rows, Alpha's note and the original 121 mmHg reading. (3) It runs confirm and save in one `act()` with `restoreBackupBundle` held: the save is refused in that same tick, and while the Replace runs, more presses of confirm or save call neither again; after release, Alpha's draft is gone and Bravo's observation is kept. | `S10`; `G07`, `ER-04` |
 | **Replace stays optional.** A cancelled, failed or thrown backup ends the progress state and re-enables Replace, with the outcome in `safety-backup-status`. Nothing requires a backup before Replace. | Same test, steps (1) (`write_failed`) and (1b) (a save that throws), and the picker test below (cancelled pick, then Replace still enabled). | `S10`; `G07` |
-| **Native folder picker.** The safety backup now calls `saveTextFile` with `chooseDestination: true`. The default adapter then asks for a folder with `Directory.pickDirectoryAsync()` and writes `crewsignal-backup-<targetId>.json` (`application/json`) there. A cancelled pick (expo-file-system rejects with "…cancelled by the user" on iOS and Android) is reported as `cancelled`. Other saves are unchanged. | "S10/G07: the safety backup asks for a folder through the native picker, and a cancelled pick writes nothing". It renders the app with the production `defaultPlatformIo` and stubs only `Directory.pickDirectoryAsync`. Cancelled pick: status "not saved … Cancelled. Folder selection was cancelled", no file written, no "saved" message, "No safety backup … yet", the overwrite text still names the draft, the draft preview is still there, Replace is enabled, and SQLite is unchanged. Picked folder: exactly one file, `crewsignal-backup-<AlphaId>.json`, `application/json`, with profile and `activeProfileId` Alpha, observations equal to Alpha's stored rows and Alpha's note; the status says "to the selected folder". | `S10`; `G07`, `ER-04` |
+| **Native folder picker.** The safety backup now calls `saveTextFile` with `chooseDestination: true`. The default adapter then asks for a folder with `Directory.pickDirectoryAsync()` and writes `crewsignal-backup-<targetId>.json` (`application/json`) there. A cancelled pick (expo-file-system rejects with "…cancelled by the user" on Android) is reported as `cancelled`. Other saves are unchanged. | "S10/G07: the safety backup asks for a folder through the native picker, and a cancelled pick writes nothing". It renders the app with the production `defaultPlatformIo` and stubs only `Directory.pickDirectoryAsync`. Cancelled pick: status "not saved … Cancelled. Folder selection was cancelled", no file written, no "saved" message, "No safety backup … yet", the overwrite text still names the draft, the draft preview is still there, Replace is enabled, and SQLite is unchanged. Picked folder: exactly one file, `crewsignal-backup-<AlphaId>.json`, `application/json`, with profile and `activeProfileId` Alpha, observations equal to Alpha's stored rows and Alpha's note; the status says "to the selected folder". | `S10`; `G07`, `ER-04` |
 
 Both new tests were run against the `35501de` source (source files stashed, new tests kept): 2 failed, and the 4 earlier S10/G07 tests passed. All six pass here. Two mutation checks show the refs, not the disabled props, carry the same-tick guarantee: removing both ref checks (disabled props kept) makes step (1b) fail, because `restoreBackupBundle` is called during the backup; removing only the save handler's `replaceBusyRef` check makes step (3) fail, because a fourth save starts during the Replace. All profiles in these tests are synthetic ("Commander Alpha", "Commander Bravo").
 
@@ -416,7 +419,7 @@ New and changed tests (all synthetic profiles "Commander Alpha" and "Commander B
 | Shared core (Vitest) | 35 passed |
 | Mobile `tsc --noEmit` | clean |
 | Mobile Jest | 5 suites, **45** tests passed (29 before this round) |
-| Mobile Hermes export | completed, iOS and Android `.hbc` |
+| Mobile Hermes export | completed, Android `.hbc` |
 | Website | Vitest 14/14, production build OK, Playwright e2e 11/11 |
 | Desktop | `tsc` clean, Vitest 23/23, Vite build OK, Playwright e2e 6/6, `cargo test` 21 passed, 0 failed |
 | `tauri build` | Built the Windows executable and per-user NSIS installer. The SHA-256 hashes and signatures were independently verified. |
@@ -442,14 +445,13 @@ The automated lifecycle checks for `S10`, `G07` and `G12` passed on the fix bran
 
 | Check | Gate | Status | Specific prerequisite |
 | --- | --- | --- | --- |
-| iOS VoiceOver and Android TalkBack walkthroughs | `G09`, `S13` | OPEN | Physical iPhone/iPad and Android phone/tablet with a dev or preview build installed (needs the native builds below) |
+| Android TalkBack walkthroughs | `G09`, `S13` | OPEN | Physical Android phone and tablet with a dev or preview build installed (needs the native builds below) |
 | Windows Narrator / NVDA in the installed app | `G09`, `S13` | OPEN | NVDA (or Narrator) on a Windows machine with the NSIS-installed build; a person to run the scripted journey by ear |
-| Full manual keyboard-only pass on real devices | `G09` | OPEN (automated tab and focus tests pass) | Human tester with a hardware keyboard on Windows and an iPad with a keyboard |
-| Mobile draft retention and restore on devices (§6.6–§6.10) | `ER-04`, `S03`, `S10`, `G07`, `G12` | OPEN | Install a dev build on iOS and Android devices. Use synthetic profiles and a controllable slow or failed SQLite read/write. Check pending, failure and retry, committed drafts after switching profiles, memory-only drafts after a separate restore, and replacement of an inactive profile. |
-| Mobile folder picker, repeat saves and restore | `ER-04`, `S10`, `G07`, `G12` | OPEN | On iOS and Android, cancel a pick and verify that no file is written and the preview stays. Exercise permission refusal and a failed write. Save twice to the same folder and verify that the earlier file survives and the new name or failure is reported. Reopen the saved file as a separate profile and verify its source identity and records. |
+| Full manual keyboard-only pass on real devices | `G09` | OPEN (automated tab and focus tests pass) | Human tester with a hardware keyboard on Windows and an Android tablet with a keyboard |
+| Mobile draft retention and restore on devices (§6.6–§6.10) | `ER-04`, `S03`, `S10`, `G07`, `G12` | OPEN | Install a dev build on Android phones and tablets. Use synthetic profiles and a controllable slow or failed SQLite read/write. Check pending, failure and retry, committed drafts after switching profiles, memory-only drafts after a separate restore, and replacement of an inactive profile. |
+| Mobile folder picker, repeat saves and restore | `ER-04`, `S10`, `G07`, `G12` | OPEN | On Android phones and tablets, cancel a pick and verify that no file is written and the preview stays. Exercise permission refusal and a failed write. Save twice to the same folder and verify that the earlier file survives and the new name or failure is reported. Reopen the saved file as a separate profile and verify its source identity and records. |
 | Mobile navigation, backgrounding and interrupted operations | `S03`, `S10`, `G07`, `G12` | OPEN | On both installed apps, hold a backup read, picker or write and a confirmed restore in separate runs. Dismiss the dialog, leave and return to Reports, then background and foreground the app. Verify that conflicting actions remain blocked while the original operation runs. Terminate and restart during a pending backup and during a restore. Verify durable SQLite state and draft status on relaunch and check that an interrupted save never claims success. |
 | Android installable build and offline restart | `G11` | OPEN | Build with the Android SDK and JDK (`ANDROID_HOME`, `adb`) or the team's EAS account and signing setup. Install the APK on a supported phone and tablet. Verify cold start and offline restart. |
-| Signed iOS installable build and offline restart | `G11` | OPEN | Build with macOS, Xcode and CocoaPods or EAS, with the team's Apple signing and provisioning. Install the `.ipa` on supported provisioned devices. Verify cold start and offline restart. |
 | Authenticode-signed Windows `.exe` / installer | `G11` | OPEN (built `NotSigned`) | Code-signing certificate (OV/EV or Azure Trusted Signing) and `signCommand`/`certificateThumbprint` in a local, untracked Tauri config |
 | Clean-VM install of the Windows installer | `G11` | OPEN | Fresh Windows 10/11 VM with no dev tools: one online (Evergreen bootstrapper) and one offline run with the `offlineInstaller` variant |
 | Hosted website and signed-out device matrix | `G01`, `G09`, `G11` | OPEN | The team deploys the synthetic demo with SPA routing while keeping the repository private. Check the landing page and `/demo/*` deep links signed out in Firefox, Safari and Android Chrome, plus PWA installation and offline reload on supported browsers. |
