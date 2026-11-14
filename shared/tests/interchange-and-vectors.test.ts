@@ -4,6 +4,12 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CANONICAL_ACCEPTANCE_VECTORS,
+  CheckInDraftSchema,
+  SIM_01_SLEEP_OBSERVATIONS,
+  buildSleepInsight,
+  compareObservationToReference,
+  deriveSevenDayFallbackReference,
+  formatObservationDisplay,
   CSV_REVIEW_FIXTURE_CSV,
   EXAMPLE_BACKUP_BUNDLE,
   EXAMPLE_DRAFT_RECOVERY_BUNDLE,
@@ -306,7 +312,7 @@ describe('Reports, privacy exclusions, Backup, DraftRecovery, and CSV reconcilia
     // Same value & time under DIFFERENT ID -> possible_duplicate
     const sameValDiffIdCsv =
       generateCsvTemplate() +
-      'obs-different-hr-id,heart_rate,instant,2026-11-13T07:05:00Z,42,,,,,,,72,,bpm,Manual pulse count,At rest,csv_import,\n';
+      'obs-different-hr-id,heart_rate,instant,2026-11-13T07:05:00Z,42,,,,,,,72,,bpm,Manual pulse count,At rest,csv_import,,valid\n';
     const possibleDupRes = parseAndReconcileCsv({
       csvText: sameValDiffIdCsv,
       existingObservations: SIM_01_OBSERVATIONS,
@@ -320,6 +326,83 @@ describe('Reports, privacy exclusions, Backup, DraftRecovery, and CSV reconcilia
 });
 
 describe('Idempotent commit transactions, workflow events, all 11 vectors, and sync helper', () => {
+  it('S05/G04: preserves a flagged value across recovery, commit retry, and report exports', () => {
+    const legacy = CheckInDraftSchema.parse(SIM_01_OPTIONAL_BP_DRAFT);
+    const params = { existingObservations: [], observationId: 'obs-recheck', committedAtUtc: SIM_01_SNAPSHOT_UTC };
+    expect(planCommitDraft({ ...params, draft: legacy }).observation?.quality).toBe('valid');
+    const draft = CheckInDraftSchema.parse({
+      ...legacy,
+      stage: 'review',
+      metricId: 'heart_rate',
+      selectedUnit: 'bpm',
+      method: 'Manual pulse count',
+      quality: 'questionable',
+      rawFields: { primary: '350', moodScore: null },
+    });
+    const recovery = buildDraftRecoveryBundle({
+      draft, profileLabel: SIM_01_PROFILE.label, exportedAtUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    const reopened = CheckInDraftSchema.parse(JSON.parse(JSON.stringify(recovery)).draft);
+    expect(reopened.quality).toBe('questionable');
+    const invalid = planCommitDraft({
+      ...params, draft: { ...reopened, rawFields: { ...reopened.rawFields, primary: '350oops' } },
+    });
+    expect(invalid).toMatchObject({ outcome: 'validation_error', observation: null, draftToCloseId: null });
+    const first = planCommitDraft({ ...params, draft: reopened });
+    const obs = first.observation!;
+    expect(obs).toMatchObject({
+      entered: { kind: 'scalar', value: 350, unit: 'bpm' },
+      timing: { observedAtUtc: reopened.observedAtUtc },
+      method: reopened.method,
+      provenance: reopened.provenance,
+      quality: 'questionable',
+      qualityNote: null,
+    });
+    const retry = planCommitDraft({
+      ...params, draft: { ...reopened, commitStatus: 'unconfirmed' }, existingObservations: [obs],
+    });
+    expect(retry).toMatchObject({ outcome: 'already_in_log', observation: obs, draftToCloseId: draft.draftId });
+    const report = buildReportBundle({
+      profile: SIM_01_PROFILE, observations: [obs], references: [], startDay: 42, endDay: 42,
+      generatedAtUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    expect(report.includeNotes).toBe(false);
+    expect(report.observations).toEqual([obs]);
+    const privateReport = buildReportBundle({
+      profile: SIM_01_PROFILE,
+      observations: [{ ...obs, qualityNote: 'Private quality text', note: 'Private note' }],
+      references: [], startDay: 42, endDay: 42, generatedAtUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    expect(privateReport.observations).toEqual([obs]);
+    expect(formatObservationDisplay(obs, SIM_01_PREFERENCES.displayUnits).primaryText).toBe('350 bpm (Needs recheck)');
+    const csv = serializeObservationsToCsv(report.observations);
+    const imported = parseAndReconcileCsv({
+      csvText: csv, existingObservations: [], profileId: SIM_01_PROFILE_ID,
+      missionEpochUtc: SIM_01_EPOCH_UTC, importBatchId: 'recheck', nowUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    expect(imported.rows[0]?.candidate).toMatchObject({ quality: 'questionable', entered: obs.entered });
+  });
+
+  it('S05/G04: a flagged sleep period is ineligible until an independent valid recheck exists', () => {
+    const latestSleep = SIM_01_SLEEP_OBSERVATIONS.at(-1)!;
+    const flagged = { ...latestSleep, quality: 'questionable' as const };
+    const reference = SIM_01_REFERENCES.find((r) => r.metricId === 'sleep')!;
+    const derive = (observations: Observation[]) => deriveSevenDayFallbackReference({
+      profileId: flagged.profileId, metricId: 'sleep', method: flagged.method, context: flagged.context,
+      observations, createdAtUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    const history = [...SIM_01_SLEEP_OBSERVATIONS.slice(0, -1), flagged];
+    expect(derive(history)).toMatchObject({ status: 'unavailable', sampleCount: 6 });
+    expect(compareObservationToReference(flagged, reference).comparisonAvailable).toBe(false);
+    expect(buildSleepInsight({ observation: flagged, reference, createdAtUtc: SIM_01_SNAPSHOT_UTC })).toBeNull();
+    const recheck = { ...latestSleep, observationId: 'obs-independent-recheck' };
+    const fallback = derive([...history, recheck]);
+    expect(fallback.status).toBe('active');
+    expect(fallback.selectedObservationIds).toContain(recheck.observationId);
+    expect(fallback.selectedObservationIds).not.toContain(flagged.observationId);
+    expect(compareObservationToReference(recheck, reference).comparisonAvailable).toBe(true);
+  });
+
   it('enforces idempotent draft commit, unknown outcome lookup, and workflow event messages', () => {
     const first = planCommitDraft({
       draft: SIM_01_OPTIONAL_BP_DRAFT,

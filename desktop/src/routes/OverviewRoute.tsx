@@ -3,6 +3,7 @@ import {
   computeMissionDay,
   evaluateMetricSchedule,
   formatObservationDisplay,
+  NEEDS_RECHECK_LABEL,
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
   getObservedMissionDay,
@@ -327,6 +328,7 @@ export function OverviewRoute() {
                             ? ` · ${schedStatus.ageLabel} ago / ${schedStatus.intervalLabel}`
                             : ""}
                         </div>
+                        {obs.quality === "questionable" && <div>{NEEDS_RECHECK_LABEL}</div>}
                         <div className="reading-provenance">
                           {display.isConvertedDisplay
                             ? `Entered ${display.enteredText}`

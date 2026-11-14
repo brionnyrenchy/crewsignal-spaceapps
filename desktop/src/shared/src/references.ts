@@ -17,6 +17,10 @@ import {
 
 export const FALLBACK_REFERENCE_DAYS_REQUIRED = 7 as const;
 
+export function isObservationQualityEligible(observation: Observation): boolean {
+  return observation.quality === 'valid';
+}
+
 export function computeMedian(values: readonly number[]): number {
   if (values.length === 0) {
     throw new RangeError('Cannot compute median of empty array');
@@ -101,7 +105,7 @@ export function deriveSevenDayFallbackReference(
   const eligible = [...uniqueById.values()].filter((obs) => {
     if (obs.profileId !== profileId) return false;
     if (obs.metricId !== metricId) return false;
-    if (obs.quality !== 'valid') return false;
+    if (!isObservationQualityEligible(obs)) return false;
     if (obs.method !== method || obs.context !== context) return false;
     if (metricId === 'sleep') {
       return obs.timing.kind === 'period' && obs.timing.sleepType === 'main_sleep';
@@ -408,7 +412,7 @@ export function compareObservationToReference(
     };
   }
 
-  if (observation.quality !== 'valid') {
+  if (!isObservationQualityEligible(observation)) {
     return {
       comparisonAvailable: false,
       unavailableReason:

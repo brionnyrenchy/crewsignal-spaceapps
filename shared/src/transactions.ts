@@ -80,7 +80,7 @@ export function planCommitDraft(params: {
     method: draft.method,
     context: draft.context,
     provenance: draft.provenance,
-    quality: 'valid',
+    quality: draft.quality ?? 'valid',
     qualityNote: null,
     note: draft.note.trim().length > 0 ? draft.note.trim() : null,
     sourceDraftId: draft.draftId,

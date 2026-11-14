@@ -320,7 +320,7 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
             reference: activeSleepRef ?? null,
             createdAtUtc: committedAtUtc,
           });
-          await db.insights.put(insight);
+          if (insight) await db.insights.put(insight);
         }
 
         return {

@@ -517,3 +517,17 @@ The recording update adds [CONTRIBUTING.md](CONTRIBUTING.md), bug and feature is
 Workspace documentation was organized outside the application repository. Current requirements are in `docs/planning/`, design contracts and current mockups in `docs/design/`, original style/research sources in `docs/references/`, and completed plans, old images, prompts and manifests in `docs/archive/`. The root guide and product/design documents point to those locations and the Android/Windows scope. The initial link pass was corrected before final verification.
 
 The workspace audit verified 488 local Markdown links and all moved manifest artifact/authority paths. It verified 247 image and exact-prompt hashes and both original style-reference hashes. The organized inventory contains 194 PNGs, including 137 approved/handoff references, 54 historical studies and 3 review screenshots, plus 13 round manifests. Both GitHub issue forms parsed as valid YAML with unique field IDs. The source-only verifier passed after adding the recording templates, with all 37 shared files matching each target.
+
+## 10. Needs recheck on Review (S05 / G04)
+
+Implementation checkout `8b67a8cc959c16aa261addcd53ba8e8232147875`. The audited commit `373a265750d2e9288b07ab51c33031330c501937` and its tree were unavailable in this clone.
+
+| Verification | Result |
+| --- | --- |
+| `node shared/scripts/sync-to-targets.mjs --write all` and `--check all` | **PASS**. All 37 files on each of Android/mobile, Windows/desktop and the synthetic website match the canonical shared source by SHA-256. |
+| `node scripts/verify-clean-source.mjs` and `git diff --check` | **PASS**. Clean-source scan and strict target parity passed. |
+| Shared regression suite | **BLOCKED**. Added draft recovery, legacy defaults, malformed input, retry, report privacy, CSV round-trip and sleep eligibility checks. `npm ci` could not provision dependencies. Registry DNS returned `ENOTFOUND`, and Vitest was unavailable. |
+| Normal Android and Windows UI suites | **BLOCKED**. Added normal check-in scenarios with synthetic `350` bpm and malformed `350oops`. The Android harness covers switching profiles. Both harnesses cover a lost acknowledgement and one committed copy. Jest and Vitest were unavailable. |
+| Offline reopen on Android phone, Android tablet and installed Windows app | **OPEN**. No Android tooling or connected Android device was available, and no installed CrewSignal app or Windows build toolchain was available for this check. |
+
+To close S05/G04 for this entry path, run the harnesses and repeat the normal check-in on each installed target. Flag `350` bpm, switch profiles, close the app and reopen offline. Confirm Review retains the flag in its original profile. Save and confirm one flagged row in History, JSON, CSV and the printable report. Use `350oops` as the malformed control. Verify a flagged sleep period is absent from fallback reference samples and personalized actions, then log an independent compatible reading and confirm comparison is available.

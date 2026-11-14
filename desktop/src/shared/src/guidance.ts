@@ -8,7 +8,7 @@ import {
   type Observation,
   type PersonalReference,
 } from './contracts';
-import { compareObservationToReference } from './references';
+import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservedMissionDay } from './timing';
 
 export const EVIDENCE_CHECKED_DATE = '2026-11-13' as const;
@@ -321,8 +321,9 @@ export function buildSleepInsight(params: {
   reference: PersonalReference | null;
   createdAtUtc: string;
   reviewedObservationIds?: ReadonlySet<string>;
-}): Insight {
+}): Insight | null {
   const { observation, reference, createdAtUtc } = params;
+  if (!isObservationQualityEligible(observation)) return null;
   const cmp = compareObservationToReference(observation, reference);
   const action = ACTION_CONTENT_REGISTRY['action-review-sleep-routine']!;
 

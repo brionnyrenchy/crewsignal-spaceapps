@@ -314,7 +314,7 @@ export const SIM_01_INSIGHTS: Insight[] = [
     observation: SIM_01_SLEEP_OBSERVATIONS[SIM_01_SLEEP_OBSERVATIONS.length - 1]!,
     reference: SIM_01_REFERENCES[0]!,
     createdAtUtc: SIM_01_SNAPSHOT_UTC,
-  }),
+  })!,
 ];
 
 /**

@@ -147,7 +147,7 @@ interface AppContextValue {
   loadSimScheduleFixture: () => Promise<void>;
   deletePersonalProfile: (profileId: string) => Promise<void>;
   updateDiagnosticHooks: (hooks: DiagnosticHooks) => Promise<void>;
-  saveDraftToStore: (draft: CheckInDraft) => Promise<boolean>;
+  saveDraftToStore: (draft: CheckInDraft, options?: { edit: true }) => Promise<boolean>;
   openDraftForMetric: (metricId: MetricId, initialDraft?: CheckInDraft) => Promise<void>;
   updateMetricSchedule: (metricId: MetricId, schedule: MetricSchedule) => Promise<void>;
 }
@@ -691,11 +691,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveDraftToStore = useCallback(
-    async (draft: CheckInDraft): Promise<boolean> => {
-      const res = await desktopBridge.saveDraft(draft.profileId, draft);
-      setActiveDraft(res.draft);
-      setDraftRetentionFailed(!res.retained);
-      return res.retained;
+    async (draft: CheckInDraft, options?: { edit: true }): Promise<boolean> => {
+      if (options?.edit) {
+        activeDraftRef.current = draft;
+        setActiveDraft(draft);
+      }
+      let result: Awaited<ReturnType<typeof desktopBridge.saveDraft>>;
+      try {
+        result = await desktopBridge.saveDraft(draft.profileId, draft);
+      } catch (error) {
+        if (!options?.edit) throw error;
+        result = { retained: false, draft: { ...draft, retentionStatus: 'memory_only' as const } };
+      }
+      if (!options?.edit || activeDraftRef.current === draft) {
+        activeDraftRef.current = result.draft;
+        setActiveDraft(result.draft);
+        setDraftRetentionFailed(!result.retained);
+      }
+      return result.retained;
     },
     [],
   );

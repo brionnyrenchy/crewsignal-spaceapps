@@ -4,6 +4,7 @@ import {
   CREWSIGNAL_SCHEMA_VERSION,
   DraftRecoveryBundleSchema,
   MetricIdSchema,
+  ObservationQualitySchema,
   MOOD_QUESTION_TEXT,
   MOOD_SCALE_ID,
   MOOD_SCALE_VERSION,
@@ -100,7 +101,7 @@ export function buildReportBundle(options: BuildReportOptions): ReportBundle {
     // Strip private note text unless explicitly chosen
     const sanitized: Observation = includeNotes
       ? { ...obs }
-      : { ...obs, note: null };
+      : { ...obs, note: null, qualityNote: null };
     filteredObservations.push(sanitized);
     countsByMetric[obs.metricId] = (countsByMetric[obs.metricId] ?? 0) + 1;
   }
@@ -438,6 +439,7 @@ export const CSV_TEMPLATE_COLUMNS = [
   'context',
   'provenance',
   'notes',
+  'quality',
 ] as const;
 
 export function generateCsvTemplate(): string {
@@ -520,6 +522,7 @@ export function serializeObservationsToCsv(
             includeNotes ? (obs.note ?? '') : '',
           ];
 
+    cells.push(obs.quality);
     lines.push(cells.map(escapeCsvCell).join(','));
   }
 
@@ -618,7 +621,7 @@ export interface CsvReconciliationPreview {
 }
 
 function isSameObservationContent(a: Observation, b: Observation): boolean {
-  if (a.metricId !== b.metricId) return false;
+  if (a.metricId !== b.metricId || a.quality !== b.quality) return false;
   if (a.method !== b.method || a.context !== b.context) return false;
   if (JSON.stringify(a.entered) !== JSON.stringify(b.entered)) return false;
   if (JSON.stringify(a.timing) !== JSON.stringify(b.timing)) return false;
@@ -695,7 +698,7 @@ export function parseAndReconcileCsv(params: {
   const header = table[0]!.map((h) => h.trim());
   const expected = [...CSV_TEMPLATE_COLUMNS];
   const headerMatches =
-    header.length === expected.length &&
+    (header.length === expected.length || header.length === expected.length - 1) &&
     header.every((h, idx) => h === expected[idx]);
 
   if (!headerMatches) {
@@ -737,14 +740,14 @@ export function parseAndReconcileCsv(params: {
     const rowIndex = i;
     counts.total += 1;
 
-    if (rawRow.length !== CSV_TEMPLATE_COLUMNS.length) {
+    if (rawRow.length !== header.length) {
       counts.rejected += 1;
       reconciledRows.push({
         rowIndex,
         observationId: rawRow[0]?.trim() ?? '',
         metricId: rawRow[1]?.trim() ?? '',
         classification: 'rejected',
-        reason: `Expected ${CSV_TEMPLATE_COLUMNS.length} columns, found ${rawRow.length}.`,
+        reason: `Expected ${header.length} columns, found ${rawRow.length}.`,
         candidate: null,
         existingObservation: null,
       });
@@ -770,6 +773,7 @@ export function parseAndReconcileCsv(params: {
       context: rawRow[15]!.trim() || 'Not specified',
       provenance: rawRow[16]!.trim() || 'csv_import',
       notes: rawRow[17]!.trim(),
+      quality: rawRow[18]?.trim() || 'valid',
     };
 
     const reject = (reason: string) => {
@@ -790,6 +794,11 @@ export function parseAndReconcileCsv(params: {
       continue;
     }
 
+    const quality = ObservationQualitySchema.safeParse(row.quality);
+    if (!quality.success) {
+      reject('Quality must be valid or questionable.');
+      continue;
+    }
     const metricCheck = MetricIdSchema.safeParse(row.metric_id);
     if (!metricCheck.success) {
       reject(`Unsupported metric_id "${row.metric_id}".`);
@@ -1056,7 +1065,7 @@ export function parseAndReconcileCsv(params: {
       method: row.method,
       context: row.context,
       provenance: 'csv_import',
-      quality: 'valid',
+      quality: quality.data,
       qualityNote: null,
       note: row.notes.length > 0 ? row.notes : null,
       sourceDraftId: null,

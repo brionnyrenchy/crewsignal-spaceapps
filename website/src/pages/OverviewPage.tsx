@@ -13,6 +13,7 @@ import {
   METRIC_DEFINITIONS,
   METRIC_ORDER,
   buildSleepInsight,
+  isObservationQualityEligible,
   compareObservationToReference,
   formatObservationDisplay,
   formatUtcTimeHHMM,
@@ -63,7 +64,7 @@ export function OverviewPage() {
   );
 
   const currentSleepInsight = useMemo(() => {
-    if (!latestSleep) return null;
+    if (!latestSleep || !isObservationQualityEligible(latestSleep)) return null;
     const saved = profileInsights.find(
       (i) => i.observationId === latestSleep.observationId,
     );

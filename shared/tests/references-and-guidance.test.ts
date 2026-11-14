@@ -305,6 +305,7 @@ describe('Controlled guidance, evidence registry (2026-11-13), and Help registry
       createdAtUtc: SIM_01_SNAPSHOT_UTC,
     });
 
+    if (!insight) throw new Error('Expected a sleep insight');
     const reviewed = markInsightReviewed(insight, SIM_01_SNAPSHOT_UTC);
     expect(isInsightReviewCurrent(reviewed, insight)).toBe(true);
 
@@ -318,6 +319,7 @@ describe('Controlled guidance, evidence registry (2026-11-13), and Help registry
       reference: sleepRef,
       createdAtUtc: SIM_01_SNAPSHOT_UTC,
     });
+    if (!newerInsight) throw new Error('Expected an insight for the newer reading');
     expect(isInsightReviewCurrent(reviewed, newerInsight)).toBe(false);
   });
 

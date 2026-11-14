@@ -67,7 +67,7 @@ export function ExplorerScreen(): React.ReactElement {
       if (sys.id === 'immune_context') {
         const tempObs = latestByMetric.body_temperature;
         map[sys.id] = tempObs
-          ? `Context: ${formatObservationDisplay(tempObs, preferences.displayUnits).valueOnlyText}`
+          ? `Context: ${formatObservationDisplay(tempObs, preferences.displayUnits).primaryText}`
           : 'Not assessed · Context only';
         continue;
       }
@@ -78,7 +78,7 @@ export function ExplorerScreen(): React.ReactElement {
         map[sys.id] = 'Not entered';
       } else if (populated.length === 1) {
         const obs = populated[0]!;
-        map[sys.id] = formatObservationDisplay(obs, preferences.displayUnits).valueOnlyText;
+        map[sys.id] = formatObservationDisplay(obs, preferences.displayUnits).primaryText;
       } else {
         map[sys.id] = `${populated.length} indicators`;
       }

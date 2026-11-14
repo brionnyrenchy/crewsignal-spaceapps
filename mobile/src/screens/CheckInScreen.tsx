@@ -18,6 +18,8 @@ import {
   computeMissionDay,
   formatDurationHoursMinutes,
   formatObservationDisplay,
+  NEEDS_RECHECK_HELP,
+  NEEDS_RECHECK_LABEL,
   formatReviewEquivalent,
   parseHHMM,
   type CheckInDraft,
@@ -80,6 +82,7 @@ export function CheckInScreen(): React.ReactElement {
     announce,
   } = useCrewSignal();
 
+  const [retainingReview, setRetainingReview] = useState(false);
   const [helpModalOpen, setHelpModalOpen] = useState(false);
   const [workflowModalMode, setWorkflowModalMode] = useState<'skip' | 'unavailable' | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
@@ -198,9 +201,11 @@ export function CheckInScreen(): React.ReactElement {
             variant="primary"
           />
           <ActionButton
-            label="Add another measurement"
+            label={saved.quality === 'questionable' ? 'Log a new reading' : 'Add another measurement'}
             onPress={() => {
-              const nextMetric = METRIC_ORDER.find((m) => m !== saved.metricId) ?? 'heart_rate';
+              const nextMetric = saved.quality === 'questionable'
+                ? saved.metricId
+                : METRIC_ORDER.find((m) => m !== saved.metricId) ?? 'heart_rate';
               startOrResumeCheckIn(nextMetric);
             }}
             variant="secondary"
@@ -310,6 +315,9 @@ export function CheckInScreen(): React.ReactElement {
       return diff >= 0 ? diff : null;
     })();
 
+    const commitPending = commitState.phase === 'submitting' ||
+      commitState.phase === 'unknown' || commitState.phase === 'unconfirmed';
+
     return (
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { backgroundColor: palette.surfaceCanvas }]}
@@ -348,6 +356,8 @@ export function CheckInScreen(): React.ReactElement {
             title={commitState.heading ?? 'Addition unconfirmed'}
             message={commitState.message ?? 'Check the log for this entry before adding again.'}
             tone="danger"
+            actionLabel="Retry checking log"
+            onAction={() => void checkCurrentDraftCommitStatus(false)}
           />
         ) : null}
 
@@ -472,11 +482,37 @@ export function CheckInScreen(): React.ReactElement {
           </View>
         </PanelCard>
 
+        <PanelCard>
+          <View style={{ gap: 10 }}>
+            <Text style={{ color: palette.textBody }}>{NEEDS_RECHECK_HELP}</Text>
+            <View style={styles.rowWrap}>
+              <SelectableChip
+                testID="checkin-needs-recheck"
+                label={NEEDS_RECHECK_LABEL}
+                selected={draft.quality === 'questionable'}
+                disabled={retainingReview || commitPending}
+                onPress={async () => {
+                  setRetainingReview(true);
+                  try {
+                    await updateDraft((previous) => ({
+                      ...previous,
+                      quality: previous.quality === 'questionable' ? 'valid' : 'questionable',
+                    }));
+                  } finally {
+                    setRetainingReview(false);
+                  }
+                }}
+              />
+              <ActionButton label="Measurement help" variant="subtle" onPress={() => setHelpModalOpen(true)} />
+            </View>
+          </View>
+        </PanelCard>
+
         <View style={{ gap: 10 }}>
           <ActionButton
             testID="checkin-add-to-log"
             label={commitState.phase === 'submitting' ? 'Adding to log…' : 'Add to log'}
-            disabled={commitState.phase === 'submitting'}
+            disabled={retainingReview || commitPending}
             onPress={() => void commitCurrentDraft('none')}
             variant="primary"
             fullWidth
@@ -484,6 +520,7 @@ export function CheckInScreen(): React.ReactElement {
           <ActionButton
             testID="checkin-back-to-edit"
             label="Back to edit"
+            disabled={retainingReview}
             onPress={() => void backToRecordStage()}
             variant="secondary"
             fullWidth
@@ -495,6 +532,12 @@ export function CheckInScreen(): React.ReactElement {
             fullWidth
           />
         </View>
+        <MeasurementHelpModal
+          visible={helpModalOpen}
+          metricId={draft.metricId}
+          onClose={() => setHelpModalOpen(false)}
+          onOpenSources={() => navigateTo('sources')}
+        />
       </ScrollView>
     );
   }
@@ -504,7 +547,8 @@ export function CheckInScreen(): React.ReactElement {
   const firstErrorText = draft.validationState.announcement;
 
   const handleReviewPress = async () => {
-    const res = await proceedToReviewStage();
+    setRetainingReview(true);
+    const res = await proceedToReviewStage().finally(() => setRetainingReview(false));
     if (!res.valid) {
       scrollRef.current?.scrollTo({ y: 0, animated: false });
       if (res.firstInvalidField === 'secondary') {
@@ -614,7 +658,6 @@ export function CheckInScreen(): React.ReactElement {
                 value={draft.rawFields.primary}
                 placeholder="e.g. 72"
                 errorText={validationErrors.primary ?? null}
-                helperText="Expected crew log range: 20 to 240 bpm."
                 onChangeText={(text) =>
                   void updateDraft((prev) => ({
                     ...prev,
@@ -1069,6 +1112,7 @@ export function CheckInScreen(): React.ReactElement {
         <View style={styles.dockPrimary}>
           <ActionButton
             testID="checkin-review-button"
+            disabled={retainingReview}
             label="Review entry"
             onPress={() => void handleReviewPress()}
             variant="primary"
