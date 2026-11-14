@@ -14,6 +14,8 @@ import {
   computeBackupSummaryCounts,
   generateCsvTemplate,
   parseAndReconcileCsv,
+  ENTRY_WARNING_HELP,
+  formatObservationDisplay,
   validateBackupImport,
   type AppearancePreference,
   type BackupBundle,
@@ -92,6 +94,7 @@ export function SettingsPage() {
     Record<string, CsvPossibleDuplicateChoice>
   >({});
   const [ackExclusions, setAckExclusions] = useState(false);
+  const [confirmCsvValues, setConfirmCsvValues] = useState(false);
   const [csvFeedback, setCsvFeedback] = useState<string | null>(null);
 
   // Reset & Delete confirmation modals
@@ -125,6 +128,7 @@ export function SettingsPage() {
     setConflictChoices({});
     setDupChoices({});
     setAckExclusions(false);
+    setConfirmCsvValues(false);
   };
 
   const handleDownloadFullBackup = () => {
@@ -624,6 +628,11 @@ export function SettingsPage() {
                                 {row.reason}
                               </div>
                             )}
+                            {row.warning && row.candidate && (
+                              <div className="cs-helper">
+                                {formatObservationDisplay(row.candidate, preferences.displayUnits).enteredText}. {row.warning}
+                              </div>
+                            )}
                           </td>
                           <td>
                             {row.classification === 'conflict' && (
@@ -712,6 +721,12 @@ export function SettingsPage() {
                   </table>
                 </div>
 
+                {csvPreview.rows.some((row) => row.warning && row.classification !== 'duplicate') && (
+                  <label className="cs-row">
+                    <input type="checkbox" checked={confirmCsvValues} onChange={(event) => setConfirmCsvValues(event.target.checked)} />
+                    <span>Confirm unusual values in rows being imported. {ENTRY_WARNING_HELP}</span>
+                  </label>
+                )}
                 {(csvPreview.counts.duplicate > 0 ||
                   csvPreview.counts.rejected > 0 ||
                   Object.values(conflictChoices).includes('keep_current') ||
@@ -748,6 +763,7 @@ export function SettingsPage() {
                           conflictChoices,
                           possibleDuplicateChoices: dupChoices,
                           acknowledgedExclusions: ackExclusions,
+                          confirmedUnusualValues: confirmCsvValues,
                         });
                         setCsvFeedback(
                           `Imported CSV batch: ${res.insertedCount} added, ${res.updatedCount} updated, ${res.skippedCount} skipped.`,

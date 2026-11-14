@@ -1,5 +1,8 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  GETTING_STARTED_INTRO, GETTING_STARTED_PERSONAL, GETTING_STARTED_STEPS, GETTING_STARTED_STORAGE,
+} from '../shared/src';
 import {
   ActionButton,
   CalmBanner,
@@ -21,14 +24,63 @@ export function HelpScreen(): React.ReactElement {
     updatePreferences,
     isOfflineSimulated,
     activeDraft,
+    activeProfile,
     goBackFromHelp,
     navigateTo,
+    gettingStarted,
+    openGettingStarted,
+    openGettingStartedStep,
+    showHelpProcedures,
   } = useCrewSignal();
 
   const currentMode = preferences?.helpMode ?? 'unconfigured';
+  const heading = useRef<React.ComponentRef<typeof Text>>(null);
+
+  useEffect(() => {
+    if (!gettingStarted) return;
+    const frame = requestAnimationFrame(() => {
+      if (heading.current) AccessibilityInfo.sendAccessibilityEvent(heading.current, 'focus');
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [gettingStarted]);
+
+  if (gettingStarted) {
+    const isDemo = activeProfile?.mode === 'demo';
+    return (
+      <ScrollView key="walkthrough" contentContainerStyle={[styles.scrollContent, { backgroundColor: palette.surfaceCanvas }]}>
+        <Text ref={heading} accessible accessibilityRole="header" style={{ color: palette.textPrimary, fontFamily: fontSansMedium, fontSize: 28 }}>
+          Getting started
+        </Text>
+        <Text style={{ color: palette.textBody, fontSize: 16 }}>{GETTING_STARTED_INTRO}</Text>
+        <View style={styles.rowWrap}>
+          <ActionButton label="Help procedures and sources" onPress={showHelpProcedures} variant="secondary" />
+          <ActionButton label="Return to previous screen" onPress={goBackFromHelp} variant="secondary" />
+        </View>
+        {activeProfile?.mode === 'personal' && <Text style={{ color: palette.textBody, fontSize: 16 }}>{GETTING_STARTED_PERSONAL}</Text>}
+        {GETTING_STARTED_STEPS.map((step) => (
+          <PanelCard key={step.route}>
+            <View style={{ gap: 8 }}>
+              <Text accessibilityRole="header" style={{ color: palette.textPrimary, fontFamily: fontSansMedium, fontSize: 18 }}>{step.title}</Text>
+              <Text style={{ color: palette.textBody, fontSize: 16 }}>{step.body}</Text>
+              {isDemo && <ActionButton label={step.action} onPress={() => openGettingStartedStep(step.route)} variant="secondary" fullWidth />}
+            </View>
+          </PanelCard>
+        ))}
+        <PanelCard>
+          <View style={{ gap: 8 }}>
+            <Text accessibilityRole="header" style={{ color: palette.textPrimary, fontFamily: fontSansMedium, fontSize: 18 }}>Local storage and export</Text>
+            <Text style={{ color: palette.textBody, fontSize: 16 }}>
+              {GETTING_STARTED_STORAGE} On Android, Save Report writes a copy to the app’s CrewSignal documents folder. Share sheet opens Android’s sharing options. You choose the destination there.
+            </Text>
+          </View>
+        </PanelCard>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView
+      key="procedures"
       contentContainerStyle={[styles.scrollContent, { backgroundColor: palette.surfaceCanvas }]}
     >
       <ScreenTitle
@@ -36,7 +88,11 @@ export function HelpScreen(): React.ReactElement {
         subtitle="Always reachable offline, before logging data, or mid-check-in without losing your draft"
       />
 
-      {activeDraft ? (
+      <View style={styles.rowWrap}>
+        <ActionButton label="Getting started" onPress={openGettingStarted} variant="secondary" />
+      </View>
+
+      {activeDraft && activeDraft.profileId === activeProfile?.profileId ? (
         <CalmBanner
           title="Open check-in preserved"
           message="Returning from Help keeps every field you entered in your uncommitted draft."

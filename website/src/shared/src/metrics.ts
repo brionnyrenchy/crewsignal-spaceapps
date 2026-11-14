@@ -378,9 +378,47 @@ export function parseStrictNonNegativeInt(raw: string): number | null {
 
 export interface ValidatedDraftOutput {
   validationState: DraftValidationState;
+  warning: string | null;
   entered: EnteredObservationValue | null;
   canonical: CanonicalObservationValue | null;
   timing: ObservationTiming | null;
+}
+
+export const ENTRY_WARNING_HELP = 'Check the value and unit against the original reading. This is an entry-error check and cannot assess health.';
+export const ENTRY_CONFIRMED_NOTE = 'Unusual value confirmed as entered.';
+
+// Broad entry-error guards. Alternate-unit bounds use the same unit conversions as storage.
+const entryBounds: Record<string, readonly [number, number]> = {
+  bpm: [15, 350],
+  'mg/dL': [10, 1500],
+  'mmol/L': [convertGlucose(10, 'mg/dL', 'mmol/L').exact, convertGlucose(1500, 'mg/dL', 'mmol/L').exact],
+  C: [20, 50],
+  F: [convertTemperature(20, 'C', 'F').exact, convertTemperature(50, 'C', 'F').exact],
+};
+
+export function getEntryWarning(entered: EnteredObservationValue): string | null {
+  if (entered.kind === 'blood_pressure') {
+    const { systolic, diastolic } = entered;
+    if (systolic <= diastolic) return 'Systolic is equal to or below diastolic. Check the order of the two values.';
+    if (systolic < 30 || systolic > 350 || diastolic < 10 || diastolic > 250) {
+      return 'This blood pressure pair is outside the entry-check range.';
+    }
+  }
+  if (entered.kind === 'sleep_duration' && entered.durationMinutes > 1440) {
+    return 'This sleep duration is longer than 24 hours. Check the hours and minutes.';
+  }
+  if (entered.kind !== 'scalar') return null;
+
+  const { value, unit } = entered;
+  const bounds = entryBounds[unit];
+  if (!bounds || (value >= bounds[0] && value <= bounds[1])) return null;
+  const alternateUnit = ({ C: 'F', F: 'C', 'mg/dL': 'mmol/L', 'mmol/L': 'mg/dL' } as Record<string, string>)[unit];
+  const alternateBounds = alternateUnit && entryBounds[alternateUnit];
+  if (alternateBounds && value >= alternateBounds[0] && value <= alternateBounds[1]) {
+    const label = alternateUnit === 'C' || alternateUnit === 'F' ? `°${alternateUnit}` : alternateUnit;
+    return `This number fits the entry-check range for ${label}. Check the selected unit.`;
+  }
+  return 'This value is outside the entry-check range for the selected unit.';
 }
 
 /**
@@ -668,6 +706,7 @@ export function validateDraftForReview(
       firstInvalidField,
       announcement,
     },
+    warning: valid && entered ? getEntryWarning(entered) : null,
     entered: valid ? entered : null,
     canonical: valid ? canonical : null,
     timing: valid ? timing : null,

@@ -698,6 +698,7 @@ export class CrewSignalSqliteStore {
     committedAtUtc: string;
     observationId?: string;
     simulateFailureMode?: CommitFailureSimulationMode;
+    confirmedUnusualValue?: boolean;
   }): Promise<CommitObservationResult> {
     const mode = params.simulateFailureMode ?? 'none';
 
@@ -715,6 +716,7 @@ export class CrewSignalSqliteStore {
         existingObservations,
         observationId: params.observationId ?? makeId(`obs-${params.draft.metricId}`),
         committedAtUtc: params.committedAtUtc,
+        confirmedUnusualValue: params.confirmedUnusualValue,
       });
 
       if (!plan.ok || !plan.observation) {
@@ -831,6 +833,7 @@ export class CrewSignalSqliteStore {
     conflictChoices: Record<string, CsvConflictChoice>;
     possibleDuplicateChoices: Record<string, CsvPossibleDuplicateChoice>;
     acknowledgedExclusions: boolean;
+    confirmedUnusualValues?: boolean;
     nowUtc: string;
     batchId: string;
     simulateWriteFailure?: boolean;
@@ -843,6 +846,7 @@ export class CrewSignalSqliteStore {
         conflictChoices: params.conflictChoices,
         possibleDuplicateChoices: params.possibleDuplicateChoices,
         acknowledgedExclusions: params.acknowledgedExclusions,
+        confirmedUnusualValues: params.confirmedUnusualValues,
         nowUtc: params.nowUtc,
       });
 

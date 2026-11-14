@@ -59,6 +59,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const {
     route,
     navigate,
+    gettingStarted,
+    openGettingStarted,
     activeProfile,
     snapshot,
     activeDraft,
@@ -213,6 +215,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <main id="main-content" className="app-main" tabIndex={-1}>
+          {gettingStarted && route !== "help" && (
+            <div style={{ marginBottom: 16 }}>
+              <button type="button" className="btn-secondary" onClick={openGettingStarted}>
+                Back to Getting started
+              </button>
+            </div>
+          )}
           {pendingUpdateBlocked && activeDraft ? (
             <div className="notice-banner notice-banner-review" style={{ marginBottom: 16 }} role="status">
               <div>

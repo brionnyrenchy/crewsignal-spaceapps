@@ -5,7 +5,7 @@ import {
   type Observation,
   type ProfileConfig,
 } from './contracts';
-import { validateDraftForReview } from './metrics';
+import { ENTRY_CONFIRMED_NOTE, validateDraftForReview } from './metrics';
 
 export interface CommitDraftPlan {
   ok: boolean;
@@ -28,6 +28,7 @@ export function planCommitDraft(params: {
   existingObservations: readonly Observation[];
   observationId: string;
   committedAtUtc: string;
+  confirmedUnusualValue?: boolean;
 }): CommitDraftPlan {
   const { draft, existingObservations, observationId, committedAtUtc } = params;
 
@@ -55,13 +56,15 @@ export function planCommitDraft(params: {
     !validated.validationState.valid ||
     !validated.entered ||
     !validated.canonical ||
-    !validated.timing
+    !validated.timing ||
+    (validated.warning && !params.confirmedUnusualValue)
   ) {
     return {
       ok: false,
       outcome: 'validation_error',
       error:
         validated.validationState.announcement ??
+        (validated.warning ? 'Confirm the unusual value or return to edit it.' : null) ??
         'Entry validation failed before commit.',
       observation: null,
       draftToCloseId: null,
@@ -81,7 +84,7 @@ export function planCommitDraft(params: {
     context: draft.context,
     provenance: draft.provenance,
     quality: draft.quality ?? 'valid',
-    qualityNote: null,
+    qualityNote: validated.warning ? ENTRY_CONFIRMED_NOTE : null,
     note: draft.note.trim().length > 0 ? draft.note.trim() : null,
     sourceDraftId: draft.draftId,
     importBatchId: null,

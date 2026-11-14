@@ -13,6 +13,7 @@ import {
   METRIC_DEFINITIONS,
   METRIC_ORDER,
   parseAndReconcileCsv,
+  ENTRY_WARNING_HELP,
   validateBackupImport,
   validateDraftRecoveryImport,
   type BackupValidationResult,
@@ -117,6 +118,7 @@ export function ReportsRoute() {
     Record<string, CsvPossibleDuplicateChoice>
   >({});
   const [ackExclusions, setAckExclusions] = useState(false);
+  const [confirmCsvValues, setConfirmCsvValues] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const reportBundle = useMemo(() => {
@@ -416,6 +418,7 @@ export function ReportsRoute() {
     setConflictChoices({});
     setPossibleDupChoices({});
     setAckExclusions(false);
+    setConfirmCsvValues(false);
   };
 
   const handleOpenCsvFile = async () => {
@@ -455,6 +458,7 @@ export function ReportsRoute() {
       conflictChoices,
       possibleDuplicateChoices: possibleDupChoices,
       acknowledgedExclusions: ackExclusions,
+      confirmedUnusualValues: confirmCsvValues,
       nowUtc: currentReferenceNowUtc,
     });
 
@@ -1073,6 +1077,9 @@ export function ReportsRoute() {
                                     {row.reason ?? "Ready to insert"}
                                   </span>
                                 )}
+                                {row.warning && row.candidate && (
+                                  <p>{formatObservationDisplay(row.candidate, preferences.displayUnits).enteredText}. {row.warning}</p>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -1080,6 +1087,12 @@ export function ReportsRoute() {
                       </table>
                     </div>
 
+                    {csvPreview.rows.some((row) => row.warning && row.classification !== "duplicate") && (
+                      <label className="row-wrap">
+                        <input type="checkbox" checked={confirmCsvValues} onChange={(event) => setConfirmCsvValues(event.target.checked)} />
+                        <span>Confirm unusual values in rows being imported. {ENTRY_WARNING_HELP}</span>
+                      </label>
+                    )}
                     <label className="row-wrap" style={{ fontSize: 14, cursor: "pointer" }}>
                       <input
                         type="checkbox"
