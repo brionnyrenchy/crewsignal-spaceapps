@@ -27,6 +27,8 @@ import {
   planInputUnitChange,
   resolveActiveReference,
   validateDraftForReview,
+  NEEDS_RECHECK_LABEL,
+  NEEDS_RECHECK_HELP,
   createBlankDraft,
   type CheckInDraft,
   type MetricId,
@@ -190,6 +192,7 @@ export function CheckInPage() {
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<WorkflowReceipt | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [retainingQuality, setRetainingQuality] = useState(false);
   const [committedInSession, setCommittedInSession] = useState(0);
   const [unavailableReason, setUnavailableReason] = useState(
     'Instrument unavailable during check-in',
@@ -416,7 +419,7 @@ export function CheckInPage() {
   };
 
   const handleCommit = async () => {
-    if (submitting) return;
+    if (submitting || retainingQuality) return;
     setSubmitting(true);
     setErrorBanner(null);
     try {
@@ -519,7 +522,7 @@ export function CheckInPage() {
       method: draft.method,
       context: draft.context,
       provenance: draft.provenance,
-      quality: 'valid',
+      quality: draft.quality ?? 'valid',
       qualityNote: null,
       note: draft.note || null,
       sourceDraftId: draft.draftId,
@@ -631,7 +634,7 @@ export function CheckInPage() {
                 className="cs-btn cs-btn-secondary"
                 onClick={() => startFreshBlank(receipt.observation.metricId)}
               >
-                Record another
+                {receipt.observation.quality === 'questionable' ? 'Log a new reading' : 'Record another'}
               </button>
               <Link to="/demo/trends" className="cs-btn cs-btn-ghost">
                 Check trends
@@ -1687,6 +1690,28 @@ export function CheckInPage() {
             </dl>
           </div>
 
+          <div>
+            <label className="cs-row">
+              <input
+                type="checkbox"
+                checked={draft.quality === 'questionable'}
+                disabled={submitting || retainingQuality}
+                aria-describedby="recheck-help"
+                onChange={async (event) => {
+                  const quality = event.target.checked ? 'questionable' : 'valid';
+                  setRetainingQuality(true);
+                  try {
+                    await persistDraftState({ ...draft, quality });
+                  } finally {
+                    setRetainingQuality(false);
+                  }
+                }}
+              />
+              {NEEDS_RECHECK_LABEL}
+            </label>
+            <p id="recheck-help" className="cs-helper">{NEEDS_RECHECK_HELP}</p>
+          </div>
+
           <div
             style={{
               display: 'flex',
@@ -1699,7 +1724,7 @@ export function CheckInPage() {
             <button
               type="button"
               className="cs-btn cs-btn-secondary"
-              disabled={submitting}
+              disabled={submitting || retainingQuality}
               onClick={() =>
                 void persistDraftState({ ...draft, stage: 'record' })
               }
@@ -1721,7 +1746,7 @@ export function CheckInPage() {
               <button
                 type="button"
                 className="cs-btn cs-btn-primary"
-                disabled={submitting}
+                disabled={submitting || retainingQuality}
                 onClick={() => {
                   void handleCommit();
                 }}

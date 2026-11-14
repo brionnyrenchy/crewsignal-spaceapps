@@ -1,5 +1,5 @@
 import { ExternalLink, HardDrive } from "lucide-react";
-import { EVIDENCE_LIST, resolveHelpContent } from "../shared/src";
+import { describeMissionContact, EVIDENCE_LIST, resolveHelpContent } from "../shared/src";
 import { desktopBridge } from "../bridge/desktopBridge";
 import { useApp } from "../state/AppContext";
 
@@ -60,6 +60,7 @@ export function HelpRoute() {
         </div>
 
         <p style={{ margin: 0, color: "var(--text-body)" }}>{helpCard.body}</p>
+        <p>{describeMissionContact(preferences.helpMode)}</p>
 
         <ul style={{ margin: 0, paddingLeft: 20, color: "var(--text-body)" }}>
           {helpCard.steps.map((step) => (

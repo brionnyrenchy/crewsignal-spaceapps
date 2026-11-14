@@ -5,10 +5,11 @@ import {
   type EvidenceReference,
   type HelpProcedureCard,
   type Insight,
+  type MetricId,
   type Observation,
   type PersonalReference,
 } from './contracts';
-import { compareObservationToReference } from './references';
+import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservedMissionDay } from './timing';
 
 export const EVIDENCE_CHECKED_DATE = '2026-11-13' as const;
@@ -290,6 +291,7 @@ export const CONFIGURED_HELP_TEST_FIXTURE: HelpProcedureCard = {
   versionLabel: 'Version demo 1 · Cached example',
   cachedAvailable: true,
   body: 'Example content for navigation and offline access testing only. Real mission guidance requires supplied applicable reviewed content before enabling it.',
+  contactRoute: 'Example contact route (test fixture only): use the onboard mission communications channel to reach the crew medical officer.',
   steps: [
     'Verify the local cached procedure version and check date before relying on offline copy.',
     'Follow your team-supplied onboard procedure document rather than this test placeholder.',
@@ -311,6 +313,10 @@ export function resolveHelpContent(
     : DEFAULT_UNCONFIGURED_HELP;
 }
 
+export function describeMissionContact(helpMode: AppPreferences['helpMode']): string {
+  return resolveHelpContent(helpMode).contactRoute ?? 'No mission contact route is configured in Help.';
+}
+
 /**
  * Evaluates a sleep Observation against a PersonalReference into a version-pinned Insight.
  * Acknowledging (markInsightReviewed) applies strictly to the exact
@@ -321,8 +327,9 @@ export function buildSleepInsight(params: {
   reference: PersonalReference | null;
   createdAtUtc: string;
   reviewedObservationIds?: ReadonlySet<string>;
-}): Insight {
+}): Insight | null {
   const { observation, reference, createdAtUtc } = params;
+  if (!isObservationQualityEligible(observation)) return null;
   const cmp = compareObservationToReference(observation, reference);
   const action = ACTION_CONTENT_REGISTRY['action-review-sleep-routine']!;
 

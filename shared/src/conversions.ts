@@ -1,5 +1,6 @@
 import {
   CONVERSION_RULE_VERSION,
+  NEEDS_RECHECK_LABEL,
   type AppPreferences,
   type CheckInDraft,
   type GlucoseUnit,
@@ -277,6 +278,18 @@ export interface FormattedObservationDisplay {
  * mutating the stored source value, unit, precision, or conversion version.
  */
 export function formatObservationDisplay(
+  observation: Observation,
+  displayUnits: AppPreferences['displayUnits'],
+): FormattedObservationDisplay {
+  const display = formatObservationValue(observation, displayUnits);
+  if (observation.quality !== 'questionable') return display;
+  return {
+    ...display,
+    primaryText: `${display.primaryText} (${NEEDS_RECHECK_LABEL})`,
+  };
+}
+
+function formatObservationValue(
   observation: Observation,
   displayUnits: AppPreferences['displayUnits'],
 ): FormattedObservationDisplay {

@@ -18,6 +18,7 @@ import {
   SIM_SCHEDULE_OBSERVATIONS,
   SIM_SCHEDULE_PROFILE,
   type AppPreferences,
+  type ReadingReportScope,
   type BodySystemId,
   type CheckInDraft,
   type MetricId,
@@ -97,7 +98,8 @@ interface AppContextValue {
   diagnosticHooks: DiagnosticHooks;
 
   route: AppRoute;
-  navigate: (nextRoute: AppRoute) => void;
+  navigate: (nextRoute: AppRoute, reportScope?: ReadingReportScope) => void;
+  readingReportScope: ReadingReportScope | undefined;
   selectedBodySystem: BodySystemId;
   setSelectedBodySystem: (id: BodySystemId) => void;
   selectedTrendMetric: MetricId;
@@ -147,7 +149,7 @@ interface AppContextValue {
   loadSimScheduleFixture: () => Promise<void>;
   deletePersonalProfile: (profileId: string) => Promise<void>;
   updateDiagnosticHooks: (hooks: DiagnosticHooks) => Promise<void>;
-  saveDraftToStore: (draft: CheckInDraft) => Promise<boolean>;
+  saveDraftToStore: (draft: CheckInDraft, options?: { edit: true }) => Promise<boolean>;
   openDraftForMetric: (metricId: MetricId, initialDraft?: CheckInDraft) => Promise<void>;
   updateMetricSchedule: (metricId: MetricId, schedule: MetricSchedule) => Promise<void>;
 }
@@ -176,6 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [systemTheme, setSystemTheme] = useState<"dark" | "light">(resolveSystemTheme);
   const [route, setRoute] = useState<AppRoute>("overview");
+  const [readingReportScope, setReadingReportScope] = useState<ReadingReportScope>();
   const [selectedBodySystem, setSelectedBodySystem] =
     useState<BodySystemId>("sleep_cognition");
   const [selectedTrendMetric, setSelectedTrendMetric] = useState<MetricId>("sleep");
@@ -520,7 +523,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, [snapshot, activeProfile, currentReferenceNowUtc, refreshSnapshot]);
 
-  const navigate = useCallback((nextRoute: AppRoute) => {
+  const navigate = useCallback((nextRoute: AppRoute, reportScope?: ReadingReportScope) => {
+    setReadingReportScope(nextRoute === "reports" ? reportScope : undefined);
     setRoute(nextRoute);
     const main = document.getElementById("main-content");
     if (main) main.focus({ preventScroll: true });
@@ -691,11 +695,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveDraftToStore = useCallback(
-    async (draft: CheckInDraft): Promise<boolean> => {
-      const res = await desktopBridge.saveDraft(draft.profileId, draft);
-      setActiveDraft(res.draft);
-      setDraftRetentionFailed(!res.retained);
-      return res.retained;
+    async (draft: CheckInDraft, options?: { edit: true }): Promise<boolean> => {
+      if (options?.edit) {
+        activeDraftRef.current = draft;
+        setActiveDraft(draft);
+      }
+      let result: Awaited<ReturnType<typeof desktopBridge.saveDraft>>;
+      try {
+        result = await desktopBridge.saveDraft(draft.profileId, draft);
+      } catch (error) {
+        if (!options?.edit) throw error;
+        result = { retained: false, draft: { ...draft, retentionStatus: 'memory_only' as const } };
+      }
+      if (!options?.edit || activeDraftRef.current === draft) {
+        activeDraftRef.current = result.draft;
+        setActiveDraft(result.draft);
+        setDraftRetentionFailed(!result.retained);
+      }
+      return result.retained;
     },
     [],
   );
@@ -769,6 +786,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     diagnosticHooks,
     route,
     navigate,
+    readingReportScope,
     selectedBodySystem,
     setSelectedBodySystem,
     selectedTrendMetric,

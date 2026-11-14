@@ -12,8 +12,14 @@ import {
 import {
   METRIC_DEFINITIONS,
   METRIC_ORDER,
+  RAISE_READING_LIMIT,
+  RAISE_READING_REASONS,
+  RAISE_READING_SUGGESTION,
+  buildRaiseReadingPrompt,
   buildSleepInsight,
+  isObservationQualityEligible,
   compareObservationToReference,
+  describeMissionContact,
   formatObservationDisplay,
   formatUtcTimeHHMM,
   getObservedMissionDay,
@@ -34,6 +40,12 @@ export function OverviewPage() {
     coveredMetricCount,
     preferences,
   } = useAppState();
+
+  const raisePrompt = useMemo(() => activeProfile && buildRaiseReadingPrompt({
+    profileId: activeProfile.profileId,
+    observations: profileObservations,
+    references: profileReferences,
+  }), [activeProfile, profileObservations, profileReferences]);
 
   const latestBp = latestByMetric.blood_pressure;
   const lastBpDisplay = latestBp
@@ -63,7 +75,7 @@ export function OverviewPage() {
   );
 
   const currentSleepInsight = useMemo(() => {
-    if (!latestSleep) return null;
+    if (!latestSleep || !isObservationQualityEligible(latestSleep)) return null;
     const saved = profileInsights.find(
       (i) => i.observationId === latestSleep.observationId,
     );
@@ -111,6 +123,30 @@ export function OverviewPage() {
           </Link>
         </div>
       </header>
+
+      {raisePrompt && (
+        <section className="cs-card cs-stack" aria-labelledby="raise-reading-heading">
+          <h2 id="raise-reading-heading" className="cs-section-title">Consider raising this</h2>
+          {raisePrompt.reasons.map((reason) => <p key={reason}>{RAISE_READING_REASONS[reason]}</p>)}
+          <ul>
+            {raisePrompt.readings.map(({ observation, referenceVersion, differenceText }) => (
+              <li key={observation.observationId}>
+                Day {getObservedMissionDay(observation)}
+                {observation.timing.kind === 'instant' ? ` ${formatUtcTimeHHMM(observation.timing.observedAtUtc)} UTC` : ''}
+                {' · '}{METRIC_DEFINITIONS[observation.metricId].name} ·{' '}
+                {formatObservationDisplay(observation, preferences.displayUnits).primaryText} ·{' '}
+                {differenceText} · Reference version {referenceVersion}
+              </li>
+            ))}
+          </ul>
+          <p>{RAISE_READING_SUGGESTION}</p>
+          <p>{describeMissionContact(preferences.helpMode)}</p>
+          <p className="cs-helper">{RAISE_READING_LIMIT}</p>
+          <Link to="/demo/reports" state={raisePrompt.reportScope} className="cs-btn cs-btn-secondary">
+            Open report draft
+          </Link>
+        </section>
+      )}
 
       <div className="cs-overview">
         {/* Next step: the sleep comparison is stated once (review P2: calmer Overview). */}

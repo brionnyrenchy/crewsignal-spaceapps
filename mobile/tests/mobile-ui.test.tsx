@@ -457,6 +457,50 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     return (await store.loadProfileSnapshot(profileId)).observations.length;
   }
 
+  test('S05/G04: retains a flagged Review with its own profile and confirms one save', async () => {
+    const { store } = await renderTestApp();
+    const personalId = await createPersonal('Commander Recheck', store);
+    const demoId = (await store.loadAppSnapshot()).profiles.find((p) => p.mode !== 'personal')!.profileId;
+    await fireEvent.press(screen.getByTestId('tab-checkin'));
+    await fireEvent.press(await screen.findByTestId('metric-chip-heart_rate'));
+    await fireEvent.changeText(await screen.findByTestId('input-primary'), '350oops');
+    await fireEvent.press(screen.getByTestId('checkin-review-button'));
+    expect(await screen.findByTestId('checkin-error-summary')).toBeTruthy();
+    expect(await countObservations(store, personalId)).toBe(0);
+
+    await fireEvent.changeText(screen.getByTestId('input-primary'), '350');
+    await fireEvent.press(screen.getByTestId('checkin-review-button'));
+    const flag = await screen.findByTestId('checkin-needs-recheck');
+    await waitFor(() => expect(flag.props.accessibilityState.disabled).toBe(false));
+    await fireEvent.press(flag);
+    await waitFor(async () => {
+      expect((await store.loadProfileSnapshot(personalId)).drafts[0]?.quality).toBe('questionable');
+    });
+    await switchProfile(store, demoId);
+    await switchProfile(store, personalId);
+    await fireEvent.press(screen.getByTestId('tab-checkin'));
+    expect((await screen.findByTestId('checkin-needs-recheck')).props.accessibilityState.selected).toBe(true);
+
+    const commit = store.commitDraftObservation.bind(store);
+    jest.spyOn(store, 'commitDraftObservation').mockImplementationOnce((params) =>
+      commit({ ...params, simulateFailureMode: 'lost_ack' }),
+    );
+    const add = screen.getByTestId('checkin-add-to-log');
+    await waitFor(() => expect(add.props.accessibilityState.disabled).toBe(false));
+    await fireEvent.press(add);
+    await fireEvent.press(await screen.findByText('Check log now'));
+    const receipt = await screen.findByTestId('checkin-saved-receipt');
+    expect(within(receipt).getByText(/350 bpm.*Needs recheck/)).toBeTruthy();
+    const { observations, drafts } = await store.loadProfileSnapshot(personalId);
+    expect(observations).toEqual([expect.objectContaining({
+      quality: 'questionable', qualityNote: null,
+      entered: expect.objectContaining({ value: 350, unit: 'bpm' }),
+    })]);
+    expect(drafts).toHaveLength(0);
+    await fireEvent.press(screen.getByText('Log a new reading'));
+    expect((await screen.findByTestId('input-primary')).props.value).toBe('');
+  });
+
   test.each(['confirmed add', 'verified Already in your log'] as const)(
     'V02/G04: a %s closes the draft, so a profile switch cannot write it back',
     async (path) => {

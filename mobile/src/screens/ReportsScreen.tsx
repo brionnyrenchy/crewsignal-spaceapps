@@ -7,6 +7,7 @@ import {
   EXAMPLE_DRAFT_RECOVERY_BUNDLE,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
+  formatObservationDisplay,
   buildBackupBundle,
   buildDraftRecoveryBundle,
   buildReportBundle,
@@ -743,6 +744,12 @@ export function ReportsScreen(): React.ReactElement {
                 .join(', ') || 'None'
             }`}
           </Text>
+
+          {reportBundle.observations.filter((obs) => obs.quality === 'questionable').map((obs) => (
+            <Text key={obs.observationId} style={{ color: palette.textBody }}>
+              {`${METRIC_DEFINITIONS[obs.metricId].name}: ${formatObservationDisplay(obs, preferences.displayUnits).primaryText}`}
+            </Text>
+          ))}
 
           <Text style={{ fontFamily: fontMonoRegular, fontSize: 12, color: palette.textSupporting }}>
             {`Excluded: ${

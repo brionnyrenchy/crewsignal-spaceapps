@@ -559,3 +559,16 @@ This section covers the 3D navigation model added to the Health Explorer on Wind
 ### 10.4 Device results
 
 No installed-app or device results are recorded yet. Both rows in §7 stay OPEN until someone runs them on the target hardware and records the results here, separately from §10.2.
+## 10. Needs recheck on Review (S05 / G04)
+
+Implementation checkout `8b67a8cc959c16aa261addcd53ba8e8232147875`. The audited commit `373a265750d2e9288b07ab51c33031330c501937` and its tree were unavailable in this clone.
+
+| Verification | Result |
+| --- | --- |
+| `node shared/scripts/sync-to-targets.mjs --write all` and `--check all` | **PASS**. All 37 files on each of Android/mobile, Windows/desktop and the synthetic website match the canonical shared source by SHA-256. |
+| `node scripts/verify-clean-source.mjs` and `git diff --check` | **PASS**. Clean-source scan and strict target parity passed. |
+| Shared regression suite | **BLOCKED**. Added draft recovery, legacy defaults, malformed input, retry, report privacy, CSV round-trip and sleep eligibility checks. `npm ci` could not provision dependencies. Registry DNS returned `ENOTFOUND`, and Vitest was unavailable. |
+| Normal Android and Windows UI suites | **BLOCKED**. Added normal check-in scenarios with synthetic `350` bpm and malformed `350oops`. The Android harness covers switching profiles. Both harnesses cover a lost acknowledgement and one committed copy. Jest and Vitest were unavailable. |
+| Offline reopen on Android phone, Android tablet and installed Windows app | **OPEN**. No Android tooling or connected Android device was available, and no installed CrewSignal app or Windows build toolchain was available for this check. |
+
+To close S05/G04 for this entry path, run the harnesses and repeat the normal check-in on each installed target. Flag `350` bpm, switch profiles, close the app and reopen offline. Confirm Review retains the flag in its original profile. Save and confirm one flagged row in History, JSON, CSV and the printable report. Use `350oops` as the malformed control. Verify a flagged sleep period is absent from fallback reference samples and personalized actions, then log an independent compatible reading and confirm comparison is available.

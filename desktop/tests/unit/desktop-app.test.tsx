@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import {
   buildReportBundle,
   CANONICAL_ACCEPTANCE_VECTORS,
@@ -32,6 +32,21 @@ function resetMockStore() {
 describe("CrewSignal Desktop Canonical Vectors & UI Flows", () => {
   beforeEach(() => {
     resetMockStore();
+  });
+
+  it("opens a private report draft with the readings shown in the Overview prompt", async () => {
+    render(<App />);
+
+    const prompt = await screen.findByRole("region", { name: "Consider raising this" });
+    expect(within(prompt).getAllByText(/Reference version 1/)).toHaveLength(4);
+    expect(within(prompt).getByText(/No mission contact route is configured/)).toBeInTheDocument();
+    fireEvent.click(within(prompt).getByRole("button", { name: "Open report draft" }));
+
+    expect(await screen.findByText("4 observations across 2 types")).toBeInTheDocument();
+    expect(screen.getByText(/Excluded types .*Mood.*Private notes are EXCLUDED/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start a general report" }));
+    expect(await screen.findByText("10 observations across 4 types")).toBeInTheDocument();
   });
 
   it("matches all canonical arithmetic and CSV 5-row acceptance vectors", () => {
@@ -153,6 +168,39 @@ describe("CrewSignal Desktop Canonical Vectors & UI Flows", () => {
     // Overview now shows 12 observations
     fireEvent.click(screen.getByRole("button", { name: /Back to overview/i }));
     await screen.findByText(/12 observations across 5 of 6 types/i);
+  });
+
+  it("S05/G04: checks an odd reading in Review and recovers a single flagged save", async () => {
+    render(<App />);
+    await screen.findByText(/11 observations across 5 of 6 types/i);
+    fireEvent.click(screen.getAllByRole("button", { name: /Check-in/i })[0]!);
+    const primary = await screen.findByLabelText("Heart rate (bpm)");
+    fireEvent.change(primary, { target: { value: "350oops" } });
+    fireEvent.click(screen.getByRole("button", { name: /Next: Review/i }));
+    expect((await screen.findAllByText(/Enter a positive resting heart rate in bpm\./i)).length).toBeGreaterThan(0);
+    expect(browserMockBackend.snapshot().profileData.observations).toHaveLength(11);
+
+    fireEvent.change(primary, { target: { value: "350" } });
+    fireEvent.click(screen.getByRole("button", { name: /Next: Review/i }));
+    const flag = await screen.findByRole("checkbox", { name: "Needs recheck" });
+    await waitFor(() => expect(flag).toBeEnabled());
+    fireEvent.click(flag);
+    await waitFor(() => expect(browserMockBackend.snapshot().profileData.drafts[0]?.quality).toBe("questionable"));
+    browserMockBackend.setHooks({ ...browserMockBackend.getHooks(), simulateLostAck: true });
+    const add = screen.getByRole("button", { name: "Add to log" });
+    await waitFor(() => expect(add).toBeEnabled());
+    fireEvent.click(add);
+    fireEvent.click(await screen.findByRole("button", { name: "Check the log" }));
+    await screen.findByRole("heading", { name: "Already in your log" });
+    expect(screen.getByText("Needs recheck")).toBeInTheDocument();
+    const { observations, drafts } = browserMockBackend.snapshot().profileData;
+    expect(observations).toHaveLength(12);
+    expect(observations.filter((o) => o.quality === "questionable")).toEqual([
+      expect.objectContaining({ entered: expect.objectContaining({ value: 350, unit: "bpm" }), qualityNote: null }),
+    ]);
+    expect(drafts).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Log a new reading" }));
+    expect(await screen.findByLabelText("Heart rate (bpm)")).toHaveValue("");
   });
 
   it("opens close guard dialog when unfinished draft exists and triggers close request", async () => {

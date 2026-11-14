@@ -1,13 +1,19 @@
 import {
+  buildRaiseReadingPrompt,
   buildSleepInsight,
   computeMissionDay,
+  describeMissionContact,
   evaluateMetricSchedule,
   formatObservationDisplay,
+  NEEDS_RECHECK_LABEL,
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
   getObservedMissionDay,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
+  RAISE_READING_LIMIT,
+  RAISE_READING_REASONS,
+  RAISE_READING_SUGGESTION,
   type MetricId,
 } from "../shared/src";
 import { useApp } from "../state/AppContext";
@@ -118,6 +124,11 @@ export function OverviewRoute() {
   }
 
   const observations = snapshot.profileData.observations;
+  const raisePrompt = buildRaiseReadingPrompt({
+    profileId: activeProfile.profileId,
+    observations,
+    references: snapshot.profileData.references,
+  });
   const missionDay = Math.max(
     1,
     computeMissionDay(currentReferenceNowUtc, activeProfile.missionEpochUtc),
@@ -182,6 +193,30 @@ export function OverviewRoute() {
           </button>
         </div>
       </div>
+
+      {raisePrompt && (
+        <section className="panel-card stack-sm" aria-labelledby="raise-reading-heading">
+          <h2 id="raise-reading-heading" className="panel-heading">Consider raising this</h2>
+          {raisePrompt.reasons.map((reason) => <p key={reason}>{RAISE_READING_REASONS[reason]}</p>)}
+          <ul>
+            {raisePrompt.readings.map(({ observation, referenceVersion, differenceText }) => (
+              <li key={observation.observationId}>
+                Day {getObservedMissionDay(observation)}
+                {observation.timing.kind === "instant" ? ` ${formatUtcTimeHHMM(observation.timing.observedAtUtc)} UTC` : ""}
+                {" · "}{METRIC_DEFINITIONS[observation.metricId].name} ·{" "}
+                {formatObservationDisplay(observation, preferences.displayUnits).primaryText} ·{" "}
+                {differenceText} · Reference version {referenceVersion}
+              </li>
+            ))}
+          </ul>
+          <p>{RAISE_READING_SUGGESTION}</p>
+          <p>{describeMissionContact(preferences.helpMode)}</p>
+          <p>{RAISE_READING_LIMIT}</p>
+          <button type="button" className="btn-secondary" onClick={() => navigate("reports", raisePrompt.reportScope)}>
+            Open report draft
+          </button>
+        </section>
+      )}
 
       {activeDraft ? (
         <div className="notice-banner notice-banner-review" role="status">
@@ -327,6 +362,7 @@ export function OverviewRoute() {
                             ? ` · ${schedStatus.ageLabel} ago / ${schedStatus.intervalLabel}`
                             : ""}
                         </div>
+                        {obs.quality === "questionable" && <div>{NEEDS_RECHECK_LABEL}</div>}
                         <div className="reading-provenance">
                           {display.isConvertedDisplay
                             ? `Entered ${display.enteredText}`

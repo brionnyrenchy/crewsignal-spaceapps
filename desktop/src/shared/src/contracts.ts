@@ -54,6 +54,9 @@ export type ObservationProvenance = z.infer<typeof ObservationProvenanceSchema>;
 
 export const ObservationQualitySchema = z.enum(['valid', 'questionable']);
 export type ObservationQuality = z.infer<typeof ObservationQualitySchema>;
+export const NEEDS_RECHECK_LABEL = 'Needs recheck';
+export const NEEDS_RECHECK_HELP =
+  'Use this if you doubt the reading. It stays in your log and is excluded from comparisons, references, and personalized guidance.';
 
 export const UtcIsoStringSchema = z
   .string()
@@ -281,6 +284,7 @@ export const CheckInDraftSchema = z.object({
   method: z.string().min(1),
   context: z.string().min(1),
   provenance: z.enum(['manual', 'self_report']),
+  quality: ObservationQualitySchema.optional(),
   note: z.string(),
   validationState: DraftValidationStateSchema,
   normalizedCandidate: CanonicalObservationValueSchema.nullable(),
@@ -570,6 +574,7 @@ export const HelpProcedureCardSchema = z.object({
   versionLabel: z.string().nullable(),
   cachedAvailable: z.boolean(),
   body: z.string().min(1),
+  contactRoute: z.string().min(1).optional(),
   steps: z.array(z.string().min(1)),
   limitation: z.string().min(1),
   offlineFacts: z.array(z.string().min(1)),

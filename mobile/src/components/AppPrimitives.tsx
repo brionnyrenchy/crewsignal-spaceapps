@@ -384,9 +384,11 @@ export function SelectableChip({
   onPress,
   testID,
   accessibilityLabel,
+  disabled = false,
 }: {
   label: string;
   selected: boolean;
+  disabled?: boolean;
   onPress: () => void;
   testID?: string;
   accessibilityLabel?: string;
@@ -398,7 +400,8 @@ export function SelectableChip({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ selected }}
+      disabled={disabled}
+      accessibilityState={{ selected, disabled }}
       style={({ pressed }) => [
         {
           minHeight: MIN_NATIVE_TARGET_DP,

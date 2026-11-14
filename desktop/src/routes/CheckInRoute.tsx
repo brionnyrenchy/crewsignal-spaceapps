@@ -10,6 +10,8 @@ import {
   formatUtcTimeHHMM,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
+  NEEDS_RECHECK_HELP,
+  NEEDS_RECHECK_LABEL,
   MF_FIXTURES,
   MOOD_SCALE_SPEC,
   planCommitDraft,
@@ -58,6 +60,7 @@ export function CheckInRoute() {
   const [commitErrorKind, setCommitErrorKind] = useState<CommitErrorKind>("none");
   const [commitErrorMsg, setCommitErrorMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [retainingReview, setRetainingReview] = useState(false);
 
   // Initialize blank draft cleanly if user visits Check-in without an active draft or receipt
   useEffect(() => {
@@ -241,9 +244,8 @@ export function CheckInRoute() {
       normalizedCandidate: result.canonical,
       stage: result.validationState.valid ? "review" : "record",
     };
-    setActiveDraft(nextDraft);
-
     if (!result.validationState.valid) {
+      setActiveDraft(nextDraft);
       announce(result.validationState.announcement ?? "Check the highlighted field.");
       const firstKey = result.validationState.firstInvalidField;
       if (firstKey) {
@@ -255,7 +257,12 @@ export function CheckInRoute() {
       return;
     }
 
-    await saveDraftToStore(nextDraft);
+    setRetainingReview(true);
+    try {
+      await saveDraftToStore(nextDraft);
+    } finally {
+      setRetainingReview(false);
+    }
   };
 
   const handleCommitToLog = async () => {
@@ -464,6 +471,9 @@ export function CheckInRoute() {
                 {savedReceipt.observation.method} · {savedReceipt.observation.context}
               </dd>
             </div>
+            {savedReceipt.observation.quality === "questionable" ? (
+              <div className="dl-row"><dt>Quality</dt><dd>{NEEDS_RECHECK_LABEL}</dd></div>
+            ) : null}
           </dl>
 
           <div className="row-wrap">
@@ -482,10 +492,11 @@ export function CheckInRoute() {
               className="btn-secondary"
               onClick={() => {
                 setSavedReceipt(null);
-                void switchMetric("heart_rate");
+                void switchMetric(savedReceipt.observation.quality === "questionable"
+                  ? savedReceipt.observation.metricId : "heart_rate");
               }}
             >
-              Record another
+              {savedReceipt.observation.quality === "questionable" ? "Log a new reading" : "Record another"}
             </button>
             <button
               type="button"
@@ -543,7 +554,7 @@ export function CheckInRoute() {
           method: activeDraft.method,
           context: activeDraft.context,
           provenance: activeDraft.provenance,
-          quality: "valid",
+          quality: activeDraft.quality ?? "valid",
           qualityNote: null,
           note: activeDraft.note.trim() || null,
           sourceDraftId: activeDraft.draftId,
@@ -638,6 +649,7 @@ export function CheckInRoute() {
             type="button"
             className="chip-btn"
             aria-pressed={activeDraft.metricId === mId}
+            disabled={retainingReview}
             onClick={() => void switchMetric(mId)}
           >
             {METRIC_DEFINITIONS[mId].shortLabel}
@@ -1253,7 +1265,7 @@ export function CheckInRoute() {
               <button
                 type="button"
                 className="btn-primary"
-                disabled={busy}
+                disabled={busy || retainingReview}
                 onClick={() => void handleProceedToReview()}
               >
                 Next: Review
@@ -1431,11 +1443,40 @@ export function CheckInRoute() {
             ) : null}
           </dl>
 
+          <div className="field-group">
+            <label className="row-wrap">
+              <input
+                type="checkbox"
+                checked={activeDraft.quality === "questionable"}
+                disabled={busy || retainingReview || commitErrorKind === "unknown_outcome" || commitErrorKind === "unconfirmed"}
+                aria-describedby="recheck-help"
+                onChange={async (event) => {
+                  const next: CheckInDraft = {
+                    ...activeDraft,
+                    quality: event.target.checked ? "questionable" : "valid",
+                    updatedAtUtc: new Date().toISOString(),
+                  };
+                  setRetainingReview(true);
+                  try {
+                    await saveDraftToStore(next, { edit: true });
+                  } finally {
+                    setRetainingReview(false);
+                  }
+                }}
+              />
+              {NEEDS_RECHECK_LABEL}
+            </label>
+            <p id="recheck-help" className="page-subtitle">{NEEDS_RECHECK_HELP}</p>
+            <div><button type="button" className="btn-ghost" onClick={() =>
+              openModal({ kind: "measurement_help", metricId: activeDraft.metricId })
+            }>Measurement help</button></div>
+          </div>
+
           <div className="row-wrap" style={{ justifyContent: "space-between", paddingTop: 6 }}>
             <button
               type="button"
               className="btn-secondary"
-              disabled={busy}
+              disabled={busy || retainingReview}
               onClick={() => updateDraft((d) => ({ ...d, stage: "record" }))}
             >
               Edit details
@@ -1444,7 +1485,7 @@ export function CheckInRoute() {
             <button
               type="button"
               className="btn-primary"
-              disabled={busy || commitErrorKind === "unknown_outcome" || commitErrorKind === "unconfirmed"}
+              disabled={busy || retainingReview || commitErrorKind === "unknown_outcome" || commitErrorKind === "unconfirmed"}
               onClick={() => void handleCommitToLog()}
             >
               {busy ? "Adding…" : "Add to log"}

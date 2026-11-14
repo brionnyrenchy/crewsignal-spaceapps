@@ -9,16 +9,20 @@ import {
   MF_01_FIXTURE,
   SIM_01_EPOCH_UTC,
   SIM_01_OBSERVATIONS,
+  SIM_01_PROFILE,
   SIM_01_PROFILE_ID,
   SIM_01_REFERENCES,
   SIM_01_SLEEP_OBSERVATIONS,
   SIM_01_SNAPSHOT_UTC,
   buildInstantTiming,
   buildPeriodTiming,
+  buildRaiseReadingPrompt,
+  buildReportBundle,
   buildSleepInsight,
   compareObservationToReference,
   createNewReferenceVersion,
   deriveSevenDayFallbackReference,
+  describeMissionContact,
   isInsightReviewCurrent,
   markInsightReviewed,
   resolveActiveReference,
@@ -70,6 +74,75 @@ function makeHrObs(
     correctionHistory: [],
   };
 }
+
+describe('Consider raising this', () => {
+  const profileId = 'test-prof';
+  const references = SIM_01_REFERENCES.map((r) => ({ ...r, profileId }));
+  const hr = (day: number, bpm = 90, method?: string, time = '07:00') =>
+    makeHrObs(`hr-${day}-${time}`, day, time, bpm, SIM_01_SNAPSHOT_UTC, method);
+  const evaluate = (observations: Observation[]) => buildRaiseReadingPrompt({ profileId, observations, references });
+
+  it('identifies three consecutive days and opens a report scoped to the exact readings', () => {
+    const readings = [hr(40), hr(41), { ...hr(42), note: 'Private note' }];
+    const mood = { ...SIM_01_OBSERVATIONS.find((o) => o.metricId === 'mood')!, profileId };
+    const observations = [hr(42, 72, undefined, '06:00'), mood, ...[...readings].reverse()];
+    const prompt = evaluate(observations)!;
+    expect(prompt.ruleVersion).toBe('crewsignal-raise-reading-v1');
+    expect(prompt.reasons).toEqual(['sustained']);
+    expect(prompt.readings).toHaveLength(3);
+    expect(prompt.readings.every((r) => r.referenceVersion === 1)).toBe(true);
+    expect(prompt.reportScope.observationIds).toEqual(readings.map((r) => r.observationId));
+
+    const report = buildReportBundle({
+      profile: { ...SIM_01_PROFILE, profileId },
+      observations,
+      references,
+      startDay: prompt.reportScope.startDay,
+      endDay: prompt.reportScope.endDay,
+      selectedMetricIds: prompt.reportScope.metricIds,
+      selectedObservationIds: prompt.reportScope.observationIds,
+      generatedAtUtc: SIM_01_SNAPSHOT_UTC,
+    });
+    expect(report.observations.map((r) => r.observationId).sort()).toEqual(readings.map((r) => r.observationId).sort());
+    expect(report.observations.every((r) => r.note === null)).toBe(true);
+    expect(report.excludedMetricIds).toContain('mood');
+  });
+
+  it('identifies multiple indicators differing on the same observed day', () => {
+    const sleep = { ...SIM_01_SLEEP_OBSERVATIONS[6]!, profileId };
+    const prompt = evaluate([hr(42), sleep]);
+    expect(prompt?.reasons).toEqual(['multiple']);
+    expect(prompt?.reportScope.observationIds).toEqual(expect.arrayContaining([hr(42).observationId, sleep.observationId]));
+    expect(evaluate([hr(41), sleep])).toBeNull();
+  });
+
+  it('stays hidden for isolated differences, gaps, and incompatible measurements', () => {
+    expect(evaluate([hr(42)])).toBeNull();
+    expect(evaluate([hr(39), hr(41), hr(42)])).toBeNull();
+    expect(evaluate([hr(40), hr(41, 90, 'Not specified'), hr(42)])).toBeNull();
+  });
+
+  it('requires a stored, compatible reference for the active profile', () => {
+    const observations = [hr(40), hr(41), hr(42)];
+    expect(buildRaiseReadingPrompt({ profileId, observations, references: [] })).toBeNull();
+    expect(buildRaiseReadingPrompt({ profileId, observations, references: SIM_01_REFERENCES })).toBeNull();
+    expect(buildRaiseReadingPrompt({ profileId, observations, references: references.map((r) => ({ ...r, locked: false })) })).toBeNull();
+  });
+
+  it('requires an explicit link to an agreeing repeat before using a flagged reading', () => {
+    const flagged: Observation = { ...hr(42, 90, undefined, '06:00'), quality: 'questionable' };
+    const repeat = hr(42, 88);
+    const rechecks = [{ flaggedObservationId: flagged.observationId, repeatObservationId: repeat.observationId }];
+    expect(evaluate([flagged, repeat])).toBeNull();
+    expect(buildRaiseReadingPrompt({ profileId, references, observations: [flagged, repeat], rechecks })?.reasons).toEqual(['recheck']);
+    expect(buildRaiseReadingPrompt({ profileId, references, observations: [flagged, hr(42, 55)], rechecks })).toBeNull();
+  });
+
+  it('labels the example contact route and explains when Help has no route', () => {
+    expect(describeMissionContact('unconfigured')).toMatch(/No mission contact route is configured/);
+    expect(describeMissionContact('configured_fixture')).toMatch(/test fixture only/);
+  });
+});
 
 describe('Personal reference lifecycle & 7-day fallback heuristic', () => {
   it('compares SIM-01 sleep and resting HR against entered preflight references', () => {
@@ -305,6 +378,7 @@ describe('Controlled guidance, evidence registry (2026-11-13), and Help registry
       createdAtUtc: SIM_01_SNAPSHOT_UTC,
     });
 
+    if (!insight) throw new Error('Expected a sleep insight');
     const reviewed = markInsightReviewed(insight, SIM_01_SNAPSHOT_UTC);
     expect(isInsightReviewCurrent(reviewed, insight)).toBe(true);
 
@@ -318,6 +392,7 @@ describe('Controlled guidance, evidence registry (2026-11-13), and Help registry
       reference: sleepRef,
       createdAtUtc: SIM_01_SNAPSHOT_UTC,
     });
+    if (!newerInsight) throw new Error('Expected an insight for the newer reading');
     expect(isInsightReviewCurrent(reviewed, newerInsight)).toBe(false);
   });
 

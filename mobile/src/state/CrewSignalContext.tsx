@@ -774,16 +774,12 @@ export function CrewSignalProvider({
 
   const updateDraft = useCallback(
     async (updater: (prev: CheckInDraft) => CheckInDraft, persist = true) => {
-      let nextDraft: CheckInDraft | null = null;
-      setActiveDraft((prev) => {
-        if (!prev) return prev;
-        nextDraft = updater({
-          ...prev,
-          updatedAtUtc: nowUtc(),
-        });
-        return nextDraft;
-      });
-      if (persist && nextDraft) {
+      const previous = activeDraftRef.current;
+      if (!previous) return;
+      const nextDraft = updater({ ...previous, updatedAtUtc: nowUtc() });
+      activeDraftRef.current = nextDraft;
+      setActiveDraft(nextDraft);
+      if (persist) {
         if (await persistDraft(nextDraft)) {
           const reloaded = await store.loadAppSnapshot();
           setSnapshot(reloaded);
