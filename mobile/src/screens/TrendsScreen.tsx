@@ -4,6 +4,9 @@ import {
   METRIC_DEFINITIONS,
   METRIC_ORDER,
   compareObservationToReference,
+  evaluateMetricSchedule,
+  getLatestObservationsByMetric,
+  getReadingStatus,
   computeMissionDay,
   convertGlucose,
   convertTemperature,
@@ -17,6 +20,7 @@ import {
   type Observation,
   type PersonalReference,
 } from '../shared/src';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import {
   ActionButton,
   CalmBanner,
@@ -144,10 +148,7 @@ export function TrendsScreen(): React.ReactElement {
     [observations, selectedTrendsMetric],
   );
 
-  const latestMetricObs =
-    metricObservations.length > 0
-      ? metricObservations[metricObservations.length - 1]!
-      : null;
+  const latestMetricObs = getLatestObservationsByMetric(metricObservations)[selectedTrendsMetric];
 
   const activeReference = useMemo(() => {
     if (!activeProfile) return null;
@@ -278,6 +279,14 @@ export function TrendsScreen(): React.ReactElement {
     );
   }
 
+  const comparison = latestMetricObs ? compareObservationToReference(latestMetricObs, activeReference) : null;
+  const status = getReadingStatus(latestMetricObs, comparison, evaluateMetricSchedule({
+    metricId: selectedTrendsMetric,
+    latestObservation: latestMetricObs,
+    schedule: activeProfile.schedules[selectedTrendsMetric],
+    referenceNowUtc: currentUtc,
+  }));
+
   return (
     <ScrollView
       contentContainerStyle={[styles.scrollContent, { backgroundColor: palette.surfaceCanvas }]}
@@ -301,6 +310,11 @@ export function TrendsScreen(): React.ReactElement {
       </View>
 
       {/* Range & Chart/Table Toggles */}
+      <View style={styles.rowWrap}>
+        <EyebrowLabel>{`Latest ${def.shortLabel.toLowerCase()} reading`}</EyebrowLabel>
+        <ReadingStatusBadge status={status} />
+      </View>
+
       <View style={styles.rowBetween}>
         <View style={styles.rowWrap}>
           <SelectableChip

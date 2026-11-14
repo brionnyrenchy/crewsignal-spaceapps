@@ -1,13 +1,17 @@
 import {
   compareObservationToReference,
   computeMissionDay,
+  evaluateMetricSchedule,
   formatObservationDisplay,
+  getLatestObservationsByMetric,
   getObservationSortTimestampMs,
   getObservedMissionDay,
+  getReadingStatus,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
 } from "../shared/src";
 import { TrendChart } from "../components/TrendChart";
+import { ReadingStatusBadge } from "../components/ReadingStatusBadge";
 import { useApp } from "../state/AppContext";
 
 export function TrendsRoute() {
@@ -45,6 +49,14 @@ export function TrendsRoute() {
 
   const def = METRIC_DEFINITIONS[selectedTrendMetric];
   const activeRef = activeReferencesByMetric[selectedTrendMetric];
+  const latest = getLatestObservationsByMetric(observations)[selectedTrendMetric];
+  const comparison = latest ? compareObservationToReference(latest, activeRef) : null;
+  const status = getReadingStatus(latest, comparison, evaluateMetricSchedule({
+    metricId: selectedTrendMetric,
+    latestObservation: latest,
+    schedule: activeProfile.schedules[selectedTrendMetric],
+    referenceNowUtc: currentReferenceNowUtc,
+  }));
 
   return (
     <div className="stack-lg">
@@ -90,6 +102,10 @@ export function TrendsRoute() {
                 ? "Not recorded"
                 : `${observations.length} total recorded observation(s)`}
             </span>
+            <div className="row-wrap">
+              <span className="mono-label">Latest reading</span>
+              <ReadingStatusBadge status={status} />
+            </div>
           </div>
 
           <div className="row-wrap">

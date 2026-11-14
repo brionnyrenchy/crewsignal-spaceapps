@@ -386,6 +386,7 @@ export interface ObservationComparisonResult {
   referenceVersion: number | null;
   differenceText: string | null;
   deltaNumeric: number | null;
+  diastolicDeltaNumeric?: number;
   deltaUnit: string | null;
 }
 
@@ -535,6 +536,7 @@ export function compareObservationToReference(
       referenceVersion: reference.version,
       differenceText: `${fmt(dSys)}/${fmt(dDia)} mmHg from reference`,
       deltaNumeric: dSys,
+      diastolicDeltaNumeric: dDia,
       deltaUnit: 'mmHg',
     };
   }

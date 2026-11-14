@@ -9,6 +9,7 @@ import {
   SelectableChip,
   StatusBadge,
 } from '../components/AppPrimitives';
+import { ReadingStatusLegend } from '../components/ReadingStatusBadge';
 import { useCrewSignal } from '../state/CrewSignalContext';
 import { useCrewTheme } from '../theme/ThemeProvider';
 
@@ -53,6 +54,8 @@ export function HelpScreen(): React.ReactElement {
           tone="review"
         />
       ) : null}
+
+      <ReadingStatusLegend />
 
       <PanelCard testID="help-procedure-card">
         <View style={{ gap: 12 }}>

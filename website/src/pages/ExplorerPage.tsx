@@ -10,6 +10,7 @@ import {
   formatDurationHoursMinutes,
   formatObservationDisplay,
   getObservedMissionDay,
+  getReadingStatus,
   resolveActiveReference,
   type BodySystemId,
   type MetricId,
@@ -17,6 +18,7 @@ import {
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 import { BodyDiagram } from '../components/BodyDiagram';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import { useTabList } from '../components/useTabList';
 
 export function ExplorerPage() {
@@ -25,6 +27,7 @@ export function ExplorerPage() {
     profileObservations,
     profileReferences,
     latestByMetric,
+    scheduleStatusByMetric,
     preferences,
     createReferenceVersion,
   } = useAppState();
@@ -247,11 +250,7 @@ export function ExplorerPage() {
                         }}
                       >
                         <strong>{def.name}</strong>
-                        <span className="cs-pill">
-                          {obs
-                            ? `Day ${getObservedMissionDay(obs)}`
-                            : 'Not logged'}
-                        </span>
+                        {obs && <span className="cs-pill">Day {getObservedMissionDay(obs)}</span>}
                       </div>
 
                       {obs ? (
@@ -263,11 +262,8 @@ export function ExplorerPage() {
                             Method: {obs.method} · Context: {obs.context}
                           </div>
                         </>
-                      ) : (
-                        <div className="cs-helper">
-                          Not yet logged in check-in.
-                        </div>
-                      )}
+                      ) : null}
+                      <ReadingStatusBadge status={getReadingStatus(obs, cmp, scheduleStatusByMetric[mId])} />
 
                       <div
                         style={{

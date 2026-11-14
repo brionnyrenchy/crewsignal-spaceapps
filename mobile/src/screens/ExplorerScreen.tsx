@@ -5,10 +5,12 @@ import {
   BODY_SYSTEM_DEFINITIONS,
   METRIC_DEFINITIONS,
   compareObservationToReference,
+  evaluateMetricSchedule,
   formatObservationDisplay,
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
   getObservedMissionDay,
+  getReadingStatus,
   resolveActiveReference,
   type BodySystemId,
 } from '../shared/src';
@@ -22,6 +24,7 @@ import {
   StatusBadge,
 } from '../components/AppPrimitives';
 import { BodyExplorerVisual } from '../components/BodyExplorerVisual';
+import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import { useCrewSignal } from '../state/CrewSignalContext';
 import { useCrewTheme } from '../theme/ThemeProvider';
 import { MIN_NATIVE_TARGET_DP } from '../theme/tokens';
@@ -173,6 +176,12 @@ export function ExplorerScreen(): React.ReactElement {
               const comparison = obs
                 ? compareObservationToReference(obs, resolvedRef)
                 : null;
+              const status = getReadingStatus(obs, comparison, evaluateMetricSchedule({
+                metricId,
+                latestObservation: obs,
+                schedule: activeProfile.schedules[metricId],
+                referenceNowUtc: currentUtc,
+              }));
               const formatted = obs
                 ? formatObservationDisplay(obs, preferences.displayUnits)
                 : null;
@@ -216,6 +225,7 @@ export function ExplorerScreen(): React.ReactElement {
                     >
                       {formatted ? formatted.primaryText : 'Not entered'}
                     </Text>
+                    <ReadingStatusBadge status={status} />
 
                     {obs ? (
                       <>
