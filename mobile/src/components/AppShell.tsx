@@ -175,11 +175,14 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
     openGettingStarted,
     activeProfile,
     nowUtc,
+    dueSchedules,
     isKeyboardVisible,
     isOfflineSimulated,
     liveAnnouncement,
   } = useCrewSignal();
 
+  const checkInCount = dueSchedules.length;
+  const checkInLabel = checkInCount ? `Check-in, ${checkInCount} due` : 'Check-in';
   const currentUtc = nowUtc();
   const missionDay = activeProfile
     ? computeMissionDay(currentUtc, activeProfile.missionEpochUtc)
@@ -420,7 +423,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                     testID={`rail-${item.route}`}
                     onPress={() => navigateTo(item.route)}
                     accessibilityRole="tab"
-                    accessibilityLabel={item.label}
+                    accessibilityLabel={item.route === 'checkin' ? checkInLabel : item.label}
                     accessibilityState={{ selected }}
                     style={{
                       minHeight: MIN_NATIVE_TARGET_DP,
@@ -448,7 +451,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                         color: selected ? palette.textPrimary : palette.textSupporting,
                       }}
                     >
-                      {item.label}
+                      {item.route === 'checkin' && checkInCount ? `${item.label} (${checkInCount})` : item.label}
                     </Text>
                   </Pressable>
                 );
@@ -525,7 +528,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                 testID={`tab-${tab.route}`}
                 onPress={() => navigateTo(tab.route)}
                 accessibilityRole="tab"
-                accessibilityLabel={tab.label}
+                accessibilityLabel={tab.route === 'checkin' ? checkInLabel : tab.label}
                 accessibilityState={{ selected }}
                 style={{
                   flex: 1,
@@ -551,7 +554,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                     color: selected ? palette.textPrimary : palette.textSupporting,
                   }}
                 >
-                  {tab.label}
+                  {tab.route === 'checkin' && checkInCount ? `${tab.label} (${checkInCount})` : tab.label}
                 </Text>
               </Pressable>
             );

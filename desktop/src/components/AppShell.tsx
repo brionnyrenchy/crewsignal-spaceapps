@@ -62,6 +62,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     activeProfile,
     activeDraft,
     currentReferenceNowUtc,
+    dueSchedules,
     toast,
     dismissToast,
     liveAnnouncement,
@@ -72,6 +73,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [moreOpen, setMoreOpen] = useState(false);
 
+  const checkInCount = dueSchedules.length;
+  const checkInLabel = checkInCount ? `Check-in, ${checkInCount} due` : "Check-in";
   const missionDay = activeProfile
     ? Math.max(1, computeMissionDay(currentReferenceNowUtc, activeProfile.missionEpochUtc))
     : 1;
@@ -121,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={itemRoute}
               type="button"
               className="nav-item"
-              aria-label={label}
+              aria-label={itemRoute === "check_in" ? checkInLabel : label}
               aria-current={route === itemRoute ? "page" : undefined}
               onClick={() => {
                 setMoreOpen(false);
@@ -130,8 +133,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Icon size={18} aria-hidden="true" />
               <span className="nav-item-label" aria-hidden="true">
-                <span className="brand-title">{label}</span>
-                <span className="brand-compact-mark">{compactLabel}</span>
+                <span className="brand-title">{itemRoute === "check_in" && checkInCount ? `${label} (${checkInCount})` : label}</span>
+                <span className="brand-compact-mark">{itemRoute === "check_in" && checkInCount ? `${compactLabel} (${checkInCount})` : compactLabel}</span>
               </span>
             </button>
           ))}
@@ -298,6 +301,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             key={itemRoute}
             type="button"
             className="mobile-nav-btn"
+            aria-label={itemRoute === "check_in" ? checkInLabel : compactLabel}
             aria-current={route === itemRoute ? "page" : undefined}
             onClick={() => {
               setMoreOpen(false);
@@ -305,7 +309,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             }}
           >
             <Icon size={18} aria-hidden="true" />
-            <span>{compactLabel}</span>
+            <span>{itemRoute === "check_in" && checkInCount ? `${compactLabel} (${checkInCount})` : compactLabel}</span>
           </button>
         ))}
         <button

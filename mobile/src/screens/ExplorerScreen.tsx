@@ -3,6 +3,9 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   BODY_SYSTEM_DEFINITIONS,
+  BODY_SYSTEM_RESEARCH,
+  EVIDENCE_REGISTRY,
+  RADIATION_RESEARCH,
   METRIC_DEFINITIONS,
   compareObservationToReference,
   evaluateMetricSchedule,
@@ -42,6 +45,7 @@ export function ExplorerScreen(): React.ReactElement {
     startOrResumeCheckIn,
     setSelectedTrendsMetric,
     navigateTo,
+    openResearch,
     nowUtc,
   } = useCrewSignal();
 
@@ -282,6 +286,17 @@ export function ExplorerScreen(): React.ReactElement {
     </PanelCard>
   );
 
+  const researchCards = [BODY_SYSTEM_RESEARCH[selectedBodySystem], RADIATION_RESEARCH].map((research) => (
+    <PanelCard key={research.sourceId}>
+      <View style={{ gap: 8 }}>
+        <EyebrowLabel>{research === RADIATION_RESEARCH ? 'Radiation research' : 'Research for this system'}</EyebrowLabel>
+        <Text style={{ color: palette.textBody }}>{research.text}</Text>
+        <ActionButton label={EVIDENCE_REGISTRY[research.sourceId]!.shortTitle}
+          onPress={() => openResearch(research)} variant="secondary" />
+      </View>
+    </PanelCard>
+  ));
+
   const systemListCard = (
     <PanelCard testID="explorer-system-list">
       <View style={{ gap: 10 }}>
@@ -390,7 +405,7 @@ export function ExplorerScreen(): React.ReactElement {
             </PanelCard>
             {systemListCard}
           </View>
-          <View style={{ flex: 1 }}>{systemDetailCard}</View>
+          <View style={{ flex: 1, gap: 14 }}>{systemDetailCard}{researchCards}</View>
         </View>
       ) : mobileSubView === 'map' ? (
         <>
@@ -402,11 +417,13 @@ export function ExplorerScreen(): React.ReactElement {
             />
           </PanelCard>
           {systemDetailCard}
+          {researchCards}
         </>
       ) : (
         <>
           {systemListCard}
           {systemDetailCard}
+          {researchCards}
         </>
       )}
     </ScrollView>

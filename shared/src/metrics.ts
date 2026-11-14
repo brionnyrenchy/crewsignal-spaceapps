@@ -15,6 +15,7 @@ import {
   type MoodLabel,
   type Observation,
   type ObservationTiming,
+  type ProfileConfig,
   type SleepType,
   type TemperatureUnit,
 } from './contracts';
@@ -26,6 +27,7 @@ import {
 import {
   buildInstantTiming,
   buildPeriodTiming,
+  evaluateMetricSchedule,
   missionDayAndTimeToUtc,
   parseHHMM,
   validateSleepWindow,
@@ -782,9 +784,22 @@ export function createBlankDraft(params: {
   };
 }
 
-/**
- * Helper for computing latest committed observations by metric and distinct type coverage.
- */
+export function getDueMetricSchedules(
+  schedules: ProfileConfig['schedules'],
+  observations: readonly Observation[],
+  referenceNowUtc: string,
+) {
+  const latestByMetric = getLatestObservationsByMetric(observations);
+  return METRIC_ORDER.map((metricId) =>
+    evaluateMetricSchedule({
+      metricId,
+      latestObservation: latestByMetric[metricId] ?? null,
+      schedule: schedules[metricId] ?? null,
+      referenceNowUtc,
+    }),
+  ).filter(({ status }) => status === 'due_no_entries' || status === 'past_interval');
+}
+
 export function getLatestObservationsByMetric(
   observations: readonly Observation[],
 ): Record<MetricId, Observation | null> {

@@ -34,6 +34,7 @@ export function OverviewRoute() {
     preferences,
     activeDraft,
     currentReferenceNowUtc,
+    dueSchedules,
     activeReferencesByMetric,
     trendRangeDays,
     setTrendRangeDays,
@@ -42,6 +43,7 @@ export function OverviewRoute() {
     gettingStarted,
     setSelectedTrendMetric,
     openDraftForMetric,
+    showToast,
   } = useApp();
 
   if (storageStatus && !storageStatus.available) {
@@ -204,6 +206,40 @@ export function OverviewRoute() {
         </div>
       </div>
 
+      {dueSchedules.length > 0 && (
+        <section className="panel-card stack-sm" aria-labelledby="due-now-heading">
+          <h2 id="due-now-heading" className="panel-heading">Due now</h2>
+          <ul className="stack-sm">
+            {dueSchedules.map(({ metricId, status, intervalLabel }) => (
+              <li key={metricId} className="row-wrap">
+                <span>
+                  {METRIC_DEFINITIONS[metricId].name} · {status === "due_no_entries"
+                    ? "First check-in due"
+                    : `${intervalLabel} interval passed`}
+                </span>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    if (activeDraft?.metricId === metricId) {
+                      navigate("check_in");
+                      return;
+                    }
+                    const draft = snapshot.profileData.drafts.find((item) => item.metricId === metricId);
+                    void openDraftForMetric(metricId, draft).catch(() => showToast({
+                      tone: "danger",
+                      title: "Could not open check-in",
+                    }));
+                  }}
+                >
+                  Start {METRIC_DEFINITIONS[metricId].name.toLowerCase()} check-in
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {raisePrompt && (
         <section className="panel-card stack-sm" aria-labelledby="raise-reading-heading">
           <h2 id="raise-reading-heading" className="panel-heading">Consider raising this</h2>
@@ -357,7 +393,7 @@ export function OverviewRoute() {
                       ) : schedStatus.status === "within_interval" ? (
                         <span className="badge-neutral">On schedule</span>
                       ) : schedStatus.status === "due_no_entries" ? (
-                        <span className="badge-review">Interval set</span>
+                        <span className="badge-review">First check-in due</span>
                       ) : null}
                     </div>
 
@@ -515,7 +551,7 @@ export function OverviewRoute() {
                   <div>
                     <div className="action-row-title">Offline source summaries</div>
                     <div className="action-row-desc">
-                      NASA, CDC & NIST unit references cached locally
+                      Research and unit references cached locally
                     </div>
                   </div>
                   <span className="action-row-trailing">View →</span>
