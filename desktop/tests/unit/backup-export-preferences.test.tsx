@@ -69,9 +69,9 @@ describe("PR #1 re-review P1: Windows full backup export preferences", () => {
     browserMockBackend.resetDemo(seed);
     const save = vi.spyOn(browserMockBackend, 'saveExportFile');
     const { container } = render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Reports', exact: true }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Reports' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Export Report JSON' }));
-    const json = save.mock.calls[0]![0].content;
+    const json = save.mock.calls[0]![1];
     const print = container.querySelector('.print-report-sheet')!.textContent;
     expect(JSON.parse(json).observations.some((obs: { metricId: string }) => obs.metricId === 'blood_pressure')).toBe(true);
     expect(json).not.toContain('SENTINEL');
