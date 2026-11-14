@@ -1,0 +1,8 @@
+
+ RUN  v5.1.0 H:/crewsignal-desktop/personal-reference-fix/shared
+
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  16:29:25
+   Duration  775ms (import 70%, transform 26%, tests 2%, worker 2%)
