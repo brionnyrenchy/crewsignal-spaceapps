@@ -157,6 +157,8 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     expect(screen.getByTestId(navId).props.accessibilityLabel).toBe('Check-in, 1 due');
     await fireEvent.press(screen.getByRole('button', { name: 'Start blood pressure check-in' }));
     expect(await screen.findByLabelText(/Systolic pressure/i)).toBeTruthy();
+  });
+
   test('source-only revision reviews the current Actions tuple from a stale provider snapshot in one click', async () => {
     const { store } = await renderTestApp();
     await screen.findByTestId('overview-review-sleep-btn');

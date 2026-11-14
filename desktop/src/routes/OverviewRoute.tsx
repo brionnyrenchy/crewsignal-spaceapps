@@ -6,7 +6,6 @@ import {
   computeMissionDay,
   describeMissionContact,
   evaluateMetricSchedule,
-  getDueCheckIns,
   formatObservationDisplay,
   NEEDS_RECHECK_LABEL,
   formatUtcTimeHHMM,
@@ -45,7 +44,6 @@ export function OverviewRoute() {
     gettingStarted,
     setSelectedTrendMetric,
     openDraftForMetric,
-    showToast,
   } = useApp();
 
   if (storageStatus && !storageStatus.available) {
@@ -133,7 +131,6 @@ export function OverviewRoute() {
   }
 
   const observations = snapshot.profileData.observations;
-  const dueCheckIns = getDueCheckIns(activeProfile, observations, currentReferenceNowUtc);
   const raisePrompt = buildRaiseReadingPrompt({
     profileId: activeProfile.profileId,
     observations,
@@ -205,38 +202,7 @@ export function OverviewRoute() {
       {dueSchedules.length > 0 && (
         <section className="panel-card stack-sm" aria-labelledby="due-now-heading">
           <h2 id="due-now-heading" className="panel-heading">Due now</h2>
-          <ul className="stack-sm">
-            {dueSchedules.map(({ metricId, status, intervalLabel }) => (
-              <li key={metricId} className="row-wrap">
-                <span>
-                  {METRIC_DEFINITIONS[metricId].name} · {status === "due_no_entries"
-                    ? "First check-in due"
-                    : `${intervalLabel} interval passed`}
-                </span>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    if (activeDraft?.metricId === metricId) {
-                      navigate("check_in");
-                      return;
-                    }
-                    const draft = snapshot.profileData.drafts.find((item) => item.metricId === metricId);
-                    void openDraftForMetric(metricId, draft).catch(() => showToast({
-                      tone: "danger",
-                      title: "Could not open check-in",
-                    }));
-                  }}
-                >
-                  Start {METRIC_DEFINITIONS[metricId].name.toLowerCase()} check-in
-                </button>
-              </li>
-            ))}
-          </ul>
-      {dueCheckIns.length > 0 && (
-        <section className="panel-card stack-sm" aria-labelledby="due-now-heading">
-          <h2 id="due-now-heading" className="panel-heading">Due now</h2>
-          {dueCheckIns.map(({ metricId, status }) => (
+          {dueSchedules.map(({ metricId, status }) => (
             <div className="row-wrap" key={metricId}>
               <span>{METRIC_DEFINITIONS[metricId].name}</span>
               <span>{status === "due_no_entries" ? "First check-in due" : "Check-in due"}</span>

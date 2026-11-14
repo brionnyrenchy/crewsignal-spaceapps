@@ -26,7 +26,6 @@ import {
 } from './conversions';
 import {
   buildInstantTiming,
-  evaluateMetricSchedule,
   buildPeriodTiming,
   evaluateMetricSchedule,
   missionDayAndTimeToUtc,
@@ -845,14 +844,7 @@ export function getDueCheckIns(
   observations: readonly Observation[],
   nowUtc: string,
 ) {
-  if (!profile) return [];
-  const latest = getLatestObservationsByMetric(observations);
-  return METRIC_ORDER.map((metricId) => evaluateMetricSchedule({
-    metricId,
-    latestObservation: latest[metricId],
-    schedule: profile.schedules[metricId] ?? null,
-    referenceNowUtc: nowUtc,
-  })).filter(({ status }) => status === 'due_no_entries' || status === 'past_interval');
+  return profile ? getDueMetricSchedules(profile.schedules, observations, nowUtc) : [];
 }
 
 export function getCheckInReminders(profile: ProfileConfig, observations: readonly Observation[]) {

@@ -4,6 +4,7 @@ import {
   CONFIGURED_HELP_TEST_FIXTURE,
   CONVERSION_RULE_VERSION,
   DEFAULT_UNCONFIGURED_HELP,
+  EVIDENCE_CHECKED_DATE,
   EVIDENCE_LIST,
   EVIDENCE_REGISTRY,
   BODY_SYSTEM_RESEARCH,
@@ -360,10 +361,10 @@ describe('Personal reference lifecycle & 7-day fallback heuristic', () => {
 });
 
 describe('Controlled guidance, evidence registry, and Help registry', () => {
-  it('bundles the original and measurement-education sources with cached summaries', () => {
+  it('bundles the original, measurement-education, and mission research sources with cached summaries', () => {
     expect(EVIDENCE_LIST.filter((src) => src.checkedDate === EVIDENCE_CHECKED_DATE)).toHaveLength(8);
-    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === '2026-11-14')).toHaveLength(9);
-    expect(EVIDENCE_LIST).toHaveLength(17);
+    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === '2026-11-14')).toHaveLength(13);
+    expect(EVIDENCE_LIST).toHaveLength(21);
     for (const src of EVIDENCE_LIST) {
       expect(src.cachedAvailable).toBe(true);
       expect(src.summaryText.length).toBeGreaterThan(20);
