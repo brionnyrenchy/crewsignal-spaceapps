@@ -21,6 +21,17 @@ import {
 } from "../shared";
 import { useAppState } from "../state/AppStateContext";
 import { SleepChart } from "../components/SleepChart";
+import nativeReleaseConfig from "../config/native-releases.json";
+
+type NativeRelease = {
+  version: string;
+  fileName: string;
+  requirements: string;
+  url: string;
+};
+
+const nativeReleases: Record<"android" | "windows", NativeRelease | null> =
+  nativeReleaseConfig;
 
 const APPEARANCE_ITEMS: ReadonlyArray<{
   value: AppearancePreference;
@@ -49,6 +60,35 @@ const BODY_TEXT: React.CSSProperties = {
   color: "var(--text-secondary)",
   fontSize: "0.9375rem",
 };
+
+function NativeDownload({
+  platform,
+  release,
+  install,
+}: {
+  platform: string;
+  release: NativeRelease | null;
+  install: string;
+}) {
+  if (!release) {
+    return <p style={BODY_TEXT}>Download pending release verification.</p>;
+  }
+
+  return (
+    <>
+      <p style={BODY_TEXT}>{release.requirements}</p>
+      <p style={BODY_TEXT}>{release.fileName}</p>
+      <div>
+        <a href={release.url} className="cs-btn cs-btn-secondary">
+          Download {platform} {release.version}
+        </a>
+      </div>
+      <p style={BODY_TEXT}>
+        {install} Open CrewSignal and try the SIM-01 synthetic demo on Overview.
+      </p>
+    </>
+  );
+}
 
 export function LandingPage() {
   const { preferences, setAppearance } = useAppState();
@@ -226,8 +266,8 @@ export function LandingPage() {
                 <Link to="/demo" className="cs-btn cs-btn-primary">
                   Open synthetic demo
                 </Link>
-                <a href="#project" className="cs-btn cs-btn-secondary">
-                  Explore project
+                <a href="#platforms" className="cs-btn cs-btn-secondary">
+                  Native app downloads
                 </a>
               </div>
 
@@ -340,7 +380,7 @@ export function LandingPage() {
 
             <div className="cs-stack" style={{ gap: "12px" }}>
               <h3 className="cs-section-title" id="platforms">
-                Platforms
+                Try CrewSignal
               </h3>
               <ul
                 className="cs-grid-3"
@@ -349,37 +389,34 @@ export function LandingPage() {
               >
                 <li className="cs-card cs-stack" style={{ gap: "8px" }}>
                   <Globe size={20} aria-hidden="true" />
-                  <h4 className="cs-section-title">Web demo</h4>
-                  <span
-                    className="cs-pill cs-pill-saved"
-                    style={{ alignSelf: "flex-start" }}
-                  >
-                    Available · synthetic demo
-                  </span>
+                  <h4 className="cs-section-title">Browser demo</h4>
                   <p style={BODY_TEXT}>
                     Runs in the browser with local storage and works offline
                     after the first visit.
                   </p>
+                  <div>
+                    <Link to="/demo" className="cs-btn cs-btn-secondary">
+                      Open browser demo
+                    </Link>
+                  </div>
                 </li>
                 <li className="cs-card cs-stack" style={{ gap: "8px" }}>
                   <Monitor size={20} aria-hidden="true" />
-                  <h4 className="cs-section-title">Windows</h4>
-                  <span className="cs-pill" style={{ alignSelf: "flex-start" }}>
-                    Planned
-                  </span>
-                  <p style={BODY_TEXT}>
-                    Desktop app with local storage and native file dialogs.
-                  </p>
+                  <h4 className="cs-section-title">Windows x64</h4>
+                  <NativeDownload
+                    platform="Windows"
+                    release={nativeReleases.windows}
+                    install="Run the setup.exe and follow the installer prompts."
+                  />
                 </li>
                 <li className="cs-card cs-stack" style={{ gap: "8px" }}>
                   <Smartphone size={20} aria-hidden="true" />
-                  <h4 className="cs-section-title">iOS &amp; Android</h4>
-                  <span className="cs-pill" style={{ alignSelf: "flex-start" }}>
-                    Planned
-                  </span>
-                  <p style={BODY_TEXT}>
-                    Phone app with large touch targets and on-device storage.
-                  </p>
+                  <h4 className="cs-section-title">Android phones and tablets</h4>
+                  <NativeDownload
+                    platform="Android"
+                    release={nativeReleases.android}
+                    install="Open the APK from Downloads and follow Android’s install prompts."
+                  />
                 </li>
               </ul>
             </div>
