@@ -608,6 +608,20 @@ Implementation checkout `8b67a8cc959c16aa261addcd53ba8e8232147875`. The audited 
 
 To close S05/G04 for this entry path, run the harnesses and repeat the normal check-in on each installed target. Flag `350` bpm, switch profiles, close the app and reopen offline. Confirm Review retains the flag in its original profile. Save and confirm one flagged row in History, JSON, CSV and the printable report. Use `350oops` as the malformed control. Verify a flagged sleep period is absent from fallback reference samples and personalized actions, then log an independent compatible reading and confirm comparison is available.
 
+## 9. Native tester downloads (upstream issue #15)
+
+Verification on November 14, 2026 used the working changes based on `4bb2035940f3c2b4a16dc112abd91208cdec7758`. The fork and upstream returned no published release assets through the public GitHub API.
+
+| Check | Result |
+| --- | --- |
+| Source hygiene and shared parity | `node scripts/verify-clean-source.mjs` passed with 42 matching shared files per target after syncing the desktop and mobile guidance copies. |
+| Website | TypeScript, all 15 unit tests, and the production PWA build passed. A targeted Edge smoke check passed against the built site, covering the download section, both pending states and navigation into the browser demo. The updated landing-page Playwright test passed. Four other cases failed in the full Edge run, involving Explorer interaction, offline service worker behavior and duplicate Overview text. |
+| Shared core | TypeScript passed. The unit suite had 70 passes and three failures. Two assertions compare byte-exact fixtures or font licenses against this Windows checkout's CRLF files. The evidence registry assertion expects eight sources and the current registry has 17. |
+| Android release | Preview profile pins the SDK 58 EAS image. Mobile TypeScript, all 54 Jest tests on a serial rerun, and the 955-module Android Hermes export passed. No team-signed APK was built or published here. Phone and tablet install, TalkBack, offline restart and upgrade checks are open. |
+| Windows release | Added an x64 per-user NSIS candidate with the WebView2 offline installer override. Desktop TypeScript, 34 unit tests and the frontend build passed. The native build stopped at Cargo metadata because Cargo is unavailable on this host. No installer was published. Clean VM, runtime installation, trust prompts, offline restart and upgrade checks are open. |
+| Download links | The site shows pending verification for both native platforms. Signed-out downloads and SHA-256 checks require the final published files. |
+
+Use [the native release checklist](RELEASING.md) to record the artifact versions, hashes, signers, source commit, devices and OS builds once tested.
 ## Sleep guidance acknowledgement identity — 2026-11-14
 
 Implementation/tested code commit: `1e296509b052e550d574a0b595ef2ca7d4e58a97` on local branch `fix/guidance-review-identity`. Source checkout base: `3d9d2c3297b05eceaafbf258ab90f1830df4e400`. Tests ran from the full native Windows source clone at `H:\crewsignal-desktop\guidance-review-fix`; the original checkout at `H:\spaceapps-crewsignal\crewsignal-spaceapps` is outside this session's writable roots and has not been changed by this work.
