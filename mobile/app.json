@@ -25,7 +25,8 @@
       "expo-sqlite",
       "expo-font",
       "expo-document-picker",
-      "expo-asset"
+      "expo-asset",
+      "expo-notifications"
     ]
   }
 }
