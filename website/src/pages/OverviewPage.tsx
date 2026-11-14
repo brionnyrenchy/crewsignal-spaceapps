@@ -257,12 +257,13 @@ export function OverviewPage() {
                   ? metricId === 'sleep' ? `Reference v${cmp.referenceVersion}` : cmp.differenceText
                   : cmp?.unavailableReason;
                 const statusId = `reading-status-${metricId}`;
+                const valueId = `reading-value-${metricId}`;
                 return (
                   <li key={metricId} className="cs-reading">
                     <span className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
-                        <span className="cs-mono-value cs-reading-value">
+                        <span id={valueId} className="cs-mono-value cs-reading-value">
                           {formatted.primaryText}
                         </span>
                         <ReadingStatusBadge id={statusId} status={getReadingStatus(obs, cmp, sched)} />
@@ -278,7 +279,7 @@ export function OverviewPage() {
                           to={`/demo/check-in?metric=${metricId}`}
                           className="cs-reading-link"
                           aria-label={`Log ${def.shortLabel.toLowerCase()}`}
-                          aria-describedby={statusId}
+                          aria-describedby={`${valueId} ${statusId}`}
                         >
                           Log
                         </Link>

@@ -370,6 +370,7 @@ export function OverviewRoute() {
                 const comparison = obs ? compareObservationToReference(obs, activeReferencesByMetric[metricId]) : null;
                 const status = getReadingStatus(obs, comparison, schedStatus);
                 const statusId = `reading-status-${metricId}`;
+                const valueId = `reading-value-${metricId}`;
 
                 const display = obs
                   ? formatObservationDisplay(obs, preferences.displayUnits)
@@ -399,8 +400,8 @@ export function OverviewRoute() {
 
                     {obs && display ? (
                       <>
-                        <div className="reading-value tabular-value">
-                          {display.valueOnlyText}
+                        <div id={valueId} className="reading-value tabular-value">
+                          {display.valueOnlyText}{" "}
                           <span className="reading-unit">{display.unitLabel}</span>
                         </div>
                         <ReadingStatusBadge status={status} id={statusId} />
@@ -422,7 +423,8 @@ export function OverviewRoute() {
                           type="button"
                           className="btn-link"
                           style={{ marginTop: 4, fontSize: 12 }}
-                          aria-describedby={statusId}
+                          aria-label={`Trend & history for ${def.shortLabel}`}
+                          aria-describedby={`${valueId} ${statusId}`}
                           onClick={() => openMetricTrend(metricId)}
                         >
                           Trend & history
