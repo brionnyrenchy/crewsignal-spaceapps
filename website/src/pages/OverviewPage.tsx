@@ -345,7 +345,7 @@ export function OverviewPage() {
                     ? `Overdue · ${sched.ageLabel} since last entry (${sched.intervalLabel} interval)`
                     : sched.status === 'within_interval'
                       ? `Within ${sched.intervalLabel} interval · last logged ${sched.ageLabel} ago`
-                      : `Due · ${sched.intervalLabel} interval configured (no entries yet)`;
+                      : `First check-in due · ${sched.intervalLabel} interval configured`;
                 return (
                   <div key={sched.metricId} style={{ fontSize: '0.875rem' }}>
                     <strong>{name}</strong>: {detail}

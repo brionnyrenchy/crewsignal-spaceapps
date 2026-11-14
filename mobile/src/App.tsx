@@ -1,3 +1,4 @@
+import { ScheduledNotifications } from './components/ScheduledNotifications';
 import React, { useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -68,6 +69,7 @@ function ThemedShellHost(): React.ReactElement {
   return (
     <>
       <StatusBar style={palette.statusBarStyle} />
+      <ScheduledNotifications />
       <AppShell>
         <CrewSignalRouteBody />
       </AppShell>

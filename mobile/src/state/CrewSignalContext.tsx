@@ -672,6 +672,13 @@ export function CrewSignalProvider({
   const activeProfile = snapshot?.active.profile ?? null;
   const preferences = snapshot?.preferences ?? null;
 
+  const [, refreshScheduleClock] = useState(0);
+  useEffect(() => {
+    if (clockOverrideUtc || activeProfile?.mode === 'demo') return;
+    const timer = setInterval(() => refreshScheduleClock((tick) => tick + 1), 30_000);
+    return () => clearInterval(timer);
+  }, [activeProfile?.mode, clockOverrideUtc]);
+
   const nowUtc = useCallback((): string => {
     if (clockOverrideUtc) return clockOverrideUtc;
     if (activeProfile?.mode === 'demo' && activeProfile.snapshotUtc) {
