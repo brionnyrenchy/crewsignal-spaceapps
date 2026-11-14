@@ -44,6 +44,8 @@ This directory is designed to build and run cleanly from a standalone `source/` 
 
 ## Quick Start (Clean `source/` Checkout)
 
+[GitHub Actions CI](../../actions/workflows/ci.yml) records the shared, parity, mobile, Windows desktop, and website check results for pull requests and pushes to `main`. CI uses Node `24.18.0`. The Windows job uses Rust `1.96.0`.
+
 ### Prerequisites
 
 - **Shared core & Website:** Node.js `>= 22` and npm (verified on Node `v24.18.0` / npm `11.16.0`).

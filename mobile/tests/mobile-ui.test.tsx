@@ -149,7 +149,8 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
       await fireEvent.press(screen.getByText('Mark reviewed'));
       await waitFor(() => expect(screen.queryByText('Mark reviewed')).toBeNull());
       source.summaryVersion = oldVersion + ' source-only regression';
-      await fireEvent.press(screen.getByTestId('tab-actions'));
+      await fireEvent.press(screen.getByTestId('tab-more'));
+      await fireEvent.press(await screen.findByTestId('more-nav-actions'));
       const card = await screen.findByTestId('actions-sleep-insight-card');
       const review = within(card).getByText('Mark reviewed');
       await act(async () => { fireEvent.press(review); fireEvent.press(review); });
