@@ -9,6 +9,7 @@
     "setup:demo": "npm ci --prefix website",
     "setup:windows": "npm ci --prefix desktop",
     "dev": "npm --prefix website run dev --",
+    "preview": "npm --prefix website run preview --",
     "dev:desktop": "npm --prefix desktop run dev --",
     "dev:windows": "npm --prefix desktop run tauri:dev -- -- --locked",
     "dev:mobile": "npm --prefix mobile start --",
