@@ -172,7 +172,7 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     await fireEvent.changeText(await screen.findByTestId('new-personal-profile-label'),'Reference entry harness');
     await fireEvent.press(screen.getByTestId('create-personal-profile-btn'));
     await waitFor(async()=>expect((await store.loadAppSnapshot()).active.profile.mode).toBe('personal'));
-    setViewport(width, 1100);
+    await act(async () => { setViewport(width, 1100); });
     const card=await screen.findByTestId('settings-references-card');
     const write=jest.spyOn(store,'upsertPersonalReference');
     await fireEvent.press(within(card).getByText('Blood pressure'));
