@@ -1,0 +1,96 @@
+use crate::models::CommandError;
+
+const ALLOWED_HTTPS_HOSTS: &[&str] = &[
+    "www.nasa.gov",
+    "nasa.gov",
+    "humanresearchroadmap.nasa.gov",
+    "ntrs.nasa.gov",
+    "standards.nasa.gov",
+    "wwwn.cdc.gov",
+    "www.cdc.gov",
+    "cdc.gov",
+    "www.nist.gov",
+    "nist.gov",
+    "www.spaceappschallenge.org",
+    "spaceappschallenge.org",
+    "developer.mozilla.org",
+    "www.w3.org",
+];
+
+pub fn validate_external_https_url(raw: &str) -> Result<String, CommandError> {
+    let trimmed = raw.trim();
+    if !trimmed.starts_with("https://") {
+        return Err(CommandError::new(
+            "INVALID_EXTERNAL_URL",
+            "Only allowlisted HTTPS reference URLs can be opened externally.",
+        ));
+    }
+    let after_scheme = &trimmed["https://".len()..];
+    let host_port = after_scheme.split(['/', '?', '#']).next().unwrap_or("");
+    let host = host_port.split(':').next().unwrap_or("").to_ascii_lowercase();
+
+    if !ALLOWED_HTTPS_HOSTS.iter().any(|allowed| *allowed == host) {
+        return Err(CommandError::with_detail(
+            "DISALLOWED_EXTERNAL_HOST",
+            "External URL host is outside CrewSignal's documented source registry.",
+            host,
+        ));
+    }
+
+    Ok(trimmed.to_string())
+}
+
+#[cfg(target_os = "windows")]
+pub fn detect_webview2_version() -> Option<String> {
+    use std::process::Command;
+
+    let keys = [
+        r"HKLM\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+        r"HKCU\Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+    ];
+    for key in keys {
+        if let Ok(output) = Command::new("reg").args(["query", key, "/v", "pv"]).output() {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines() {
+                    if line.contains("pv") && line.contains("REG_SZ") {
+                        if let Some(ver) = line.split_whitespace().last() {
+                            return Some(ver.to_string());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn detect_webview2_version() -> Option<String> {
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_external_https_url;
+
+    #[test]
+    fn allows_documented_nasa_cdc_nist_urls() {
+        assert!(validate_external_https_url("https://www.nasa.gov/hrp/hazards/").is_ok());
+        assert!(validate_external_https_url(
+            "https://wwwn.cdc.gov/nchs/data/nhanes/public/2021/labmethods/GLU-L-MET-508.pdf"
+        )
+        .is_ok());
+        assert!(validate_external_https_url(
+            "https://www.nist.gov/pml/owm/si-units-temperature"
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn rejects_non_https_and_unknown_hosts() {
+        assert!(validate_external_https_url("http://www.nasa.gov/").is_err());
+        assert!(validate_external_https_url("file:///C:/Windows/System32/calc.exe").is_err());
+        assert!(validate_external_https_url("https://evil.example.com/phish").is_err());
+    }
+}

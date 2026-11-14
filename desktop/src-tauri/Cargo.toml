@@ -1,0 +1,28 @@
+[package]
+name = "crewsignal-desktop"
+version = "0.1.0"
+description = "CrewSignal Windows Desktop Application — Spaceflight personal health monitoring research prototype"
+authors = ["POP N' SEB"]
+edition = "2021"
+rust-version = "1.82"
+
+[lib]
+name = "crewsignal_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"

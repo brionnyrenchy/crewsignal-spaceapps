@@ -1,0 +1,130 @@
+/* Light A4 Print Layout — identical for both app themes */
+
+.print-report-sheet {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body,
+  html[data-theme="dark"],
+  html[data-theme="light"] {
+    background: #ffffff !important;
+    color: #171717 !important;
+    color-scheme: light !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-topbar,
+  .mobile-bottom-nav,
+  .modal-backdrop,
+  .toast-banner {
+    display: none !important;
+  }
+
+  .app-shell {
+    display: block !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+  }
+
+  .app-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .print-only-container .print-report-sheet {
+    display: block !important;
+    color: #171717 !important;
+    background: #ffffff !important;
+    font-family: "Inter Variable", "Inter", system-ui, sans-serif !important;
+  }
+
+  .print-report-sheet h1 {
+    font-size: 20pt;
+    font-weight: 500;
+    color: #171717;
+    margin: 0 0 4pt 0;
+  }
+
+  .print-report-sheet .print-subtitle {
+    color: #4d4d4d;
+    font-size: 10pt;
+    margin: 0 0 12pt 0;
+  }
+
+  .print-report-sheet .print-meta-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    row-gap: 4pt;
+    column-gap: 12pt;
+    padding: 8pt 0;
+    border-top: 1px solid #171717;
+    border-bottom: 1px solid #d4d4d4;
+    margin-bottom: 10pt;
+    font-size: 10pt;
+  }
+
+  .print-report-sheet .print-scope-block {
+    margin-bottom: 12pt;
+    font-size: 10pt;
+    color: #171717;
+  }
+
+  .print-report-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10pt 0 12pt 0;
+    font-size: 9.5pt;
+  }
+
+  .print-report-sheet thead {
+    display: table-header-group;
+  }
+
+  .print-report-sheet tr {
+    break-inside: avoid;
+  }
+
+  .print-report-sheet th {
+    background: #f0f0f0 !important;
+    color: #171717 !important;
+    text-align: left;
+    font-weight: 500;
+    padding: 6pt 8pt;
+    border: 1px solid #c9c9c9;
+  }
+
+  .print-report-sheet td {
+    padding: 6pt 8pt;
+    border: 1px solid #d9d9d9;
+    color: #171717;
+    vertical-align: top;
+  }
+
+  .print-report-sheet .print-section {
+    border-top: 1px solid #d9d9d9;
+    padding-top: 8pt;
+    margin-top: 8pt;
+    font-size: 9.5pt;
+    color: #4d4d4d;
+  }
+
+  .print-report-sheet .print-footer {
+    border-top: 1px solid #171717;
+    margin-top: 12pt;
+    padding-top: 8pt;
+    font-weight: 500;
+    font-size: 10pt;
+    color: #171717;
+  }
+}

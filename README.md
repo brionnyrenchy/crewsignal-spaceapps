@@ -1,27 +1,26 @@
-# Commit changes - Website and browser demo
+# Commit changes - Windows desktop app
 
-Branch: `02-website`. Separately editable module snapshot from CrewSignal source commit `46227a7f2d61c19e0d4f4e9ffbe68a878cac1a77`.
+Branch: `03-desktop`. Separately editable module snapshot from CrewSignal source commit `46227a7f2d61c19e0d4f4e9ffbe68a878cac1a77`.
 
-Includes `website/` and `shared/`, license, credits, dependency notices and contribution guidance. Other apps and whole-project verification scripts are omitted. Shared core is a TypeScript library, not a standalone application.
+Includes `desktop/` and `shared/`, license, credits, dependency notices and contribution guidance. Other apps and whole-project verification scripts are omitted. Shared core is a TypeScript library, not a standalone application.
 
 ## Install and develop
 
-Use Node.js 22 or newer and npm.
+Native desktop development requires Rust MSVC, Visual Studio C++ Build Tools, Windows SDK, and WebView2.
 
 ```powershell
-cd website
+cd desktop
 npm ci
 npm run typecheck
 npm test
-npm run build
-npm run dev
+npm run tauri:dev
 ```
 
-See [website/README.md](website/README.md) for app details. From the repository root, check/update shared files with:
+See [desktop/README.md](desktop/README.md) for app details. From the repository root, check/update shared files with:
 
 ```powershell
-node shared/scripts/sync-to-targets.mjs --check website
-node shared/scripts/sync-to-targets.mjs --write website
+node shared/scripts/sync-to-targets.mjs --check desktop
+node shared/scripts/sync-to-targets.mjs --write desktop
 ```
 
 ## Commit changes
@@ -29,7 +28,7 @@ node shared/scripts/sync-to-targets.mjs --write website
 From the project root, stage the files you edited, then:
 
 ```powershell
-git commit -m "feat(website): describe your change"
+git commit -m "feat(desktop): describe your change"
 git push origin HEAD
 ```
 
