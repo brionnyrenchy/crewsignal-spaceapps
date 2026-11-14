@@ -1,5 +1,13 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Issue #23 Continuous Integration
+
+[GitHub Actions CI](../../actions/workflows/ci.yml) records shared, parity, mobile, desktop, and website job results for every pull request and push to `main`. The desktop job runs locked Rust tests on `windows-latest`.
+
+Local verification on Windows with the workflow's Node `24.18.0` passed all four TypeScript checks, 73 shared tests, 54 mobile tests, 34 desktop frontend tests, 15 website tests, and both frontend builds. The shared test run used LF bytes for the CSV and font license fixtures to match the Linux checkout. `actionlint` accepted the workflow. The clean-source verifier passed with 42 matching shared files per target and exited with status 1 when a temporary unsynced edit was introduced.
+
+The first hosted run of this workflow and its Rust test result remain pending. The upstream repository is public, so its standard GitHub-hosted runners do not use a private-repository minutes allowance. [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+
 ## Issue #11 Getting Started Verification
 
 On November 14, 2026, the working changes based on `9f3e66c` passed shared and native-app type checks, 34 Windows UI tests, 54 Android harness tests, the Windows frontend build, and the Android JavaScript export (`expo export --platform android --no-bytecode`). Clean-source verification matched 42 shared files across all targets.
