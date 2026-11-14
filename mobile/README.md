@@ -110,3 +110,15 @@ The `preview` profile builds a standalone signed APK with bundled JavaScript and
 For local native reproduction on Windows, clone directly into a short path such as `C:\cs` and keep the Android SDK in a short path such as `C:\sdk`. Set `ANDROID_HOME` and `JAVA_HOME` and install SDK Platform 37 and Build Tools `37.0.0` plus NDK `27.1.12297006`. Use the locked Expo `58.0.25` / React Native `0.88.1` dependencies, run `npm run prebuild:android` and use the generated Gradle `9.4.1` wrapper. JDK `26.0.1` reached native compilation in the prior audit. That build hit Windows path limits before producing an APK. Check the exact generated SDK, build-tools and NDK settings before building and record the successful combination when it is verified.
 
 From the generated `mobile/android/` directory, run `./gradlew :app:assembleRelease` on Unix or `gradlew.bat :app:assembleRelease` on Windows for a local build check. Use the EAS APK for tester distribution. Local builds can use a debug certificate or an emulator-only ABI, so confirm both before using a local package in an upgrade test.
+The following toolchain status was observed during verification on the Windows 11 host:
+- **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1`, TypeScript, Jest, and Android Hermes export.
+- **Unavailable on the verification host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent) and EAS CLI.
+- Build and run locally with `npm run android` in an Android SDK environment. To generate a preview APK with EAS, run `eas build --profile preview --platform android`. Install the APK on Android phones and tablets to test TalkBack and native print preview.
+
+## Where your data lives
+
+CrewSignal stores readings and drafts in `files/SQLite/crewsignal_v1.db` within the app's private storage. The native build opts out of Android cloud backup with `android.allowBackup: false` in `app.json`. After prebuild, confirm the `<application>` in `android/app/src/main/AndroidManifest.xml` has `android:allowBackup="false"`.
+
+A fresh reinstall starts without your previous Personal records unless you restore a profile backup in Reports. Some Android devices can still transfer app data directly between devices. Before uninstalling or moving devices, save a full profile backup from Reports and copy it outside the app. That backup includes the selected profile's readings, mood and notes. Report exports contain selected readings and exclude mood and notes by default. CrewSignal does not encrypt the database or exported files.
+
+[Android Auto Backup documentation](https://developer.android.com/identity/data/autobackup#EnablingAutoBackup)

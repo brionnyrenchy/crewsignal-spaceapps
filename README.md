@@ -111,6 +111,13 @@ npm run export    # npx expo export --platform android --output-dir dist
 
 - See the [mobile build guide](./mobile/README.md) for native Android builds and EAS APK profiles. Native APK compilation and TalkBack checks on Android phones and tablets remain pending.
 
+#### Where your data lives
+
+- **Android.** Readings and drafts are stored in SQLite in the app's private storage. CrewSignal opts out of Android cloud backup. A fresh reinstall starts without your previous Personal records unless you restore a saved profile backup. Some Android devices can still transfer app data directly between devices. Save a backup from Reports and copy it outside the app before uninstalling or moving devices.
+- **Windows.** Readings and drafts are stored in `%APPDATA%\org.popnseb.crewsignal\crewsignal.db`. CrewSignal has no cloud sync. Use Reports to save and restore profile backups.
+- **Website.** The synthetic demo stores readings and drafts in IndexedDB in the browser on this device.
+- **Files and encryption.** A full profile backup contains the selected profile's records, including mood and notes. Report exports contain selected readings and exclude mood and notes by default. CrewSignal does not encrypt stored records or exported files.
+
 ### 5. Clean-Source Hygiene & Parity Check
 
 From `source/`:
