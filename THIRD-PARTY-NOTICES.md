@@ -368,7 +368,7 @@ Inspected from `mobile/package.json` and `mobile/package-lock.json` (`1,066` loc
 
 Transitive lockfile license breakdown across all `1,066` locked entries in `mobile/package-lock.json`: `MIT` (`877`), `ISC` (`97`), `BSD-3-Clause` (`33`), `BlueOak-1.0.0` (`16`), `BSD-2-Clause` (`12`), `MPL-2.0` (`12`), `Apache-2.0` (`8`), `Unlicense` (`2`), `(MIT OR CC0-1.0)` (`2`), `MIT-0` (`1`), `Python-2.0` (`1`), `CC-BY-4.0` (`1`), `(MIT OR Apache-2.0)` (`1`), `0BSD` (`1`), `CC0-1.0` (`1`), `(BSD-3-Clause OR GPL-2.0)` (`1`).
 
-### 5.2 Native Android / iOS Modules
+### 5.2 Native Android Modules
 
-- Native prebuild (`android/`, `ios/`) and `.apk`/`.ipa` compilation were not executed on this Windows host (no Android SDK / Gradle, `eas` CLI, or macOS Xcode installed).
-- **Action before native APK/IPA distribution:** Generate and include Android Gradle/AAR and iOS CocoaPods third-party license notices alongside packaged `.apk`/`.ipa` artifacts while keeping signing keys, `.keystore`/`.jks`, and `.mobileprovision` files strictly outside the repository.
+- Native Android prebuild and APK compilation were pending on the Windows verification host, which lacked the Android SDK, Gradle, and EAS CLI.
+- Generate Android Gradle/AAR third-party license notices before distributing APKs. Include the notices alongside the APKs and keep signing keys and `.keystore` / `.jks` files outside the repository.
