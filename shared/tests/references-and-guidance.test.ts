@@ -364,7 +364,6 @@ describe('Personal reference lifecycle & 7-day fallback heuristic', () => {
 });
 
 describe('Controlled guidance, evidence registry, and Help registry', () => {
-  it('bundles the original, measurement-education, and mission research sources with cached summaries', () => {
   it.each(METRIC_ORDER)('provides a sourced next step for %s', (metricId) => {
     const action = getMetricAction(metricId);
     expect(action.enabled).toBe(true);
@@ -422,7 +421,7 @@ describe('Controlled guidance, evidence registry, and Help registry', () => {
     expect(buildMetricInsight(metricId, { ...params, observation: { ...observation, quality: 'questionable' }, reference })).toBeNull();
   });
 
-  it('bundles the original and measurement-education sources with cached summaries', () => {
+  it('bundles the original, measurement-education, and mission research sources with cached summaries', () => {
     expect(EVIDENCE_LIST.filter((src) => src.checkedDate === EVIDENCE_CHECKED_DATE)).toHaveLength(8);
     expect(EVIDENCE_LIST.filter((src) => src.checkedDate === '2026-11-14')).toHaveLength(13);
     expect(EVIDENCE_LIST).toHaveLength(21);
