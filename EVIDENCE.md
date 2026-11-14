@@ -1,5 +1,13 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Issue #27 Indicator Guidance
+
+All six indicators have source-linked educational actions on Android, Windows and the website. The shared insight builder requires a compatible reading and personal reference. Mood keeps its ordinal history and offers an educational action without a personalized comparison. Sleep keeps its existing insight ID format, rule version and source versions so stored acknowledgements remain usable.
+
+Local checks against `a907ef9` passed TypeScript checks for all four packages, 85 shared tests, 54 Android harness tests, 34 Windows frontend tests and 15 website tests. Shared tests cover all six actions, the five reference-capable indicators, and missing, mismatched and flagged readings. The clean-source check confirmed all 42 shared files matched across the three targets. Installed Android and Windows checks remain open.
+
+The website production build and four focused Playwright tests passed in headless Edge. They exercised Overview and Explorer links, keyboard focus on the action heading, reviewing a comparable pulse reading, source access without a comparison, and the existing sleep review journey.
+
 ## Issue #23 Continuous Integration
 
 [GitHub Actions CI](../../actions/workflows/ci.yml) records shared, parity, mobile, desktop, and website job results for every pull request and push to `main`. The desktop job runs locked Rust tests on `windows-latest`.
