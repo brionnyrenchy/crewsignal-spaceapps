@@ -34,6 +34,15 @@ describe("CrewSignal Desktop Canonical Vectors & UI Flows", () => {
     resetMockStore();
   });
 
+  it("associates all six Overview readings with their visible status", async () => {
+    render(<App />);
+    const pulse = await screen.findByRole("group", { name: /Heart rate.*72.*bpm/i });
+    expect(pulse).toHaveAccessibleDescription("Differs from reference");
+    expect(screen.getByRole("group", { name: /^Mood\b/ })).toHaveAccessibleDescription("No reference");
+    expect(screen.getByRole("group", { name: "Blood glucose" })).toHaveAccessibleDescription("Not logged");
+    expect(document.querySelectorAll(".reading-cell[aria-describedby] .reading-status")).toHaveLength(6);
+  });
+
   it("opens Getting started from Demo Overview and returns to a draft in Review", async () => {
     render(<App />);
     fireEvent.click(await screen.findByRole("button", { name: "Getting started" }));

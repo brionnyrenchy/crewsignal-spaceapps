@@ -258,10 +258,15 @@ export function OverviewPage() {
                   ? metricId === 'sleep' ? `Reference v${cmp.referenceVersion}` : cmp.differenceText
                   : cmp?.unavailableReason;
                 const statusId = `reading-status-${metricId}`;
-                const valueId = `reading-value-${metricId}`;
+                const valueId = `${statusId}-value`;
                 return (
-                  <li key={metricId} className="cs-reading">
-                    <span className="cs-mono-stamp">{def.shortLabel}</span>
+                  <li
+                    key={metricId}
+                    className="cs-reading"
+                    aria-labelledby={formatted ? `${statusId}-name ${statusId}-value` : `${statusId}-name`}
+                    aria-describedby={statusId}
+                  >
+                    <span id={`${statusId}-name`} className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
                         <span id={valueId} className="cs-mono-value cs-reading-value">

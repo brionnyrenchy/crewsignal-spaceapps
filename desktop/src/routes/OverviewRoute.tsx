@@ -347,7 +347,7 @@ export function OverviewRoute() {
                 const comparison = obs ? compareObservationToReference(obs, activeReferencesByMetric[metricId]) : null;
                 const status = getReadingStatus(obs, comparison, schedStatus);
                 const statusId = `reading-status-${metricId}`;
-                const valueId = `reading-value-${metricId}`;
+                const valueId = `${statusId}-value`;
 
                 const display = obs
                   ? formatObservationDisplay(obs, preferences.displayUnits)
@@ -361,9 +361,15 @@ export function OverviewRoute() {
                       : null;
 
                 return (
-                  <div key={metricId} className="reading-cell">
+                  <div
+                    key={metricId}
+                    className="reading-cell"
+                    role="group"
+                    aria-labelledby={display ? `${statusId}-name ${statusId}-value` : `${statusId}-name`}
+                    aria-describedby={statusId}
+                  >
                     <div className="row-wrap" style={{ justifyContent: "space-between", gap: 4 }}>
-                      <span className="mono-label">{def.shortLabel}</span>
+                      <span id={`${statusId}-name`} className="mono-label">{def.shortLabel}</span>
                       {schedStatus.status === "past_interval" ? (
                         <span className="badge-review" title="Optional scheduled check-in interval elapsed">
                           Past interval

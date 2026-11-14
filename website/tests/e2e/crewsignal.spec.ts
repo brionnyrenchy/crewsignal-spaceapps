@@ -56,6 +56,10 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
 
     const badges = page.locator('.cs-readings .reading-status');
     await expect(badges).toHaveCount(6);
+    const readings = page.locator('.cs-readings');
+    await expect(readings.getByRole('listitem', { name: /Heart rate.*72.*bpm/i })).toHaveAccessibleDescription('Differs from reference');
+    await expect(readings.getByRole('listitem', { name: /^Mood\b/ })).toHaveAccessibleDescription('No reference');
+    await expect(readings.getByRole('listitem', { name: 'Blood glucose' })).toHaveAccessibleDescription('Not logged');
     await expect(page.getByRole('link', { name: 'Log mood', exact: true })).toHaveAccessibleDescription('No reference');
     await expect(page.getByRole('link', { name: 'Add blood glucose', exact: true })).toHaveAccessibleDescription('Not logged');
 
