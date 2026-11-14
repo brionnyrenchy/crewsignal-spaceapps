@@ -259,11 +259,16 @@ export function OverviewPage() {
                   : cmp?.unavailableReason;
                 const statusId = `reading-status-${metricId}`;
                 return (
-                  <li key={metricId} className="cs-reading">
-                    <span className="cs-mono-stamp">{def.shortLabel}</span>
+                  <li
+                    key={metricId}
+                    className="cs-reading"
+                    aria-labelledby={formatted ? `${statusId}-name ${statusId}-value` : `${statusId}-name`}
+                    aria-describedby={statusId}
+                  >
+                    <span id={`${statusId}-name`} className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
-                        <span className="cs-mono-value cs-reading-value">
+                        <span id={`${statusId}-value`} className="cs-mono-value cs-reading-value">
                           {formatted.primaryText}
                         </span>
                         <ReadingStatusBadge id={statusId} status={getReadingStatus(obs, cmp, sched)} />
