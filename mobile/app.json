@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "CrewSignal",
+    "slug": "crewsignal",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "scheme": "crewsignal",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#08090a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.spaceapps.popnseb.crewsignal",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "org.spaceapps.popnseb.crewsignal",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#08090a"
+      }
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-font",
+      "expo-document-picker",
+      "expo-asset"
+    ]
+  }
+}
