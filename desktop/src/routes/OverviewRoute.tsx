@@ -207,7 +207,7 @@ export function OverviewRoute() {
               <span>{METRIC_DEFINITIONS[metricId].name}</span>
               <span>{status === "due_no_entries" ? "First check-in due" : "Check-in due"}</span>
               <button type="button" className="btn-secondary" onClick={() => void openDraftForMetric(metricId)}>
-                Log {METRIC_DEFINITIONS[metricId].shortLabel.toLowerCase()}
+                Start {METRIC_DEFINITIONS[metricId].name.toLowerCase()} check-in
               </button>
             </div>
           ))}
