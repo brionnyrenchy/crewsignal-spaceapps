@@ -258,8 +258,8 @@ export function OverviewPage() {
                   : cmp?.unavailableReason;
                 const statusId = `reading-status-${metricId}`;
                 return (
-                  <li key={metricId} className="cs-reading" aria-labelledby={`${statusId}-name`} aria-describedby={statusId}>
-                    <span id={`${statusId}-name`} className="cs-mono-stamp">{def.shortLabel}</span>
+                  <li key={metricId} className="cs-reading">
+                    <span className="cs-mono-stamp">{def.shortLabel}</span>
                     {obs && formatted ? (
                       <>
                         <span className="cs-mono-value cs-reading-value">
