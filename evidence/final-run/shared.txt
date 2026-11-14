@@ -1,0 +1,21 @@
+
+> @crewsignal/shared@1.0.0 typecheck
+> tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json
+
+> @crewsignal/shared@1.0.0 test
+> vitest run
+
+
+ RUN  v5.1.0 C:/Users/miraf/OneDrive/Desktop/GittyHubHub/SpaceApps/source/shared
+
+
+ Test Files  4 passed (4)
+      Tests  35 passed (35)
+   Start at  00:58:01
+   Duration  473ms (import 68%, tests 16%, transform 14%, worker 2%)
+
+> node ./scripts/sync-to-targets.mjs --check
+
+[website] OK (37 files match SHA-256)
+[desktop] OK (37 files match SHA-256)
+[mobile] OK (37 files match SHA-256)

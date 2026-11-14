@@ -1,0 +1,23 @@
+Starting Metro Bundler
+
+Android Bundled 8027ms index.ts (938 modules)
+iOS Bundled 13870ms index.ts (939 modules)
+
+› Assets (6):
+src\shared\assets\fonts\GeistMono-Medium.ttf (149KB)
+src\shared\assets\fonts\GeistMono-Regular.ttf (149KB)
+src\shared\assets\fonts\GeistMono-SemiBold.ttf (150KB)
+src\shared\assets\fonts\Inter-Medium.ttf (417KB)
+src\shared\assets\fonts\Inter-Regular.ttf (412KB)
+src\shared\assets\fonts\Inter-SemiBold.ttf (420KB)
+
+› android bundles (1):
+_expo/static/js/android/index-348a393649e002d9cc8faea95cd742df.hbc (3MB)
+
+› ios bundles (1):
+_expo/static/js/ios/index-4b398f593ae654b62e36d9593f6f2647.hbc (3MB)
+
+› Files (1):
+metadata.json (1KB)
+
+Exported: ../evidence/final-run/hermes

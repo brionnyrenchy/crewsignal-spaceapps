@@ -1,0 +1,25 @@
+
+> @crewsignal/desktop@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @crewsignal/desktop@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 C:/Users/miraf/OneDrive/Desktop/GittyHubHub/SpaceApps/source/desktop
+
+
+ Test Files  7 passed (7)
+      Tests  23 passed (23)
+   Start at  00:58:26
+   Duration  4.25s (environment 47%, tests 28%, import 11%, setup 11%, transform 4%)
+
+dist/assets/index-xwGAII-d.js                  571.57 kB │ gzip: 155.85 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 644ms

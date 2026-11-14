@@ -1,0 +1,11 @@
+
+Running 6 tests using 1 worker
+
+  ok 1 tests\e2e\desktop.spec.ts:5:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › passes WCAG 2.2 AA axe-core checks on all core routes in Light & Dark modes (8.0s)
+  ok 2 tests\e2e\desktop.spec.ts:55:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › completes unit conversion Check-in -> Review (Equivalent 97.3 mg/dL) -> Saved + CSV 5-row staged import + Light A4 Print (1.6s)
+  ok 3 tests\e2e\desktop.spec.ts:100:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › reflows cleanly at 1440px, narrow desktop (720px), 390px, 320px, and passes forced-colors WCAG 2.2 AA (7.9s)
+  ok 4 tests\e2e\desktop.spec.ts:186:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › keeps focus trapped inside Help modal and restores focus on Escape (753ms)
+  ok 5 tests\e2e\desktop.spec.ts:204:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › Review P2: Reports and Explorer tabs follow the W3C keyboard pattern (823ms)
+  ok 6 tests\e2e\desktop.spec.ts:235:3 › CrewSignal Desktop E2E, Accessibility, Themes, Print & Scaling › Review P2: calmer Overview shows the next step first and a 0/5/10-hour sleep scale (677ms)
+
+  6 passed (22.0s)

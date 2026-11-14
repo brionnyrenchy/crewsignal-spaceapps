@@ -1,0 +1,25 @@
+[WebServer] ✓ built in 700ms
+[WebServer]
+[WebServer] PWA v2.0.0
+[WebServer] mode      generateSW
+[WebServer] precache  21 entries (3153.97 KiB)
+[WebServer] files generated
+[WebServer]   dist/sw.js
+[WebServer]   dist/workbox-2fbc6a65.js
+[WebServer]   ➜  Local:   http://127.0.0.1:4173/
+
+Running 11 tests using 1 worker
+
+  ok  1 [chromium] › tests\e2e\crewsignal.spec.ts:28:3 › CrewSignal Website & Synthetic Demo E2E › 1. Landing page uses local assets only, renders cleanly across themes/viewports, and passes WCAG 2.2 AA (1.5s)
+  ok  2 [chromium] › tests\e2e\crewsignal.spec.ts:78:3 › CrewSignal Website & Synthetic Demo E2E › 2. Full primary browser journey: Overview -> Check-in BP -> Trends -> Explorer -> Actions -> Sources -> Reports download & print (3.1s)
+  ok  3 [chromium] › tests\e2e\crewsignal.spec.ts:190:3 › CrewSignal Website & Synthetic Demo E2E › 3. Measurement forms, unit conversion modal (Cancel/Escape/Confirm), ER-03 validation focus, and Theme switching preserves state (1.9s)
+  ok  4 [chromium] › tests\e2e\crewsignal.spec.ts:270:3 › CrewSignal Website & Synthetic Demo E2E › 4. ER-02, ER-04, C08 SW update deferral, C09 unconfirmed, 5-row CSV reconciliation & personal rejection (1.6s)
+  ok  5 [chromium] › tests\e2e\crewsignal.spec.ts:418:3 › CrewSignal Website & Synthetic Demo E2E › 5. SPA history fallback reload, responsive viewports (Phone 390x844, Tablet 768x1024, 320px), and offline SW reload (1.8s)
+  ok  6 [chromium] › tests\e2e\crewsignal.spec.ts:488:3 › CrewSignal Website & Synthetic Demo E2E › 6. Regression verification (#25): pill radius, backtick cleanup, Tablet/Phone axe & targets, metric switching, and schedule/empty mission day (4.6s)
+  ok  7 [chromium] › tests\e2e\crewsignal.spec.ts:567:3 › CrewSignal Website & Synthetic Demo E2E › 7. Review P1 regressions: consecutive check-ins from Overview get distinct drafts, and drafts survive navigation and metric changes (2.0s)
+  ok  8 [chromium] › tests\e2e\crewsignal.spec.ts:655:3 › CrewSignal Website & Synthetic Demo E2E › 8. Review P2: Check-in and Explorer tabs follow the W3C keyboard pattern (1.4s)
+  ok  9 [chromium] › tests\e2e\crewsignal.spec.ts:699:3 › CrewSignal Website & Synthetic Demo E2E › 9. Review P2: calmer Overview puts the next step first and joins readings 2x3 / 3x2 / 6-rail (2.0s)
+  ok 10 [chromium] › tests\e2e\crewsignal.spec.ts:749:3 › CrewSignal Website & Synthetic Demo E2E › 10. Review P2: landing page has a phone menu, team entry, planned platforms and credits (2.1s)
+  ok 11 [chromium] › tests\e2e\crewsignal.spec.ts:799:3 › CrewSignal Website & Synthetic Demo E2E › 11. Review P1 (re-review): a saved draft behind an unconfirmed outcome is never reopened; the next check-in starts blank and adds one entry (1.3s)
+
+  11 passed (31.3s)

@@ -1,0 +1,39 @@
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+
+> @crewsignal/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 2215 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                  0.45 kB │ gzip:   0.31 kB
+dist/assets/GeistMono-Variable-BoRIzn25.woff2   71.21 kB
+dist/assets/GeistMono-Regular-D-2KbAFN.ttf     148.51 kB
+dist/assets/GeistMono-Medium-B351rWwY.ttf      149.32 kB
+dist/assets/GeistMono-SemiBold-CDjoc5m7.ttf    149.70 kB
+dist/assets/GeistMono-Variable-CYhq2C-u.ttf    171.20 kB
+dist/assets/InterVariable-DiVDrmQJ.woff2       352.24 kB
+dist/assets/Inter-Regular-BOoJxjxf.ttf         411.64 kB
+dist/assets/Inter-Medium-BEYgZTde.ttf          417.30 kB
+dist/assets/Inter-SemiBold-ipl4pJhC.ttf        419.74 kB
+dist/assets/InterVariable-DEKF4JyX.ttf         879.70 kB
+dist/assets/index-DBzy2FR9.css                  28.43 kB │ gzip:   5.77 kB
+dist/assets/index-xwGAII-d.js                  571.57 kB │ gzip: 155.85 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 570ms
+   Compiling crewsignal-desktop v0.1.0 (C:\Users\miraf\OneDrive\Desktop\GittyHubHub\SpaceApps\source\desktop\src-tauri)
+    Finished `release` profile [optimized] target(s) in 1m 28s
+       Built application at: C:\Users\miraf\OneDrive\Desktop\GittyHubHub\SpaceApps\source\desktop\src-tauri\target\release\crewsignal-desktop.exe
+        Info Patching C:\Users\miraf\OneDrive\Desktop\GittyHubHub\SpaceApps\source\desktop\src-tauri\target\release\crewsignal-desktop.exe with bundle type information: nsis
+        Info Target: x64
+     Running makensis to produce C:\Users\miraf\OneDrive\Desktop\GittyHubHub\SpaceApps\source\desktop\src-tauri\target\release\bundle\nsis\CrewSignal_0.1.0_x64-setup.exe
+    Finished 1 bundle at:
+        C:\Users\miraf\OneDrive\Desktop\GittyHubHub\SpaceApps\source\desktop\src-tauri\target\release\bundle\nsis\CrewSignal_0.1.0_x64-setup.exe (4.51 MiB)

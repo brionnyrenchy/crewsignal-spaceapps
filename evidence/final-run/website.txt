@@ -1,0 +1,25 @@
+
+> @crewsignal/website@0.1.0 typecheck
+> tsc --noEmit
+
+
+> @crewsignal/website@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 C:/Users/miraf/OneDrive/Desktop/GittyHubHub/SpaceApps/source/website
+
+
+ Test Files  3 passed (3)
+      Tests  14 passed (14)
+   Start at  00:58:04
+   Duration  2.58s (environment 53%, tests 16%, setup 14%, import 12%, transform 4%)
+
+[32m✓ built in 766ms[39m
+
+PWA v2.0.0
+mode      generateSW
+precache  21 entries (3153.97 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-2fbc6a65.js

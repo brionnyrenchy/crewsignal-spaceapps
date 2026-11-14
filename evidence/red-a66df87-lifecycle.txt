@@ -1,0 +1,26 @@
+FAIL tests/mobile-ui.test.tsx
+  ● CrewSignal Mobile UI, responsiveness, accessibility & recovery workflows › S10/G07 lifecycle: a safety backup still reading when Reports is left and reopened keeps Replace refused, and the file holds the original records
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 0
+    Received length: 1
+    Received array:  [[{"confirmedReplace": true, "destination": "replace_existing", "rawBackup": {"checkInEvents": [], "confirmedFullProfileData": true, "exportedAtUtc": "2026-11-13T07:18:00Z", "insights": [[Object]], "kind": "crewsignal-backup", "observations": [[Object], [Object], [Object], [Object], [Object], [Object], [Object], [Object], [Object], [Object], …], "preferences": {"activeProfileId": "sim-01-crew-01", "appearance": "system", "displayUnits": [Object], "helpMode": "unconfigured"}, "profile": {"alias": "SIM-01 Demo", "clockVersion": 1, "createdAtUtc": "2026-10-03T00:00:00Z", "displayTimezone": "UTC", "label": "Crew member 01", "missionEpochUtc": "2026-10-03T00:00:00Z", "missionName": "Transit habitat", "mode": "demo", "profileId": "sim-01-crew-01", "scenarioId": "SIM-01", "schedules": [Object], "snapshotUtc": "2026-11-13T07:18:00Z"}, "references": [[Object], [Object]], "schemaVersion": 1, "summaryCounts": {"eventCount": 0, "moodCount": 1, "noteCount": 0, "observationCount": 11, "referenceCount": 2}}, "rejectPersonalInPublicDemo": false, "targetExistingProfileId": "personal-1794586906105-wfoyf3"}]]
+
+      1092 |     const confirmedReplaces = () =>
+      1093 |       restore.mock.calls.filter(([params]) => params.confirmedReplace === true);
+    > 1094 |     expect(confirmedReplaces()).toHaveLength(0);
+           |                                 ^
+      1095 |     await expectRecordsKept(store, base);
+      1096 |
+      1097 |     // Releasing the read must still produce Alpha's original records.
+
+      at Object.toHaveLength (tests/mobile-ui.test.tsx:1094:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 15 skipped, 16 total
+Snapshots:   0 total
+Time:        4.721 s, estimated 5 s
+Ran all test suites matching tests/mobile-ui.test.tsx with tests matching "lifecycle".
