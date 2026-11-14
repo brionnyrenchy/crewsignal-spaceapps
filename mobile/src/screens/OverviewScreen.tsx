@@ -236,6 +236,7 @@ export function OverviewScreen(): React.ReactElement {
             );
           })}
         </View>
+      )}
       {activeProfile.mode === 'demo' && !gettingStarted && (
         <ActionButton label="Getting started" variant="secondary" onPress={openGettingStarted} />
       )}

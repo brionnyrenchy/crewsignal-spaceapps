@@ -355,11 +355,12 @@ describe('Personal reference lifecycle & 7-day fallback heuristic', () => {
   });
 });
 
-describe('Controlled guidance, evidence registry (2026-11-13), and Help registry', () => {
-  it('bundles all 8 NASA/CDC/NIST sources checked 2026-11-13 with cached summaries', () => {
-    expect(EVIDENCE_LIST).toHaveLength(8);
+describe('Controlled guidance, evidence registry, and Help registry', () => {
+  it('bundles the original and measurement-education sources with cached summaries', () => {
+    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === EVIDENCE_CHECKED_DATE)).toHaveLength(8);
+    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === '2026-11-14')).toHaveLength(9);
+    expect(EVIDENCE_LIST).toHaveLength(17);
     for (const src of EVIDENCE_LIST) {
-      expect(src.checkedDate).toBe(EVIDENCE_CHECKED_DATE);
       expect(src.cachedAvailable).toBe(true);
       expect(src.summaryText.length).toBeGreaterThan(20);
       expect(src.limitations.length).toBeGreaterThan(15);
