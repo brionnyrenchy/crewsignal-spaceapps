@@ -4,6 +4,7 @@ import {
   METRIC_DEFINITIONS,
   METRIC_ORDER,
   buildSleepInsight,
+  getMetricAction,
   compareObservationToReference,
   countCoveredMetricTypes,
   evaluateMetricSchedule,
@@ -333,7 +334,7 @@ export function OverviewScreen(): React.ReactElement {
                 testID="overview-review-sleep-btn"
                 label="Review sleep"
                 onPress={() => {
-                  setSelectedActionId('action-review-sleep-routine');
+                  setSelectedActionId(getMetricAction('sleep').actionId);
                   navigateTo('actions');
                 }}
                 variant="secondary"
@@ -349,6 +350,28 @@ export function OverviewScreen(): React.ReactElement {
           </View>
         </PanelCard>
       ) : null}
+
+      <PanelCard>
+        <View style={{ gap: 8 }}>
+          <EyebrowLabel>Reading guidance</EyebrowLabel>
+          <View style={styles.ctaRow}>
+            {METRIC_ORDER.map((metricId) => {
+              const action = getMetricAction(metricId);
+              return (
+                <ActionButton
+                  key={action.actionId}
+                  label={action.title}
+                  onPress={() => {
+                    setSelectedActionId(action.actionId);
+                    navigateTo('actions');
+                  }}
+                  variant="subtle"
+                />
+              );
+            })}
+          </View>
+        </View>
+      </PanelCard>
 
       {/* Joined Readings Grid: 2x3 Phone | 1-col Narrow/Large-Font | 3x2 Tablet */}
       <View style={{ gap: 8 }}>

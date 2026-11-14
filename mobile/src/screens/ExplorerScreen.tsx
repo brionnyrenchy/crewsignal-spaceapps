@@ -9,6 +9,7 @@ import {
   formatObservationDisplay,
   formatUtcTimeHHMM,
   getLatestObservationsByMetric,
+  getMetricAction,
   getObservedMissionDay,
   getReadingStatus,
   resolveActiveReference,
@@ -41,6 +42,7 @@ export function ExplorerScreen(): React.ReactElement {
     setSelectedBodySystem,
     startOrResumeCheckIn,
     setSelectedTrendsMetric,
+    setSelectedActionId,
     navigateTo,
     nowUtc,
   } = useCrewSignal();
@@ -166,6 +168,7 @@ export function ExplorerScreen(): React.ReactElement {
             {activeSystem.metricIds.map((metricId) => {
               const def = METRIC_DEFINITIONS[metricId];
               const obs = latestByMetric[metricId] ?? null;
+              const action = getMetricAction(metricId);
               const resolvedRef = resolveActiveReference({
                 profileId: activeProfile.profileId,
                 metricId,
@@ -257,6 +260,14 @@ export function ExplorerScreen(): React.ReactElement {
                     ) : null}
 
                     <View style={styles.rowWrap}>
+                      <ActionButton
+                        label={action.title}
+                        onPress={() => {
+                          setSelectedActionId(action.actionId);
+                          navigateTo('actions');
+                        }}
+                        variant="subtle"
+                      />
                       <ActionButton
                         label={obs ? `Update ${def.shortLabel}` : `Log ${def.shortLabel}`}
                         onPress={() => startOrResumeCheckIn(metricId)}
