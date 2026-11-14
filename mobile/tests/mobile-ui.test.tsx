@@ -5,6 +5,7 @@ import * as ReactNative from 'react-native';
 import { Keyboard } from 'react-native';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import App from '../src/App';
+import { EXAMPLE_BACKUP_BUNDLE, SIM_01_SNAPSHOT_UTC } from '../src/shared/src';
 import { Directory } from 'expo-file-system';
 import { defaultPlatformIo, type PlatformIoAdapter } from '../src/platform/files';
 import { NodeSqliteDriver } from '../src/storage/nodeDriver';
@@ -127,7 +128,7 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     // Tests that pass the production adapter do not read the mock's file lists.
     const io = (options?.io ?? createMockIo()) as ReturnType<typeof createMockIo>;
 
-    await render(
+    const rendered = await render(
       <App
         store={store}
         io={io}
@@ -137,8 +138,43 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
       />,
     );
 
-    return { driver, store, io };
+    return { driver, store, io, unmount: rendered.unmount };
   }
+
+  test('default report redacts restored notes in Android JSON, share, CSV and print', async () => {
+    const { store, io, unmount } = await renderTestApp();
+    await screen.findByTestId('overview-checkin-card');
+    const row = EXAMPLE_BACKUP_BUNDLE.observations.find((obs) => obs.metricId === 'blood_pressure')!;
+    const legacy = {
+      ...row, note: 'READING_SENTINEL', qualityNote: 'QUALITY_SENTINEL',
+      correctionHistory: [{
+        correctionId: 'old-correction', correctedAtUtc: SIM_01_SNAPSHOT_UTC,
+        reason: 'CORRECTION_SENTINEL', previousEntered: row.entered, previousCanonical: row.canonical,
+        previousTiming: row.timing, previousMethod: row.method, previousContext: row.context,
+      }],
+    };
+    const restored = await store.restoreBackupBundle({
+      rawBackup: { ...EXAMPLE_BACKUP_BUNDLE, observations: [legacy] },
+      destination: 'replace_existing', targetExistingProfileId: row.profileId, confirmedReplace: true,
+    });
+    expect(restored.ok).toBe(true);
+    await unmount();
+    await render(<App store={store} io={io} clockOverrideUtc={SIM_01_SNAPSHOT_UTC} skipFontLoading />);
+    await fireEvent.press(await screen.findByTestId('tab-more'));
+    await fireEvent.press(await screen.findByTestId('more-nav-reports'));
+    for (const id of ['export-report-json', 'share-report-btn', 'export-report-csv', 'print-a4-btn']) {
+      await fireEvent.press(await screen.findByTestId(id));
+    }
+    const json = io.savedFiles.find((file) => file.mimeType === 'application/json')!.content;
+    const csv = io.savedFiles.find((file) => file.mimeType === 'text/csv')!.content;
+    const print = io.printedHtml[0]!;
+    expect(io.sharedFiles[0]!.content).toBe(json);
+    expect(JSON.parse(json).observations).toHaveLength(1);
+    expect(csv).toContain('blood_pressure');
+    expect(print).toContain('Blood pressure');
+    for (const payload of [json, csv, print]) expect(payload).not.toContain('SENTINEL');
+    expect((await store.loadProfileSnapshot(row.profileId)).observations[0]).toEqual(legacy);
+  });
 
   test('source-only revision reviews the current Actions tuple from a stale provider snapshot in one click', async () => {
     const { store } = await renderTestApp();
