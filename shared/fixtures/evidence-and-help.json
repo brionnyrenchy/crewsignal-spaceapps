@@ -276,7 +276,9 @@
       "relatedMetricIds": [
         "heart_rate"
       ],
-      "relatedActionIds": []
+      "relatedActionIds": [
+        "action-review-pulse"
+      ]
     },
     {
       "sourceId": "aha-blood-pressure",
@@ -296,7 +298,9 @@
       "relatedMetricIds": [
         "blood_pressure"
       ],
-      "relatedActionIds": []
+      "relatedActionIds": [
+        "action-review-blood-pressure"
+      ]
     },
     {
       "sourceId": "nasa-standing-risk",
@@ -337,7 +341,9 @@
       "relatedMetricIds": [
         "blood_glucose"
       ],
-      "relatedActionIds": []
+      "relatedActionIds": [
+        "action-review-glucose"
+      ]
     },
     {
       "sourceId": "nasa-human-adaptation",
@@ -377,7 +383,9 @@
       "relatedMetricIds": [
         "body_temperature"
       ],
-      "relatedActionIds": []
+      "relatedActionIds": [
+        "action-review-temperature"
+      ]
     },
     {
       "sourceId": "nasa-body-temperature",
@@ -437,7 +445,9 @@
       "relatedMetricIds": [
         "mood"
       ],
-      "relatedActionIds": []
+      "relatedActionIds": [
+        "action-review-mood-context"
+      ]
     }
   ],
   "actions": [
@@ -450,7 +460,7 @@
       "disabledReason": null,
       "applicability": "Use your approved mission procedures for individual decisions.",
       "limitation": "This comparison describes your entry; it does not assess fitness for duty or prescribe hours, medications, caffeine, lighting doses, or schedule changes.",
-      "triggerSummary": "Triggered when a compatible Main sleep entry differs from your personal sleep reference.",
+      "triggerSummary": "Compare a Main sleep entry with your personal sleep reference when the method and context match.",
       "steps": [
         "Check the recorded sleep period and whether any sleep window included awake time.",
         "Review your approved rest schedule for recent shift changes or irregular timing.",
@@ -464,6 +474,111 @@
       "sourceVersion": "Version 1",
       "ruleId": "rule-sleep-vs-reference",
       "ruleVersion": "crewsignal-sleep-guidance-v1",
+      "reviewStatus": "reviewed_educational"
+    },
+    {
+      "actionId": "action-review-pulse",
+      "title": "Review pulse measurement",
+      "category": "educational",
+      "badgeLabel": "Educational · Prototype",
+      "enabled": true,
+      "disabledReason": null,
+      "applicability": "Activity and the way you count your pulse can affect how comparable readings are.",
+      "limitation": "For reviewing your log. This step cannot diagnose a condition or determine treatment.",
+      "triggerSummary": "Use this step to review how you logged the reading. A personalized comparison requires a compatible reference.",
+      "steps": [
+        "If you repeat the reading, rest first and use the same counting method. Note recent activity in the log."
+      ],
+      "sourceIds": [
+        "nlm-pulse"
+      ],
+      "sourceVersion": "Version 1",
+      "ruleId": "rule-heart-rate-context",
+      "ruleVersion": "crewsignal-heart-rate-guidance-v1",
+      "reviewStatus": "reviewed_educational"
+    },
+    {
+      "actionId": "action-review-blood-pressure",
+      "title": "Review cuff setup",
+      "category": "educational",
+      "badgeLabel": "Educational · Prototype",
+      "enabled": true,
+      "disabledReason": null,
+      "applicability": "Cuff placement, arm support and posture affect the measurement context.",
+      "limitation": "For reviewing your log. This step cannot diagnose a condition or determine treatment.",
+      "triggerSummary": "Use this step to review how you logged the reading. A personalized comparison requires a compatible reference.",
+      "steps": [
+        "Check the cuff placement and arm support. Record the posture and keep both numbers together."
+      ],
+      "sourceIds": [
+        "aha-blood-pressure"
+      ],
+      "sourceVersion": "Version 1",
+      "ruleId": "rule-blood-pressure-context",
+      "ruleVersion": "crewsignal-blood-pressure-guidance-v1",
+      "reviewStatus": "reviewed_educational"
+    },
+    {
+      "actionId": "action-review-glucose",
+      "title": "Review glucose measurement context",
+      "category": "educational",
+      "badgeLabel": "Educational · Prototype",
+      "enabled": true,
+      "disabledReason": null,
+      "applicability": "Meter technique and meal timing help you compare entries taken under similar conditions.",
+      "limitation": "For reviewing your log. This step cannot diagnose a condition or determine treatment.",
+      "triggerSummary": "Use this step to review how you logged the reading. A personalized comparison requires a compatible reference.",
+      "steps": [
+        "Check the meter and test-strip instructions. Note when you last ate and keep the original unit in the log."
+      ],
+      "sourceIds": [
+        "fda-glucose-meter"
+      ],
+      "sourceVersion": "Version 1",
+      "ruleId": "rule-blood-glucose-context",
+      "ruleVersion": "crewsignal-blood-glucose-guidance-v1",
+      "reviewStatus": "reviewed_educational"
+    },
+    {
+      "actionId": "action-review-temperature",
+      "title": "Review temperature measurement site",
+      "category": "educational",
+      "badgeLabel": "Educational · Prototype",
+      "enabled": true,
+      "disabledReason": null,
+      "applicability": "Readings taken at different sites can differ.",
+      "limitation": "For reviewing your log. This step cannot diagnose a condition or determine treatment.",
+      "triggerSummary": "Use this step to review how you logged the reading. A personalized comparison requires a compatible reference.",
+      "steps": [
+        "Record the thermometer type and measurement site. Use the same site and method if you repeat the reading."
+      ],
+      "sourceIds": [
+        "nlm-temperature"
+      ],
+      "sourceVersion": "Version 1",
+      "ruleId": "rule-body-temperature-context",
+      "ruleVersion": "crewsignal-body-temperature-guidance-v1",
+      "reviewStatus": "reviewed_educational"
+    },
+    {
+      "actionId": "action-review-mood-context",
+      "title": "Review mood context",
+      "category": "educational",
+      "badgeLabel": "Educational · Prototype",
+      "enabled": true,
+      "disabledReason": null,
+      "applicability": "A note about recent sleep or workload can help you remember the context of a self-report.",
+      "limitation": "For reviewing your log. This step cannot diagnose a condition or determine treatment.",
+      "triggerSummary": "Review context alongside your mood history.",
+      "steps": [
+        "Review your mood history and note relevant sleep or workload changes alongside the entry."
+      ],
+      "sourceIds": [
+        "nasa-behavioral-measures"
+      ],
+      "sourceVersion": "Version 1",
+      "ruleId": "rule-mood-context",
+      "ruleVersion": "crewsignal-mood-guidance-v1",
       "reviewStatus": "reviewed_educational"
     },
     {

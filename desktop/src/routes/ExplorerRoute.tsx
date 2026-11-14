@@ -9,6 +9,7 @@ import {
   evaluateMetricSchedule,
   formatObservationDisplay,
   getLatestObservationsByMetric,
+  getMetricAction,
   getObservedMissionDay,
   getReadingStatus,
   METRIC_DEFINITIONS,
@@ -31,6 +32,7 @@ export function ExplorerRoute() {
     openResearch,
     setSelectedTrendMetric,
     openDraftForMetric,
+    openAction,
   } = useApp();
 
   const [detailTab, setDetailTab] = useState<"summary" | "context">("summary");
@@ -160,6 +162,7 @@ export function ExplorerRoute() {
                   {systemDef.metricIds.map((metricId) => {
                     const def = METRIC_DEFINITIONS[metricId];
                     const obs = latestByMetric[metricId];
+                    const action = getMetricAction(metricId);
                     const ref = activeReferencesByMetric[metricId];
                     const cmp = obs ? compareObservationToReference(obs, ref) : null;
                     const status = getReadingStatus(obs, cmp, evaluateMetricSchedule({
@@ -212,6 +215,9 @@ export function ExplorerRoute() {
 
                         <MeasurementEducation definition={def} />
                         <div className="row-wrap">
+                          <button type="button" className="btn-ghost" onClick={() => openAction(action.actionId)}>
+                            {action.title}
+                          </button>
                           <button
                             type="button"
                             className="btn-secondary"

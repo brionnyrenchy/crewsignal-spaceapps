@@ -1,5 +1,7 @@
+import { needsManualReferenceConfirmation, validateManualReference } from './manualReferences';
 import {
   type MetricId,
+  type ManualReferenceCapture,
   type Observation,
   type PersonalReference,
   type ReferenceValue,
@@ -334,7 +336,12 @@ export function createNewReferenceVersion(params: {
   value: ReferenceValue;
   createdAtUtc: string;
   referenceIdPrefix?: string;
+  manualCapture?: ManualReferenceCapture;
 }): PersonalReference[] {
+  if (params.manualCapture) {
+    const parsed = validateManualReference({ ...params.manualCapture, metricId: params.metricId });
+    if (!parsed.valid || JSON.stringify(parsed.value) !== JSON.stringify(params.value) || params.unit !== parsed.capture!.unit || params.method !== parsed.capture!.method || params.context !== parsed.capture!.context) throw new Error("Invalid manual reference capture.");
+  }
   const metricRefs = params.existingReferences.filter(
     (r) => r.profileId === params.profileId && r.metricId === params.metricId,
   );
@@ -356,6 +363,7 @@ export function createNewReferenceVersion(params: {
       : 'Personal reference';
 
   const newRef: PersonalReference = {
+    ...(params.manualCapture ? { manualCapture: params.manualCapture } : {}),
     referenceId: `${prefix}-v${nextVersion}`,
     profileId: params.profileId,
     metricId: params.metricId,
@@ -450,6 +458,10 @@ export function compareObservationToReference(
       deltaNumeric: null,
       deltaUnit: null,
     };
+  }
+
+  if (needsManualReferenceConfirmation(reference)) {
+    return { comparisonAvailable:false, unavailableReason:'This legacy BP reference needs explicit review of both inputs in Settings before comparison.', referenceId:reference.referenceId, referenceVersion:reference.version, differenceText:null, deltaNumeric:null, deltaUnit:null };
   }
 
   if (observation.metricId === 'sleep') {

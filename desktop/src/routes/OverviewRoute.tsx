@@ -1,7 +1,7 @@
-import { currentActionReview } from '../bridge/desktopBridge';
 import {
   buildRaiseReadingPrompt,
   buildSleepInsight,
+  getMetricAction,
   compareObservationToReference,
   computeMissionDay,
   describeMissionContact,
@@ -19,6 +19,7 @@ import {
   RAISE_READING_SUGGESTION,
   type MetricId,
 } from "../shared/src";
+import { currentActionReview } from "../bridge/desktopBridge";
 import { useApp } from "../state/AppContext";
 import { TrendChart } from "../components/TrendChart";
 import { ReadingStatusBadge } from "../components/ReadingStatusBadge";
@@ -44,6 +45,7 @@ export function OverviewRoute() {
     gettingStarted,
     setSelectedTrendMetric,
     openDraftForMetric,
+    openAction,
   } = useApp();
 
   if (storageStatus && !storageStatus.available) {
@@ -305,7 +307,7 @@ export function OverviewRoute() {
                   {sleepInsight.referenceVersion ?? "—"} · Rule {sleepInsight.ruleVersion}
                 </span>
               </div>
-              <button type="button" className="btn-primary" onClick={() => navigate("actions")}>
+              <button type="button" className="btn-primary" onClick={() => openAction(getMetricAction('sleep').actionId)}>
                 Review sleep →
               </button>
             </section>
@@ -333,6 +335,7 @@ export function OverviewRoute() {
             <div className="readings-rail">
               {METRIC_ORDER.map((metricId) => {
                 const def = METRIC_DEFINITIONS[metricId];
+                const action = getMetricAction(metricId);
                 const obs = latestByMetric[metricId];
                 const schedule = activeProfile.schedules[metricId];
                 const schedStatus = evaluateMetricSchedule({
@@ -424,6 +427,9 @@ export function OverviewRoute() {
                         </button>
                       </>
                     )}
+                    <button type="button" className="btn-link" onClick={() => openAction(action.actionId)}>
+                      {action.title}
+                    </button>
                   </div>
                 );
               })}

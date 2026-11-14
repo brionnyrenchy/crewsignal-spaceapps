@@ -1,0 +1,112 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @crewsignal/desktop@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 H:/crewsignal-desktop/personal-reference-fix/desktop
+
+ Γ¥» tests/unit/bridge-contract.test.ts (0 test)
+ Γ¥» tests/unit/restore-draft-scope.test.tsx (0 test)
+ Γ¥» tests/unit/guidance-review.test.ts (0 test)
+ Γ¥» tests/unit/restore-memory-draft.test.tsx (0 test)
+ Γ¥» tests/unit/draft-handoff-fixture-replace.test.tsx (0 test)
+ Γ¥» tests/unit/desktop-app.test.tsx (0 test)
+ Γ¥» tests/unit/manual-reference-editor.test.tsx (0 test)
+ Γ¥» tests/unit/backup-export-preferences.test.tsx (0 test)
+ Γ¥» tests/unit/backup-restore.test.ts (0 test)
+ Γ¥» tests/unit/body-explorer-model.test.tsx (0 test)
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Suites 10 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  tests/unit/backup-export-preferences.test.tsx [ tests/unit/backup-export-preferences.test.tsx ]
+ FAIL  tests/unit/backup-restore.test.ts [ tests/unit/backup-restore.test.ts ]
+Error: Failed to resolve import "@tauri-apps/api/event" from "src/bridge/desktopBridge.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: H:/crewsignal-desktop/personal-reference-fix/desktop/src/bridge/desktopBridge.ts:3:40
+  1  |  import { guidanceReviewIdentity, isInsightReviewCurrent } from "../shared/src";
+  2  |  import { invoke } from "@tauri-apps/api/core";
+  3  |  import { listen } from "@tauri-apps/api/event";
+     |                          ^
+  4  |  import { SIM_01_PREFERENCES, SIM_01_PROFILE, SIM_01_OBSERVATIONS, SIM_01_REFERENCES, SIM_01_INSIGHTS, SIM_01_OPTIONAL...
+  5  |  export function currentActionReview(reviews, current) {
+ Γ¥» TransformPluginContext._formatLog ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8865:39
+ Γ¥» TransformPluginContext.error ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8862:14
+ Γ¥» resolveId ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26552:18
+ Γ¥» ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26651:23
+ Γ¥» TransformPluginContext.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26624:4
+ Γ¥» EnvironmentPluginContainer.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8636:14
+ Γ¥» loadAndTransform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:20112:26
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/10]ΓÄ»
+
+ FAIL  tests/unit/body-explorer-model.test.tsx [ tests/unit/body-explorer-model.test.tsx ]
+Error: Failed to resolve import "@tauri-apps/api/core" from "src/bridge/desktopBridge.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: H:/crewsignal-desktop/personal-reference-fix/desktop/src/bridge/desktopBridge.ts:2:23
+  1  |  import { guidanceReviewIdentity, isInsightReviewCurrent } from "../shared/src";
+  2  |  import { invoke } from "@tauri-apps/api/core";
+     |                          ^
+  3  |  import { listen } from "@tauri-apps/api/event";
+  4  |  import { SIM_01_PREFERENCES, SIM_01_PROFILE, SIM_01_OBSERVATIONS, SIM_01_REFERENCES, SIM_01_INSIGHTS, SIM_01_OPTIONAL...
+ Γ¥» TransformPluginContext._formatLog ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8865:39
+ Γ¥» TransformPluginContext.error ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8862:14
+ Γ¥» resolveId ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26552:18
+ Γ¥» ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26651:23
+ Γ¥» TransformPluginContext.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26624:4
+ Γ¥» EnvironmentPluginContainer.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8636:14
+ Γ¥» loadAndTransform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:20112:26
+ Γ¥» fetchModule ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:36229:15
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/10]ΓÄ»
+
+ FAIL  tests/unit/bridge-contract.test.ts [ tests/unit/bridge-contract.test.ts ]
+ FAIL  tests/unit/desktop-app.test.tsx [ tests/unit/desktop-app.test.tsx ]
+ FAIL  tests/unit/draft-handoff-fixture-replace.test.tsx [ tests/unit/draft-handoff-fixture-replace.test.tsx ]
+ FAIL  tests/unit/guidance-review.test.ts [ tests/unit/guidance-review.test.ts ]
+ FAIL  tests/unit/restore-draft-scope.test.tsx [ tests/unit/restore-draft-scope.test.tsx ]
+ FAIL  tests/unit/restore-memory-draft.test.tsx [ tests/unit/restore-memory-draft.test.tsx ]
+Error: Failed to resolve import "@tauri-apps/api/core" from "src/bridge/desktopBridge.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: H:/crewsignal-desktop/personal-reference-fix/desktop/src/bridge/desktopBridge.ts:2:23
+  1  |  import { guidanceReviewIdentity, isInsightReviewCurrent } from "../shared/src";
+  2  |  import { invoke } from "@tauri-apps/api/core";
+     |                          ^
+  3  |  import { listen } from "@tauri-apps/api/event";
+  4  |  import { SIM_01_PREFERENCES, SIM_01_PROFILE, SIM_01_OBSERVATIONS, SIM_01_REFERENCES, SIM_01_INSIGHTS, SIM_01_OPTIONAL...
+ Γ¥» TransformPluginContext._formatLog ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8865:39
+ Γ¥» TransformPluginContext.error ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8862:14
+ Γ¥» resolveId ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26552:18
+ Γ¥» ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26651:23
+ Γ¥» TransformPluginContext.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26624:4
+ Γ¥» EnvironmentPluginContainer.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8636:14
+ Γ¥» loadAndTransform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:20112:26
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/10]ΓÄ»
+
+ FAIL  tests/unit/manual-reference-editor.test.tsx [ tests/unit/manual-reference-editor.test.tsx ]
+Error: Failed to resolve import "@tauri-apps/api/event" from "src/bridge/desktopBridge.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: H:/crewsignal-desktop/personal-reference-fix/desktop/src/bridge/desktopBridge.ts:3:40
+  1  |  import { guidanceReviewIdentity, isInsightReviewCurrent } from "../shared/src";
+  2  |  import { invoke } from "@tauri-apps/api/core";
+  3  |  import { listen } from "@tauri-apps/api/event";
+     |                          ^
+  4  |  import { SIM_01_PREFERENCES, SIM_01_PROFILE, SIM_01_OBSERVATIONS, SIM_01_REFERENCES, SIM_01_INSIGHTS, SIM_01_OPTIONAL...
+  5  |  export function currentActionReview(reviews, current) {
+ Γ¥» TransformPluginContext._formatLog ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8865:39
+ Γ¥» TransformPluginContext.error ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8862:14
+ Γ¥» resolveId ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26552:18
+ Γ¥» ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26651:23
+ Γ¥» TransformPluginContext.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:26624:4
+ Γ¥» EnvironmentPluginContainer.transform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:8636:14
+ Γ¥» loadAndTransform ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:20112:26
+ Γ¥» fetchModule ../../merge-resolution/website/node_modules/vite/dist/node/chunks/node.js:36229:15
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/10]ΓÄ»
+
+
+ Test Files  10 failed (10)
+      Tests  no tests
+   Start at  16:31:32
+   Duration  6.55s (environment 80%, setup 17%, worker 3%)

@@ -25,6 +25,30 @@ async function assertNoHorizontalOverflow(page: Page, contextLabel: string) {
 }
 
 test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
+  test('indicator guidance opens from Overview and Explorer and reviews only comparable readings', async ({ page }) => {
+    await page.goto('/demo');
+    await page.getByRole('link', { name: 'Review pulse measurement' }).click();
+    const pulseHeading = page.getByRole('heading', { name: 'Review pulse measurement' });
+    await expect(pulseHeading).toBeFocused();
+    const pulseAction = page.getByRole('article').filter({ has: pulseHeading });
+    await expect(pulseAction.getByText(/Reference demo-ref-hr-v1/)).toBeVisible();
+    await pulseAction.getByRole('button', { name: 'Mark reviewed' }).click();
+    await expect(pulseAction.getByText('Reviewed for current version')).toBeVisible();
+
+    await page.goto('/demo/explorer');
+    await page.getByRole('tab', { name: 'Cardiovascular' }).click();
+    await page.getByRole('link', { name: 'Review cuff setup' }).click();
+    const cuffHeading = page.getByRole('heading', { name: 'Review cuff setup' });
+    await expect(cuffHeading).toBeFocused();
+    const cuffAction = page.getByRole('article').filter({ has: cuffHeading });
+    await expect(cuffAction.getByRole('link', { name: /View source/ })).toBeVisible();
+    await expect(cuffAction.getByRole('button', { name: 'Mark reviewed' })).toHaveCount(0);
+
+    const moodAction = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Review mood context' }) });
+    await expect(moodAction.getByRole('link', { name: /View source/ })).toBeVisible();
+    await expect(moodAction.getByRole('button', { name: 'Mark reviewed' })).toHaveCount(0);
+  });
+
   test('latest readings show a distinct text status in both themes and forced colors', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ colorScheme: 'light' });
@@ -156,11 +180,11 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
     await page.getByRole('button', { name: 'View data table' }).click();
     await expect(page.getByRole('table').first()).toBeVisible();
 
-    // Navigate to Explorer: interactive 2D Body SVG + all 5 systems
+    // Navigate to Explorer and select a system through the shared Systems tabs.
     await page.getByRole('link', { name: 'Explorer', exact: true }).click();
     await expect(page).toHaveURL(/\/demo\/explorer/);
     await expect(page.getByText('Not a medical scan')).toBeVisible();
-    await page.getByRole('button', { name: 'Inspect Cardiovascular' }).click();
+    await page.getByRole('tab', { name: 'Cardiovascular' }).click();
     await expect(page.getByRole('heading', { name: 'Cardiovascular' })).toBeVisible();
     await page.getByRole('tab', { name: 'Musculoskeletal' }).click();
     await expect(page.getByText('No indicators tracked in this prototype')).toBeVisible();
@@ -171,9 +195,10 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
     // Navigate to Actions & internal Sources navigation
     await page.getByRole('link', { name: 'Actions', exact: true }).click();
     await expect(page).toHaveURL(/\/demo\/actions/);
-    await page.getByRole('button', { name: 'Mark reviewed' }).click();
-    await expect(page.getByText('Reviewed for current version')).toBeVisible();
-    await page.getByRole('link', { name: /View source: NASA sleep & schedules/i }).click();
+    const sleepAction = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Review sleep routine' }) });
+    await sleepAction.getByRole('button', { name: 'Mark reviewed' }).click();
+    await expect(sleepAction.getByText('Reviewed for current version')).toBeVisible();
+    await sleepAction.getByRole('link', { name: /View source: NASA sleep & schedules/i }).click();
     await expect(page).toHaveURL(/\/demo\/sources\/nasa-sleep-risk/);
     await expect(page.getByText('Available offline: summary')).toBeVisible();
     await expect(page.getByRole('link', { name: /View original source/i })).toHaveAttribute(
@@ -752,8 +777,9 @@ test.describe('CrewSignal Website & Synthetic Demo E2E', () => {
       await page.goto('/demo');
       await expect(page.locator('.cs-readings > li')).toHaveCount(6);
       await expect.poll(columns, { message: `${width}px readings columns` }).toBe(expected);
-      // Sleep comparison is stated once on the page.
-      await expect(page.getByText(/1h 36m below reference/)).toHaveCount(1);
+      // The reading grid leaves the sleep comparison to the next-step card.
+      await expect(page.locator('.cs-overview-next').getByText(/1h 36m below reference/)).toHaveCount(1);
+      await expect(page.locator('.cs-readings').getByText(/1h 36m below reference/)).toHaveCount(0);
       // Missing glucose shows "Not recorded" with an Add action.
       await expect(page.getByRole('link', { name: 'Add blood glucose' })).toBeVisible();
       const doc = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);

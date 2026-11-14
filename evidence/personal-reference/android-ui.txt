@@ -1,0 +1,7 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> crewsignal-mobile@1.0.0 test
+> jest --runInBand
+
+'jest' is not recognized as an internal or external command,
+operable program or batch file.

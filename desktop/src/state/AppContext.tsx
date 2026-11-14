@@ -116,6 +116,8 @@ interface AppContextValue {
   setSelectedBodySystem: (id: BodySystemId) => void;
   selectedTrendMetric: MetricId;
   setSelectedTrendMetric: (id: MetricId) => void;
+  selectedActionId: string | null;
+  openAction: (actionId: string) => void;
   trendRangeDays: 7 | 30;
   setTrendRangeDays: (days: 7 | 30) => void;
   trendViewMode: "chart" | "table";
@@ -199,6 +201,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [selectedBodySystem, setSelectedBodySystem] =
     useState<BodySystemId>("sleep_cognition");
   const [selectedTrendMetric, setSelectedTrendMetric] = useState<MetricId>("sleep");
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [trendRangeDays, setTrendRangeDays] = useState<7 | 30>(7);
   const [trendViewMode, setTrendViewMode] = useState<"chart" | "table">("chart");
 
@@ -577,6 +580,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (nextRoute === "help" && route !== "help" && !gettingStarted) setHelpReturnRoute(route);
     setGettingStarted(false);
     setReadingReportScope(nextRoute === "reports" ? reportScope : undefined);
+    setSelectedActionId(null);
     showRoute(nextRoute);
   }, [gettingStarted, route, showRoute]);
 
@@ -584,6 +588,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     navigate("sources");
     setResearchReturnRoute(route);
     setSelectedResearch(context);
+  function openAction(actionId: string) {
+    navigate("actions");
+    setSelectedActionId(actionId);
   }
 
   function openGettingStarted() {
@@ -882,6 +889,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSelectedBodySystem,
     selectedTrendMetric,
     setSelectedTrendMetric,
+    selectedActionId,
+    openAction,
     trendRangeDays,
     setTrendRangeDays,
     trendViewMode,

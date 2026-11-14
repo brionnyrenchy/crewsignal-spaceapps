@@ -1,0 +1,47 @@
+import React from 'react';
+import { beforeEach, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { SIM_01_PROFILE, SIM_01_PREFERENCES, SIM_01_REFERENCES } from '../../src/shared/src';
+import { SettingsRoute } from '../../src/routes/SettingsRoute';
+import { desktopBridge } from '../../src/bridge/desktopBridge';
+const mock=vi.hoisted(()=>({state:{} as any}));
+vi.mock('../../src/state/AppContext',()=>({useApp:()=>mock.state}));
+beforeEach(()=>{
+ cleanup();vi.restoreAllMocks();
+ mock.state={snapshot:{profileData:{references:[],observations:[]}},activeProfile:{...SIM_01_PROFILE,mode:'personal',profileId:'personal-editor'},allProfiles:[],preferences:SIM_01_PREFERENCES,diagnosticHooks:{},currentReferenceNowUtc:'2026-11-14T01:00:00Z',refreshSnapshot:vi.fn(),showToast:vi.fn()};
+});
+const fill=(id:string,value:string)=>fireEvent.change(document.getElementById(id)!,{target:{value}});
+it('starts empty, validates fields before bridge calls, preserves inputs on write failure and clears profile/metric changes',async()=>{
+ const write=vi.spyOn(desktopBridge,'upsertPersonalReference').mockRejectedValue(new Error('disk full'));
+ const view=render(<SettingsRoute/>);
+ expect(screen.getByLabelText('Target duration (minutes)')).toHaveValue('');
+ fill('ref-metric','blood_pressure');fill('ref-val','118');
+ fireEvent.click(screen.getByText('Save new reference version'));
+ expect(write).not.toHaveBeenCalled();expect(screen.getByLabelText('Diastolic reference mmHg')).toHaveAttribute('aria-invalid','true');
+ fill('ref-val','118junk');fill('ref-secondary','76');
+ fill('ref-method','Manual cuff');fill('ref-context','At rest');
+ fireEvent.click(screen.getByText('Save new reference version'));expect(write).not.toHaveBeenCalled();
+ fill('ref-val','118.125');fireEvent.click(screen.getByText('Save new reference version'));
+ await screen.findByText(/Reference was not saved/);
+ expect(screen.getByLabelText('Systolic (mmHg)')).toHaveValue('118.125');
+ expect(screen.getByLabelText('Diastolic reference mmHg')).toHaveValue('76');
+ mock.state.preferences={...mock.state.preferences,displayUnits:{...mock.state.preferences.displayUnits,body_temperature:'F'}};view.rerender(<SettingsRoute/>);
+ expect(screen.getByLabelText('Systolic (mmHg)')).toHaveValue('118.125');
+ expect(write.mock.calls[0]![1].value).toEqual({kind:'blood_pressure',systolic:118.125,diastolic:76});
+ mock.state={...mock.state,activeProfile:{...mock.state.activeProfile,profileId:'another'}};view.rerender(<SettingsRoute/>);
+ expect(screen.getByLabelText('Systolic (mmHg)')).toHaveValue('');
+});
+it('offers legacy values only in a labelled review flow and writes only after confirmation',async()=>{
+ const legacy={...SIM_01_REFERENCES[0]!,metricId:'blood_pressure',referenceId:'legacy-bp',unit:'mmHg',method:'Manual cuff',context:'At rest',value:{kind:'blood_pressure',systolic:118,diastolic:76},provenance:'user_updated',profileId:'personal-editor'};
+ mock.state.snapshot.profileData.references=[legacy];
+ const write=vi.spyOn(desktopBridge,'upsertPersonalReference').mockImplementation(async(_,r)=>r);
+ render(<SettingsRoute/>);fill('ref-metric','blood_pressure');
+ expect(screen.getByLabelText('Systolic (mmHg)')).toHaveValue('');
+ fireEvent.click(screen.getByText('Review previous BP values'));fireEvent.click(screen.getByText('Save new reference version'));
+ expect(write).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByLabelText('I have verified both BP inputs, method and context'));
+ fireEvent.click(screen.getByText('Save new reference version'));
+ await waitFor(()=>expect(write).toHaveBeenCalledTimes(1));
+ expect(write.mock.calls[0]![1].manualCapture!.confirmedPreviousReferenceId).toBe(legacy.referenceId);
+ expect(legacy.status).toBe('active');
+});

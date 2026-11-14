@@ -1,0 +1,13 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @crewsignal/website@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 H:/crewsignal-desktop/personal-reference-fix/website
+
+
+ Test Files  5 passed (5)
+      Tests  16 passed (16)
+   Start at  16:31:38
+   Duration  5.21s (environment 46%, import 21%, setup 15%, tests 11%, transform 7%)

@@ -12,3 +12,5 @@ export * from './transactions';
 export * from './tokens';
 export * from './fixtures';
 export * from './bodyModel';
+
+export * from './manualReferences';

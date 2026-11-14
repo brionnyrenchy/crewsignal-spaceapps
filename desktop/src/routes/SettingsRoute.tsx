@@ -2,6 +2,8 @@ import { ScheduledNotificationSetting } from '../components/ScheduledNotificatio
 import { useEffect, useState } from "react";
 import {
   createNewReferenceVersion,
+  validateManualReference,
+  needsManualReferenceConfirmation,
   deriveSevenDayFallbackReference,
   METRIC_DEFINITIONS,
   METRIC_ORDER,
@@ -45,11 +47,17 @@ export function SettingsRoute() {
 
   // Reference editor state
   const [refMetric, setRefMetric] = useState<Exclude<MetricId, "mood">>("sleep");
-  const [refPrimary, setRefPrimary] = useState("444");
-  const [refSecondary, setRefSecondary] = useState("76");
-  const [refMethod, setRefMethod] = useState(METRIC_DEFINITIONS.sleep.methodOptions[0]!);
-  const [refContext, setRefContext] = useState(METRIC_DEFINITIONS.sleep.contextOptions[0]!);
+  const [refPrimary, setRefPrimary] = useState("");
+  const [refSecondary, setRefSecondary] = useState("");
+  const [refMethod, setRefMethod] = useState("");
+  const [refContext, setRefContext] = useState("");
 
+  const [refErrors, setRefErrors] = useState<Record<string,string>>({});
+  const [refSaveError, setRefSaveError] = useState('');
+  const [reviewingReferenceId, setReviewingReferenceId] = useState<string | undefined>();
+  const [confirmedReference, setConfirmedReference] = useState(false);
+  const [savingReference, setSavingReference] = useState(false);
+  useEffect(() => setConfirmedReference(false), [refPrimary,refSecondary,refMethod,refContext]);
   // Schedule editor state
   const [schedMetric, setSchedMetric] = useState<MetricId>("blood_pressure");
   const [schedEnabled, setSchedEnabled] = useState(true);
@@ -63,17 +71,9 @@ export function SettingsRoute() {
   }, [activeProfile]);
 
   useEffect(() => {
-    const def = METRIC_DEFINITIONS[refMetric];
-    setRefMethod(def.methodOptions[0]!);
-    setRefContext(def.contextOptions[0]!);
-    if (refMetric === "sleep") setRefPrimary("444");
-    else if (refMetric === "heart_rate") setRefPrimary("64");
-    else if (refMetric === "blood_pressure") {
-      setRefPrimary("118");
-      setRefSecondary("76");
-    } else if (refMetric === "blood_glucose") setRefPrimary("95");
-    else if (refMetric === "body_temperature") setRefPrimary("36.7");
-  }, [refMetric]);
+    setRefPrimary(''); setRefSecondary(''); setRefMethod(''); setRefContext('');
+    setRefErrors({}); setRefSaveError(''); setReviewingReferenceId(undefined); setConfirmedReference(false);
+  }, [refMetric, activeProfile?.profileId]);
 
   if (!snapshot || !activeProfile) {
     return (
@@ -101,25 +101,13 @@ export function SettingsRoute() {
   };
 
   const handleSaveNewReference = async () => {
-    const num1 = Number(refPrimary);
-    const num2 = Number(refSecondary);
-    if (!Number.isFinite(num1) || num1 <= 0) {
-      showToast({ tone: "danger", title: "Invalid reference value" });
-      return;
-    }
-    let val: ReferenceValue;
-    if (refMetric === "blood_pressure") {
-      if (!Number.isFinite(num2) || num2 <= 0) {
-        showToast({ tone: "danger", title: "Enter both systolic and diastolic reference values" });
-        return;
-      }
-      val = { kind: "blood_pressure", systolic: num1, diastolic: num2 };
-    } else if (refMetric === "sleep") {
-      val = { kind: "sleep_duration", durationMinutes: Math.round(num1) };
-    } else {
-      val = { kind: "scalar", value: num1 };
-    }
-
+    const validation = validateManualReference({metricId:refMetric,primaryText:refPrimary,secondaryText:refSecondary,method:refMethod,context:refContext,unit:METRIC_DEFINITIONS[refMetric].canonicalUnit,confirmedPreviousReferenceId:reviewingReferenceId});
+    setRefErrors(validation.errors); setRefSaveError('');
+    if (!validation.valid || !validation.value || !validation.capture) return;
+    if (reviewingReferenceId && !confirmedReference) { setRefSaveError('Confirm both entered values before creating a replacement version.'); return; }
+    if (savingReference) return;
+    setSavingReference(true);
+    try {
     const updated = createNewReferenceVersion({
       existingReferences: snapshot.profileData.references,
       profileId: activeProfile.profileId,
@@ -128,17 +116,21 @@ export function SettingsRoute() {
       method: refMethod,
       context: refContext,
       unit: METRIC_DEFINITIONS[refMetric].canonicalUnit,
-      value: val,
+      value: validation.value,
+      manualCapture: validation.capture,
       createdAtUtc: currentReferenceNowUtc,
     });
     const newest = updated[updated.length - 1]!;
     await desktopBridge.upsertPersonalReference(activeProfile.profileId, newest);
     await refreshSnapshot(activeProfile.profileId);
+    setRefPrimary(''); setRefSecondary(''); setRefMethod(''); setRefContext(''); setReviewingReferenceId(undefined);
     showToast({
       tone: "success",
       title: `Saved ${METRIC_DEFINITIONS[refMetric].shortLabel} reference Version ${newest.version}`,
       detail: "Previous active version kept in history; old action acknowledgements require re-review.",
     });
+    } catch { setRefSaveError('Reference was not saved. Your entered values are retained; retry when storage is available.'); }
+    finally { setSavingReference(false); }
   };
 
   const handleDeriveFallback = async () => {
@@ -528,14 +520,15 @@ export function SettingsRoute() {
           <div className="field-group">
             <label className="field-label" htmlFor="ref-val">
               {refMetric === "sleep"
-                ? "Target duration (minutes, e.g., 444 = 7h 24m)"
+                ? "Target duration (minutes)"
                 : refMetric === "blood_pressure"
-                  ? "Systolic / Diastolic (mmHg)"
+                  ? "Systolic (mmHg)"
                   : `Reference value (${METRIC_DEFINITIONS[refMetric].canonicalUnit})`}
             </label>
             <div className="row-wrap">
               <input
                 id="ref-val"
+                aria-invalid={!!refErrors.primary} aria-describedby="ref-primary-error"
                 className="text-input"
                 style={{ flex: 1 }}
                 value={refPrimary}
@@ -547,21 +540,24 @@ export function SettingsRoute() {
                   style={{ width: 100 }}
                   value={refSecondary}
                   onChange={(e) => setRefSecondary(e.target.value)}
-                  aria-label="Diastolic reference mmHg"
+                  id="ref-secondary" aria-label="Diastolic reference mmHg" aria-invalid={!!refErrors.secondary} aria-describedby="ref-secondary-error"
                 />
               ) : null}
             </div>
           </div>
+          <p id="ref-primary-error" role="alert">{refErrors.primary}</p>
+          <p id="ref-secondary-error" role="alert">{refErrors.secondary}</p>
           <div className="field-group">
             <label className="field-label" htmlFor="ref-method">
               Method (must match observations to compare)
             </label>
             <select
-              id="ref-method"
+              id="ref-method" aria-invalid={!!refErrors.method} aria-describedby="ref-method-error"
               className="select-input"
               value={refMethod}
               onChange={(e) => setRefMethod(e.target.value)}
             >
+              <option value="">Select method</option>
               {METRIC_DEFINITIONS[refMetric].methodOptions.map((o) => (
                 <option key={o} value={o}>
                   {o}
@@ -574,11 +570,12 @@ export function SettingsRoute() {
               Context
             </label>
             <select
-              id="ref-context"
+              id="ref-context" aria-invalid={!!refErrors.context} aria-describedby="ref-context-error"
               className="select-input"
               value={refContext}
               onChange={(e) => setRefContext(e.target.value)}
             >
+              <option value="">Select context</option>
               {METRIC_DEFINITIONS[refMetric].contextOptions.map((o) => (
                 <option key={o} value={o}>
                   {o}
@@ -588,8 +585,11 @@ export function SettingsRoute() {
           </div>
         </div>
 
+        <p id="ref-method-error" role="alert">{refErrors.method}</p><p id="ref-context-error" role="alert">{refErrors.context}</p>
+        {refSaveError ? <p role="alert">{refSaveError}</p> : null}
+        {reviewingReferenceId ? <div><strong>Review saved reference {reviewingReferenceId}. No value is saved until you confirm.</strong><label><input type="checkbox" checked={confirmedReference} onChange={e=>setConfirmedReference(e.target.checked)} />I have verified both BP inputs, method and context</label></div> : null}
         <div className="row-wrap">
-          <button type="button" className="btn-primary" onClick={() => void handleSaveNewReference()}>
+          <button type="button" className="btn-primary" disabled={savingReference} onClick={() => void handleSaveNewReference()}>
             Save new reference version
           </button>
           <button type="button" className="btn-secondary" onClick={() => void handleDeriveFallback()}>
@@ -617,7 +617,9 @@ export function SettingsRoute() {
                 {snapshot.profileData.references.map((r) => (
                   <tr key={r.referenceId}>
                     <td>{METRIC_DEFINITIONS[r.metricId].shortLabel}</td>
-                    <td>{r.label}</td>
+                    <td>{r.label}<pre>{JSON.stringify(r.value)} {r.unit}</pre>
+                    {needsManualReferenceConfirmation(r) ? <span>Needs confirmation before comparison</span> : null}
+                    {needsManualReferenceConfirmation(r) && r.metricId === refMetric && r.value?.kind === 'blood_pressure' ? <button type="button" onClick={() => { if(r.value?.kind !== 'blood_pressure') return; setRefPrimary(String(r.value.systolic)); setRefSecondary(String(r.value.diastolic)); setRefMethod(r.method); setRefContext(r.context); setReviewingReferenceId(r.referenceId); setConfirmedReference(false); }}>Review previous BP values</button> : null}</td>
                     <td>
                       <span className={r.status === "active" ? "badge-success" : "badge-neutral"}>
                         {r.status}
