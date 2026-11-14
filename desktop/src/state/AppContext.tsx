@@ -588,6 +588,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     navigate("sources");
     setResearchReturnRoute(route);
     setSelectedResearch(context);
+  }
+
   function openAction(actionId: string) {
     navigate("actions");
     setSelectedActionId(actionId);
