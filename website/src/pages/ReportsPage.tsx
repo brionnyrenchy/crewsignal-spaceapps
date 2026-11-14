@@ -11,6 +11,7 @@ import {
   formatUtcTimeHHMM,
   getObservedMissionDay,
   serializeObservationsToCsv,
+  describeReportFormats,
   type MetricId,
   type ReadingReportScope,
 } from '../shared';
@@ -353,9 +354,11 @@ function ReportDraft({ scope }: { scope: ReadingReportScope | null }) {
 
           <div className="cs-card-muted cs-stack" style={{ gap: '6px' }}>
             <span className="cs-mono-stamp">Included references &amp; disclosures</span>
+            <ul>{describeReportFormats(reportBundle, { csv: true, printIncludesMetadata: true }).map((line) => <li key={line}>{line}</li>)}</ul>
             <p className="cs-helper">
               {reportBundle.disclaimers.join(' ')}
             </p>
+            <p className="cs-helper">References included: {reportBundle.references.map((r) => `${METRIC_DEFINITIONS[r.metricId].name} v${r.version}`).join(', ') || 'None'}</p>
             <p className="cs-helper">
               Citations included:{' '}
               {reportBundle.evidence

@@ -1,5 +1,15 @@
 # CrewSignal Verification & Release Evidence (`EVIDENCE.md`)
 
+## Default report privacy
+
+Working changes based on `348e65b`. The audited `373a265` commit was unavailable in this checkout.
+
+| Verification | Result |
+| --- | --- |
+| Source checks | `node shared/scripts/sync-to-targets.mjs --write all`, `node scripts/verify-clean-source.mjs` and `git diff --check` passed. |
+| Harness | Added a shared legacy-sentinel regression and Android coverage for JSON download, share, CSV and print after SQLite restore. `npm --prefix shared test -- interchange-and-vectors` could not start because Vitest was unavailable. Added Windows frontend JSON and print assertions against a seeded legacy observation. Android and Windows harness execution remain pending. |
+| Installed apps | Offline checks on Android phone, Android tablet and Windows remain pending. |
+
 ## Scheduled check-in prompts
 
 | Verification level | Result |
