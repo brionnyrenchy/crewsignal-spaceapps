@@ -99,3 +99,11 @@ The following toolchain status was observed during verification on the Windows 1
 - **Available and verified**: `node v24.18.0`, `npm 11.16.0`, JDK `26.0.1`, TypeScript, Jest, and Android Hermes export.
 - **Unavailable on the verification host**: Android SDK (`ANDROID_HOME` unset, `adb` / `sdkmanager` / `gradle` absent) and EAS CLI.
 - Build and run locally with `npm run android` in an Android SDK environment. To generate a preview APK with EAS, run `eas build --profile preview --platform android`. Install the APK on Android phones and tablets to test TalkBack and native print preview.
+
+## Where your data lives
+
+CrewSignal stores readings and drafts in `files/SQLite/crewsignal_v1.db` within the app's private storage. The native build opts out of Android cloud backup with `android.allowBackup: false` in `app.json`. After prebuild, confirm the `<application>` in `android/app/src/main/AndroidManifest.xml` has `android:allowBackup="false"`.
+
+A fresh reinstall starts without your previous Personal records unless you restore a profile backup in Reports. Some Android devices can still transfer app data directly between devices. Before uninstalling or moving devices, save a full profile backup from Reports and copy it outside the app. That backup includes the selected profile's readings, mood and notes. Report exports contain selected readings and exclude mood and notes by default. CrewSignal does not encrypt the database or exported files.
+
+[Android Auto Backup documentation](https://developer.android.com/identity/data/autobackup#EnablingAutoBackup)

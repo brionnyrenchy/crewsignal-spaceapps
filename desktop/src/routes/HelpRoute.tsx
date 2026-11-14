@@ -172,6 +172,12 @@ export function HelpRoute() {
         </details>
       </section>
 
+      <section className="panel-card stack-sm" aria-labelledby="help-data-heading">
+        <h2 id="help-data-heading" className="panel-heading">Where your data lives</h2>
+        <p>On Windows, CrewSignal stores readings and drafts in <code>crewsignal.db</code> in your Windows AppData folder. CrewSignal has no cloud sync and does not encrypt the database or exported files.</p>
+        <p>Use Reports to save or restore a full profile backup. It includes that profile's readings, mood and notes. Report exports contain the readings you select and exclude mood and notes by default.</p>
+      </section>
+
       <section className="panel-card stack-sm" aria-labelledby="help-cached-sources-heading">
         <h2 id="help-cached-sources-heading" className="panel-heading">
           Cached reference summaries
