@@ -1254,6 +1254,7 @@ export function CrewSignalProvider({
 
   const reviewInsight = useCallback(
     async (insight: Insight) => {
+      if (!activeProfile || insight.profileId !== activeProfile.profileId) return;
       await store.markInsightReviewed({
         insight,
         reviewedAtUtc: nowUtc(),
@@ -1261,7 +1262,7 @@ export function CrewSignalProvider({
       const refreshed = await store.loadAppSnapshot();
       setSnapshot(refreshed);
     },
-    [nowUtc, store],
+    [activeProfile, nowUtc, store],
   );
 
   const commitCsvImport = useCallback(

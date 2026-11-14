@@ -9,9 +9,9 @@ import {
   type Observation,
   type PersonalReference,
 } from './contracts';
-import { roundToDecimals } from './conversions';
 import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservationSortTimestampMs, getObservedMissionDay } from './timing';
+import { roundToDecimals } from './conversions';
 
 export const RULE_VERSION_RAISE_READING = 'crewsignal-raise-reading-v1' as const;
 export const RAISE_READING_SUGGESTION = 'Consider sharing a scoped report with your crew medical officer or flight surgeon.';
@@ -643,7 +643,7 @@ export function buildSleepInsight(params: {
 
   const sourceVersions: Record<string, string> = {};
   for (const sid of action.sourceIds) {
-    sourceVersions[sid] = EVIDENCE_REGISTRY[sid]?.summaryVersion ?? 'Version 1';
+    sourceVersions[sid] = EVIDENCE_REGISTRY[sid]?.summaryVersion ?? '';
   }
 
   const sleepMins =
@@ -667,8 +667,7 @@ export function buildSleepInsight(params: {
     summary = `Sleep ${durationText} · Matches personal reference`;
   }
 
-  const isReviewed =
-    params.reviewedObservationIds?.has(observation.observationId) ?? false;
+  const isReviewed = false; // A bare observation ID never proves a version-pinned review.
 
   return {
     insightId: `insight-${observation.observationId}-refv${cmp.referenceVersion ?? 0}-${action.ruleVersion}`,
@@ -701,8 +700,13 @@ export function markInsightReviewed(
   insight: Insight,
   reviewedAtUtc: string,
 ): Insight {
+  const identity = guidanceReviewIdentity(insight);
+  if (!identity) throw new Error('Cannot review guidance with incomplete identity or source versions.');
   return {
     ...insight,
+    sourceIds: [...insight.sourceIds],
+    sourceVersions: { ...insight.sourceVersions },
+    insightId: identity,
     status: 'reviewed',
     reviewedAtUtc,
   };
@@ -710,22 +714,29 @@ export function markInsightReviewed(
 
 /**
  * Checks whether a saved review acknowledgement applies to a newer observation or version.
- * Returns true ONLY if observationId, referenceVersion, ruleVersion, and sourceVersions all match.
+ * Canonical profile/observation/reference/rule/source identity. Incomplete legacy tuples
+ * remain history and cannot establish a current acknowledgement.
  */
-export function isInsightReviewCurrent(
-  reviewedInsight: Insight,
-  currentInsight: Insight,
-): boolean {
-  if (reviewedInsight.status !== 'reviewed') return false;
-  if (reviewedInsight.observationId !== currentInsight.observationId) return false;
-  if (reviewedInsight.referenceVersion !== currentInsight.referenceVersion) return false;
-  if (reviewedInsight.ruleVersion !== currentInsight.ruleVersion) return false;
-  const revKeys = Object.keys(reviewedInsight.sourceVersions).sort();
-  const curKeys = Object.keys(currentInsight.sourceVersions).sort();
-  if (revKeys.length !== curKeys.length) return false;
-  return revKeys.every(
-    (k, i) =>
-      k === curKeys[i] &&
-      reviewedInsight.sourceVersions[k] === currentInsight.sourceVersions[k],
-  );
+export function guidanceReviewIdentity(insight: Partial<Insight>): string | null {
+  const { profileId, observationId, referenceId, referenceVersion, ruleId, ruleVersion, sourceIds, sourceVersions } = insight;
+  if (!profileId || !observationId || !ruleId || !ruleVersion || !sourceIds?.length || !sourceVersions) return null;
+  if (!(referenceId === null && referenceVersion === null) &&
+      !(typeof referenceId === 'string' && referenceId.length > 0 && typeof referenceVersion === 'number' && Number.isInteger(referenceVersion) && referenceVersion > 0)) return null;
+  const ids = [...new Set(sourceIds)].sort();
+  if (ids.length !== sourceIds.length || Object.keys(sourceVersions).length !== ids.length ||
+      ids.some(id => !id || typeof sourceVersions[id] !== 'string' || !sourceVersions[id]!.trim())) return null;
+  return 'guidance-review:' + encodeURIComponent(JSON.stringify([
+    profileId, observationId, referenceId, referenceVersion, ruleId, ruleVersion,
+    ids.map(id => [id, sourceVersions[id]]),
+  ]));
+}
+
+export function isInsightReviewCurrent(reviewed: Partial<Insight>, current: Insight): boolean {
+  const identity = guidanceReviewIdentity(current);
+  return !!identity && reviewed.status === 'reviewed' && !!reviewed.reviewedAtUtc &&
+    guidanceReviewIdentity(reviewed) === identity;
+}
+
+export function findCurrentInsightReview(reviews: readonly Partial<Insight>[], current: Insight | null): Partial<Insight> | null {
+  return current ? reviews.find(review => isInsightReviewCurrent(review, current)) ?? null : null;
 }

@@ -1,3 +1,4 @@
+import { ACTION_CONTENT_REGISTRY, EVIDENCE_REGISTRY } from '../src/shared/src';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import * as ReactNative from 'react-native';
@@ -138,6 +139,29 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
 
     return { driver, store, io };
   }
+
+  test('source-only revision reviews the current Actions tuple from a stale provider snapshot in one click', async () => {
+    const { store } = await renderTestApp();
+    await screen.findByTestId('overview-review-sleep-btn');
+    const source = EVIDENCE_REGISTRY[ACTION_CONTENT_REGISTRY['action-review-sleep-routine']!.sourceIds[0]!]!;
+    const oldVersion = source.summaryVersion;
+    try {
+      await fireEvent.press(screen.getByText('Mark reviewed'));
+      await waitFor(() => expect(screen.queryByText('Mark reviewed')).toBeNull());
+      source.summaryVersion = oldVersion + ' source-only regression';
+      await fireEvent.press(screen.getByTestId('tab-actions'));
+      const card = await screen.findByTestId('actions-sleep-insight-card');
+      const review = within(card).getByText('Mark reviewed');
+      await act(async () => { fireEvent.press(review); fireEvent.press(review); });
+      await waitFor(() => expect(within(card).queryByText('Mark reviewed')).toBeNull());
+      const saved = await store.loadAppSnapshot();
+      const fresh = saved.active.insights.filter(i=>i.sourceVersions[source.sourceId]===source.summaryVersion && i.status==='reviewed');
+      expect(fresh).toHaveLength(1);
+      await fireEvent.press(screen.getByTestId('tab-overview'));
+      await screen.findByTestId('overview-review-sleep-btn');
+      expect(screen.queryByText('Mark reviewed')).toBeNull();
+    } finally { source.summaryVersion = oldVersion; }
+  });
 
   test('Phone shell (390x844): Overview -> ER-01 validation -> Review -> Saved -> Overview live update (12 entries)', async () => {
     await renderTestApp();
