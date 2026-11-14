@@ -1,3 +1,4 @@
+import { guidanceReviewIdentity, isInsightReviewCurrent, type Insight } from '../shared/src';
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
@@ -46,7 +47,19 @@ export interface ProfileRecord {
   };
 }
 
+export function currentActionReview(reviews: ActionReviewRecord[], current: Insight | null): ActionReviewRecord | undefined {
+  if (!current) return undefined;
+  return reviews.find(review => review.actionId === 'action-review-sleep-routine' &&
+    isInsightReviewCurrent({ ...review, profileId: review.profileId ?? current.profileId,
+      status: review.reviewed ? 'reviewed' : 'active' }, current));
+}
+
 export interface ActionReviewRecord {
+  profileId?: string;
+  referenceId?: string | null;
+  ruleId?: string;
+  sourceIds?: string[];
+  sourceVersions?: Record<string, string>;
   reviewId: string;
   actionId: string;
   observationId: string;
@@ -272,7 +285,8 @@ export function buildDemoSeedInput(includeSampleDraft = false): ProfileSeedInput
     checkinEvents: [],
     drafts: includeSampleDraft ? [SIM_01_OPTIONAL_BP_DRAFT] : [],
     actionReviews: SIM_01_INSIGHTS.filter((i) => i.status === "reviewed").map((i) => ({
-      reviewId: i.insightId,
+      reviewId: guidanceReviewIdentity(i) ?? i.insightId,
+      profileId: i.profileId, referenceId: i.referenceId, ruleId: i.ruleId, sourceIds: i.sourceIds, sourceVersions: i.sourceVersions,
       actionId: "action-review-sleep-routine",
       observationId: i.observationId,
       referenceVersion: i.referenceVersion,
@@ -578,7 +592,7 @@ class BrowserMockBackend {
     const bundle = this.bundles.get(profileId);
     if (!bundle) throw { code: "PROFILE_NOT_FOUND", message: "Profile not found." };
     const idx = bundle.actionReviews.findIndex((r) => r.reviewId === review.reviewId);
-    if (idx >= 0) bundle.actionReviews[idx] = structuredClone(review);
+    if (idx >= 0) return structuredClone(bundle.actionReviews[idx]!);
     else bundle.actionReviews.push(structuredClone(review));
     return structuredClone(review);
   }
@@ -1060,6 +1074,7 @@ export const desktopBridge = {
     profileId: string,
     review: ActionReviewRecord,
   ): Promise<ActionReviewRecord> {
+    if (review.profileId && review.profileId !== profileId) throw new Error("Review belongs to another profile.");
     if (isTauriRuntime()) {
       return invoke<ActionReviewRecord>("record_action_review", {
         profileId,

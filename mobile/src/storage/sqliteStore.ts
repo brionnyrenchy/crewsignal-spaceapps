@@ -19,6 +19,8 @@ import {
   selectFallbackReferenceToLock,
   formatUtcTimeHHMM,
   markInsightReviewed as applyInsightReviewed,
+  guidanceReviewIdentity,
+  isInsightReviewCurrent,
   planCommitDraft,
   planProfileRestore,
   resolveUnknownCommitOutcome,
@@ -452,9 +454,10 @@ export class CrewSignalSqliteStore {
         insight_id = excluded.insight_id,
         observation_id = excluded.observation_id,
         reviewed_at_utc = excluded.reviewed_at_utc,
-        raw_json = excluded.raw_json`,
+        raw_json = excluded.raw_json
+      WHERE insight_reviews.reviewed_at_utc = ''`,
       [
-        `${validated.insightId}:${validated.observationId}`,
+        guidanceReviewIdentity(validated) ?? `${validated.insightId}:${validated.observationId}`,
         validated.profileId,
         validated.insightId,
         validated.observationId,
@@ -1020,10 +1023,14 @@ export class CrewSignalSqliteStore {
     reviewedAtUtc: string;
   }): Promise<Insight> {
     const updated = applyInsightReviewed(params.insight, params.reviewedAtUtc);
-    await this.driver.withTransaction(async (tx) => {
+    return this.driver.withTransaction(async (tx) => {
+      const rows = await tx.getAll<RawJsonRow>('SELECT raw_json FROM insight_reviews WHERE profile_id = ?', [updated.profileId]);
+      const existing = rows.map(row => parseJson<Insight>(row.raw_json)).find(row => isInsightReviewCurrent(row, updated));
+      if (existing) return existing;
       await this.upsertInsightReviewInTx(tx, updated);
+      const persisted = await tx.getFirst<RawJsonRow>('SELECT raw_json FROM insight_reviews WHERE profile_id = ? AND review_key = ?', [updated.profileId, guidanceReviewIdentity(updated)!]);
+      return persisted ? parseJson<Insight>(persisted.raw_json) : updated;
     });
-    return updated;
   }
 
   async restoreBackupBundle(params: {

@@ -14,6 +14,7 @@ import {
   getObservedMissionDay,
   getReadingStatus,
   isInsightReviewCurrent,
+  findCurrentInsightReview,
   resolveActiveReference,
   READING_STATUSES,
   type Observation,
@@ -106,13 +107,7 @@ export function OverviewScreen(): React.ReactElement {
 
   const savedSleepReview = useMemo(() => {
     if (!generatedSleepInsight) return null;
-    return (
-      insights.find(
-        (i) =>
-          i.insightId === generatedSleepInsight.insightId &&
-          i.observationId === generatedSleepInsight.observationId,
-      ) ?? null
-    );
+    return findCurrentInsightReview(insights, generatedSleepInsight);
   }, [generatedSleepInsight, insights]);
 
   const sleepReviewed =
@@ -327,6 +322,8 @@ export function OverviewScreen(): React.ReactElement {
               {generatedSleepInsight.summary}
             </Text>
 
+            {sleepReviewed ? <Text>Reviewed {savedSleepReview?.reviewedAtUtc}</Text> : null}
+            {generatedSleepInsight.sourceIds.map(id => <ActionButton key={id} label={id + ' · ' + generatedSleepInsight.sourceVersions[id]} onPress={() => navigateTo('sources')} variant="subtle" />)}
             <View style={styles.ctaRow}>
               <ActionButton
                 testID="overview-review-sleep-btn"
