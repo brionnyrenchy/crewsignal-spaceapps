@@ -340,9 +340,9 @@ export function OverviewRoute() {
                       : null;
 
                 return (
-                  <div key={metricId} className="reading-cell">
+                  <div key={metricId} className="reading-cell" role="group" aria-labelledby={`${statusId}-name`} aria-describedby={statusId}>
                     <div className="row-wrap" style={{ justifyContent: "space-between", gap: 4 }}>
-                      <span className="mono-label">{def.shortLabel}</span>
+                      <span id={`${statusId}-name`} className="mono-label">{def.shortLabel}</span>
                       {schedStatus.status === "past_interval" ? (
                         <span className="badge-review" title="Optional scheduled check-in interval elapsed">
                           Past interval
