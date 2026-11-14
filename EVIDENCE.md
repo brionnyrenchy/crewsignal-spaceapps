@@ -501,6 +501,9 @@ The automated lifecycle checks for `S10`, `G07` and `G12` passed on the fix bran
 | Explorer 3D model on installed Windows app (§10.4) | `S13`, `G09`, `G11` | OPEN | NSIS-installed build on Windows 10/11 with WebView2. Open Explorer offline, rotate, reset and select each region, then repeat from the list. Check Narrator, keyboard focus, High Contrast (forced colours) and minimise/restore. Record cold load and responsiveness on that hardware. |
 | Explorer 3D model on installed Android phone and tablet (§10.4) | `S13`, `G09`, `G11` | OPEN, needs an installed APK | The APK must be prebuilt with `expo-gl`. Choose "3D model (preview)" in portrait and landscape and check that rotation coexists with page scrolling. Check TalkBack, large text, reduced motion and background/return. Record GL errors, model size and cold load. Set `ANDROID_MODEL_DEFAULT = true` only after this passes. |
 | Automated security review of `47324b8` | Review coverage | NO VERDICT (HTTP 429) | Run the review explicitly against the implementation revision once the service is available. |
+| Android cloud backup and storage wording ([#17](https://github.com/silentshiro-g1thub/crewsignal-spaceapps/issues/17)) | Privacy | PREBUILD VERIFIED / APK OPEN | Expo 58.0.25 prebuild generated `mobile/android/app/src/main/AndroidManifest.xml` with `android:allowBackup="false"` on `<application>`. Verify the packaged manifest when an Android SDK build is available. The copy audit covered Android, Windows and website screens. Help and the install notes describe local storage, backup and export contents. App-level encryption at rest for databases and exported files is outside the submission scope. Some Android devices may still transfer app data directly between devices. |
+
+**Issue #17 checks.** On Windows with Node 24.22.1, the patch based on `4bb2035` passed type checks for Android, Windows and the website. The Android harness passed 54 tests, Windows passed 34 on rerun with a 20-second timeout after a restore test timed out at five seconds, and the website passed 15. The Windows restore test also passed on its own with the default timeout. The clean-source check found existing shared-file differences in the Android and Windows copies of `guidance.ts`. Both copies differ from the canonical source only in import order at `4bb2035`.
 
 ---
 
@@ -614,3 +617,57 @@ Implementation checkout `8b67a8cc959c16aa261addcd53ba8e8232147875`. The audited 
 | Offline reopen on Android phone, Android tablet and installed Windows app | **OPEN**. No Android tooling or connected Android device was available, and no installed CrewSignal app or Windows build toolchain was available for this check. |
 
 To close S05/G04 for this entry path, run the harnesses and repeat the normal check-in on each installed target. Flag `350` bpm, switch profiles, close the app and reopen offline. Confirm Review retains the flag in its original profile. Save and confirm one flagged row in History, JSON, CSV and the printable report. Use `350oops` as the malformed control. Verify a flagged sleep period is absent from fallback reference samples and personalized actions, then log an independent compatible reading and confirm comparison is available.
+
+## 9. Native tester downloads (upstream issue #15)
+
+Verification on November 14, 2026 used the working changes based on `4bb2035940f3c2b4a16dc112abd91208cdec7758`. The fork and upstream returned no published release assets through the public GitHub API.
+
+| Check | Result |
+| --- | --- |
+| Source hygiene and shared parity | `node scripts/verify-clean-source.mjs` passed with 42 matching shared files per target after syncing the desktop and mobile guidance copies. |
+| Website | TypeScript, all 15 unit tests, and the production PWA build passed. A targeted Edge smoke check passed against the built site, covering the download section, both pending states and navigation into the browser demo. The updated landing-page Playwright test passed. Four other cases failed in the full Edge run, involving Explorer interaction, offline service worker behavior and duplicate Overview text. |
+| Shared core | TypeScript passed. The unit suite had 70 passes and three failures. Two assertions compare byte-exact fixtures or font licenses against this Windows checkout's CRLF files. The evidence registry assertion expects eight sources and the current registry has 17. |
+| Android release | Preview profile pins the SDK 58 EAS image. Mobile TypeScript, all 54 Jest tests on a serial rerun, and the 955-module Android Hermes export passed. No team-signed APK was built or published here. Phone and tablet install, TalkBack, offline restart and upgrade checks are open. |
+| Windows release | Added an x64 per-user NSIS candidate with the WebView2 offline installer override. Desktop TypeScript, 34 unit tests and the frontend build passed. The native build stopped at Cargo metadata because Cargo is unavailable on this host. No installer was published. Clean VM, runtime installation, trust prompts, offline restart and upgrade checks are open. |
+| Download links | The site shows pending verification for both native platforms. Signed-out downloads and SHA-256 checks require the final published files. |
+
+Use [the native release checklist](RELEASING.md) to record the artifact versions, hashes, signers, source commit, devices and OS builds once tested.
+## Sleep guidance acknowledgement identity — 2026-11-14
+
+Implementation/tested code commit: `1e296509b052e550d574a0b595ef2ca7d4e58a97` on local branch `fix/guidance-review-identity`. Source checkout base: `3d9d2c3297b05eceaafbf258ab90f1830df4e400`. Tests ran from the full native Windows source clone at `H:\crewsignal-desktop\guidance-review-fix`; the original checkout at `H:\spaceapps-crewsignal\crewsignal-spaceapps` is outside this session's writable roots and has not been changed by this work.
+
+### Implemented behavior
+
+Guidance is derived before acknowledgement lookup. Overview and Actions share the complete identity matcher: profile, observation ID, reference ID/version (or explicit null/null), rule ID/version, and the exact set of cited source IDs/summary versions. Citation order does not affect identity. Missing/empty required metadata never qualifies, and missing source versions are no longer invented as `Version 1`.
+
+Persisted acknowledgements have a deterministic profile/revision identity. Android stores the currently presented tuple rather than the stale saved snapshot; SQLite conflict handling preserves the first reviewed time even with concurrent duplicate requests. Windows carries all tuple fields through the bridge and backup adapter, preserves historical legacy payloads, re-scopes restored acknowledgements, and uses an idempotent Rust insert. The synthetic browser uses the same matcher and keeps historical revisions under independent IndexedDB identities. Both screens use current comparisons/citations; saved review times are shown only for matching tuples. Review writes remain separate from observation writes.
+
+### Harness results (not installed-app evidence)
+
+Dependencies available for the website were reused locally through ignored `node_modules` junctions; these are not part of the change. The Android SQLite harness runs the actual storage adapter and Node SQLite database, with Jest test globals aliased to Vitest. Its wrapper temporarily replaces the missing Expo TypeScript preset only for transpilation and restores the exact original bytes afterward. The Windows bridge harness aliases unavailable native API imports to stubs which reject native invocation; these checks exercise the browser bridge/backend, not Tauri IPC or Rust execution.
+
+| Command | Outcome |
+| --- | --- |
+| `npm run typecheck --prefix shared` | PASS (source and test TypeScript configurations). |
+| `node website/node_modules/vitest/vitest.mjs run --root shared tests/guidance-review.test.ts` | PASS: 10 complete-identity vectors. Includes source order, each identity dimension, source-only revision, missing source/version, and incomplete legacy records. See `evidence/guidance-review/version-vectors.txt`. |
+| `npm test --prefix shared` | 82 passed, 1 failed. The existing evidence-registry test expects 8 sources, but the unchanged registry now contains 17. The acknowledgement vectors pass. This broader suite is **not green**. See `evidence/guidance-review/shared.txt`. Initial checkout CRLF conversion also broke CSV/font-license integrity checks; restoring unchanged Git blob bytes removed those local checkout failures without a source change. |
+| `node evidence/guidance-review/run-sqlite.cjs` | PASS: 15 Android SQLite/canonical-vector checks. The new regression exercises concurrent duplicate confirmation, source-only revision, closing/reopening the on-disk SQLite database, retention of old acknowledgements, separate-profile backup restore, profile isolation and unchanged observations. See `evidence/guidance-review/android-sqlite.txt`. |
+| `node website/node_modules/vitest/vitest.mjs run --config evidence/guidance-review/windows.config.ts` | PASS: 4 browser bridge/backup checks, including incomplete legacy source tuple rejection, source-only invalidation, duplicate time preservation and backup profile re-scoping. See `evidence/guidance-review/windows-bridge.txt`. |
+| `npm run typecheck --prefix website` | PASS. |
+| `npm test --prefix website` | PASS: 16 tests. New IndexedDB regression verifies source-only confirmation, duplicate-tap identity/time, repository reload, retained historical revisions, profile isolation and no observation writes. See `evidence/guidance-review/browser.txt`. |
+| `node shared/scripts/sync-to-targets.mjs --write all` | PASS after shared edits; all three target copies synchronized. |
+| `node scripts/verify-clean-source.mjs` | PASS from the full native checkout. All 41 managed shared files on each target match canonical SHA-256. See `evidence/guidance-review/clean-source.txt`. |
+| `git diff --check` | PASS. |
+
+### Native harness blockers and installed-app results
+
+| Required check | Actual result |
+| --- | --- |
+| `npm test --prefix mobile -- --runInBand` | BLOCKED before tests: Jest is not installed. Expo/React Native dependencies are also unavailable. Added the Android UI regression for a stale provider snapshot, source-only bump, a duplicate tap and Overview/Actions agreement; it has **not** been executed in the normal React Native harness. |
+| `npm test --prefix desktop` | BLOCKED during module resolution: `@tauri-apps/api/core` / `event` are unavailable. The normal Windows UI suite has **not** passed. |
+| `npm run typecheck --prefix desktop` | BLOCKED by missing Tauri API and Three.js types. Browser bridge tests used explicit harness aliases; this does not establish native typecheck success. |
+| `C:\Users\Kennz Balite\.cargo\bin\cargo.exe test --offline --manifest-path desktop/src-tauri/Cargo.toml` | BLOCKED: cached crates.io index has no `chrono`. Added Rust storage regression for duplicate preservation, source revision history, profile rejection and reopen, but it has **not** executed. |
+| `rustfmt --edition 2021 --check desktop/src-tauri/src/db.rs` | Parses the source but fails formatting checks (including pre-existing formatting differences); not a Rust compilation/test result. |
+| Installed Windows application / Tauri IPC / installed Android phone or tablet | NOT RUN. No updated native binaries were built or installed. App close/reopen and restore are verified only in the SQLite harness, not on installed targets. |
+
+Release acceptance remains open until native dependencies can be provisioned, the normal Android UI and Windows UI/Rust suites run, the stale evidence-count assertion is reconciled, and installed Windows/Android restart/profile/restore checks are recorded separately. No installed-app or clinical validation is claimed.

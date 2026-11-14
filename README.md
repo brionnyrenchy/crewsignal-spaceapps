@@ -1,5 +1,16 @@
 # CrewSignal
 
+## Try CrewSignal
+
+The browser demo is available from the landing page. Open **Browser demo** to try the synthetic SIM-01 profile. Native downloads are pending release verification.
+
+| Target | Install and try the demo |
+| --- | --- |
+| Android phones and tablets | When published, download the versioned APK from **Try CrewSignal** on the landing page or the release notes. Open it from Downloads, approve installation from that source if Android asks, and open **CrewSignal**. Explore **Overview** with the synthetic SIM-01 profile. |
+| Windows 10 or 11, x64 | When published, download the versioned `CrewSignal_<version>_x64-setup.exe`. Run it under your Windows account, follow the setup prompts, then open **CrewSignal** from Start and explore **Overview** with the synthetic SIM-01 profile. |
+
+The [native release checklist](RELEASING.md) covers download availability, signing and offline installation. The [Android](mobile/README.md#try-crewsignal) and [Windows](desktop/README.md#try-crewsignal) READMEs have platform-specific steps.
+
 Use [CONTRIBUTING.md](CONTRIBUTING.md) for issue records, Conventional Commits and pull request verification.
 
 Offline-first manual crew health observation, trend comparison, controlled educational guidance, and scoped report export across three standalone applications backed by one canonical TypeScript domain core.
@@ -37,7 +48,7 @@ This directory is designed to build and run cleanly from a standalone `source/` 
 
 - **Shared core & Website:** Node.js `>= 22` and npm (verified on Node `v24.18.0` / npm `11.16.0`).
 - **Windows Desktop (`desktop/`):** Rust MSVC toolchain (verified `rustc 1.96.0` / `cargo 1.96.0`), Visual Studio 2022 Build Tools MSVC (`14.44.35207`), Windows SDK (`10.0.26100.0`), and Microsoft Edge WebView2 Runtime (host `157.0.4341.46`; offline WebView2 installer option documented in `desktop/README.md`).
-- **Mobile (`mobile/`):** Node.js (`v24.18.0` / `npm 11.16.0` verified for Jest + `node:sqlite` + `expo export`), JDK (`26.0.1`), plus Android SDK (`ANDROID_HOME`, `adb` / `gradle`) for Android `.apk` builds (see `mobile/README.md`).
+- **Mobile (`mobile/`):** Node.js (`v24.18.0` / `npm 11.16.0` verified for Jest + `node:sqlite` + `expo export`). See the [Android release build instructions](mobile/README.md#build-a-signed-android-release) for EAS and the local native toolchain.
 
 ### 1. Canonical Shared Core (`shared/`)
 
@@ -81,7 +92,7 @@ npm test
 cd src-tauri && cargo test && cd ..
 npm run build
 npm run test:e2e
-npx tauri build
+npm run tauri:build -- --target x86_64-pc-windows-msvc --config src-tauri/tauri.offline.conf.json -- --locked
 ```
 
 - See [`desktop/README.md`](./desktop/README.md) for the offline Microsoft Edge WebView2 installer option and Windows AppData SQLite details (`crewsignal.db`, WAL + `BEGIN IMMEDIATE` transactions).
@@ -99,6 +110,13 @@ npm run export    # npx expo export --platform android --output-dir dist
 ```
 
 - See the [mobile build guide](./mobile/README.md) for native Android builds and EAS APK profiles. Native APK compilation and TalkBack checks on Android phones and tablets remain pending.
+
+#### Where your data lives
+
+- **Android.** Readings and drafts are stored in SQLite in the app's private storage. CrewSignal opts out of Android cloud backup. A fresh reinstall starts without your previous Personal records unless you restore a saved profile backup. Some Android devices can still transfer app data directly between devices. Save a backup from Reports and copy it outside the app before uninstalling or moving devices.
+- **Windows.** Readings and drafts are stored in `%APPDATA%\org.popnseb.crewsignal\crewsignal.db`. CrewSignal has no cloud sync. Use Reports to save and restore profile backups.
+- **Website.** The synthetic demo stores readings and drafts in IndexedDB in the browser on this device.
+- **Files and encryption.** A full profile backup contains the selected profile's records, including mood and notes. Report exports contain selected readings and exclude mood and notes by default. CrewSignal does not encrypt stored records or exported files.
 
 ### 5. Clean-Source Hygiene & Parity Check
 
