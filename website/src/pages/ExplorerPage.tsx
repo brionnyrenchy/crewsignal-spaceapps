@@ -17,7 +17,7 @@ import {
   type ReferenceValue,
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
-import { BodyDiagram } from '../components/BodyDiagram';
+import { BodyExplorerVisual } from '../components/BodyExplorerVisual';
 import { ReadingStatusBadge } from '../components/ReadingStatusBadge';
 import { useTabList } from '../components/useTabList';
 
@@ -143,9 +143,9 @@ export function ExplorerPage() {
           alignItems: 'start',
         }}
       >
-        <BodyDiagram
-          selectedSystem={selectedSystem}
-          onSelectSystem={setSelectedSystem}
+        <BodyExplorerVisual
+          selectedId={selectedSystem}
+          onSelect={setSelectedSystem}
           hasImmuneObservation={Boolean(latestByMetric.body_temperature)}
           hasNutritionObservation={Boolean(latestByMetric.blood_glucose)}
         />

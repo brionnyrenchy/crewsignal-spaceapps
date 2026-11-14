@@ -27,6 +27,8 @@ import {
   missionDayAndTimeToUtc,
   planInputUnitChange,
   resolveActiveReference,
+  ENTRY_CONFIRMED_NOTE,
+  ENTRY_WARNING_HELP,
   validateDraftForReview,
   NEEDS_RECHECK_LABEL,
   NEEDS_RECHECK_HELP,
@@ -70,37 +72,6 @@ type WorkflowReceipt =
       kind: 'skipped';
       message: string;
     };
-
-function runClientValidation(draft: CheckInDraft) {
-  const base = validateDraftForReview(draft, draft.updatedAtUtc);
-  const errors = { ...base.validationState.errors };
-
-  // Whole-pair BP guard (ER-03): systolic must exceed diastolic
-  if (
-    draft.metricId === 'blood_pressure' &&
-    base.canonical?.kind === 'blood_pressure' &&
-    base.canonical.systolic <= base.canonical.diastolic
-  ) {
-    errors.primary =
-      'Enter a systolic reading higher than diastolic (e.g. 118/76 mmHg).';
-  }
-
-  const keys = Object.keys(errors);
-  const valid = keys.length === 0 && base.validationState.valid;
-  return {
-    ...base,
-    validationState: {
-      valid,
-      errors,
-      firstInvalidField: keys[0] ?? null,
-      announcement: valid
-        ? null
-        : keys[0]
-          ? errors[keys[0]] ?? 'Check the highlighted field.'
-          : base.validationState.announcement,
-    },
-  };
-}
 
 export function CheckInPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -388,7 +359,7 @@ export function CheckInPage() {
   const handleNextReview = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorBanner(null);
-    const validated = runClientValidation(draft);
+    const validated = validateDraftForReview(draft);
     if (!validated.validationState.valid) {
       setErrors(validated.validationState.errors);
       const msg =
@@ -424,7 +395,7 @@ export function CheckInPage() {
     setSubmitting(true);
     setErrorBanner(null);
     try {
-      const outcome = await commitDraft(draft);
+      const outcome = await commitDraft(draft, Boolean(validationForReview.warning));
       forgetWorkingDraft(draft.profileId, draft.metricId);
       setCommittedInSession((c) => c + 1);
       setReceipt({
@@ -490,7 +461,7 @@ export function CheckInPage() {
     void persistDraftState(next);
   };
 
-  const validationForReview = useMemo(() => runClientValidation(draft), [draft]);
+  const validationForReview = useMemo(() => validateDraftForReview(draft), [draft]);
 
   const activeReferenceForDraft = useMemo(() => {
     if (draft.metricId === 'mood') return null;
@@ -624,6 +595,7 @@ export function CheckInPage() {
                 Method: {receipt.observation.method} · Context:{' '}
                 {receipt.observation.context}
               </div>
+              {receipt.observation.qualityNote === ENTRY_CONFIRMED_NOTE && <p>{ENTRY_CONFIRMED_NOTE}</p>}
             </div>
 
             <div className="cs-row">
@@ -1692,6 +1664,12 @@ export function CheckInPage() {
             </dl>
           </div>
 
+          {validationForReview.warning && (
+            <div id="entry-warning" className="cs-card-muted cs-stack" role="status">
+              <strong>Confirm unusual value</strong>
+              <p>{validationForReview.warning} {ENTRY_WARNING_HELP}</p>
+            </div>
+          )}
           <div>
             <label className="cs-row">
               <input
@@ -1749,11 +1727,12 @@ export function CheckInPage() {
                 type="button"
                 className="cs-btn cs-btn-primary"
                 disabled={submitting || retainingQuality}
+                aria-describedby={validationForReview.warning ? 'entry-warning' : undefined}
                 onClick={() => {
                   void handleCommit();
                 }}
               >
-                {submitting ? 'Adding to log…' : 'Add to log'}
+                {submitting ? 'Adding to log…' : validationForReview.warning ? 'Confirm and add to log' : 'Add to log'}
               </button>
             </div>
           </div>

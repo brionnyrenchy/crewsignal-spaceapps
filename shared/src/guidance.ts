@@ -9,9 +9,9 @@ import {
   type Observation,
   type PersonalReference,
 } from './contracts';
-import { roundToDecimals } from './conversions';
 import { compareObservationToReference, isObservationQualityEligible } from './references';
 import { formatDurationHoursMinutes, getObservationSortTimestampMs, getObservedMissionDay } from './timing';
+import { roundToDecimals } from './conversions';
 
 export const RULE_VERSION_RAISE_READING = 'crewsignal-raise-reading-v1' as const;
 export const RAISE_READING_SUGGESTION = 'Consider sharing a scoped report with your crew medical officer or flight surgeon.';

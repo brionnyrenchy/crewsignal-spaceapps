@@ -39,6 +39,8 @@ export function OverviewRoute() {
     trendRangeDays,
     setTrendRangeDays,
     navigate,
+    openGettingStarted,
+    gettingStarted,
     setSelectedTrendMetric,
     openDraftForMetric,
   } = useApp();
@@ -180,6 +182,11 @@ export function OverviewRoute() {
           </p>
         </div>
         <div className="row-wrap">
+          {activeProfile.mode === "demo" && !gettingStarted && (
+            <button type="button" className="btn-secondary" onClick={openGettingStarted}>
+              Getting started
+            </button>
+          )}
           {activeDraft ? (
             <button
               type="button"

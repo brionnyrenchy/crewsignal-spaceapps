@@ -10,6 +10,19 @@
 | Installed devices | Pending on offline Android phone, Android tablet and installed Windows. Windows notifications require CrewSignal to be open. The Windows Rust lockfile and native build also remain pending because Cargo was unavailable. |
 
 Device verification should enable notifications explicitly, confirm a due reminder offline with only the metric name, then disable the schedule and confirm no further reminder. Open the prompted check-in and skip it to verify the existing skipped event without creating a reading.
+## Issue #11 Getting Started Verification
+
+On November 14, 2026, the working changes based on `9f3e66c` passed shared and native-app type checks, 34 Windows UI tests, 54 Android harness tests, the Windows frontend build, and the Android JavaScript export (`expo export --platform android --no-bytecode`). Clean-source verification matched 42 shared files across all targets.
+
+The Windows Playwright harness at 768 × 1024 blocked external requests on first launch. It verified keyboard entry, heading focus, tab order, return focus, the 44 CSS pixel entry target, and zero axe violations in the walkthrough. The Windows UI harness exercised the Demo walkthrough, report preview, the return to a draft in Review, and opening the walkthrough with a Personal profile active.
+
+The Android React Native harness exercised the walkthrough at 390 × 844 and 768 × 1024, including 200% text scale on the tablet viewport. It verified the 48 dp entry target, report preview without saving or sharing, and hardware Back to a draft with the entered glucose value and selected unit intact. These were simulated viewport and accessibility checks. Installed Windows Narrator and Android TalkBack, physical-device layout, and first launch with the device network disabled remain pending.
+
+## Issue #9 Unusual Entry Verification
+
+On November 14, 2026, the working changes based on `996afdf` passed TypeScript checks across the shared, website, desktop, and Android projects. The 72 shared tests covered unusual entries, both temperature and glucose units, per-row CSV warnings, confirmation before commit, and preservation of the entered values and the Needs recheck flag. The website and desktop frontend builds, 15 website harness tests, and 33 desktop harness tests passed.
+
+Two headless Edge tests verified that a reversed blood-pressure pair can be edited from Review or saved unchanged with a confirmation marker. All 52 Android harness tests passed, and the Android JavaScript bundle exported with `--no-bytecode`. Installed-device verification was outside this run.
 
 ## Issue #6 Reading Status Verification
 
