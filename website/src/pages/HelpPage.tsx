@@ -103,6 +103,11 @@ export function HelpPage() {
           </Link>
         </div>
       </article>
+
+      <section className="cs-card cs-stack" aria-labelledby="help-data-heading">
+        <h2 id="help-data-heading" className="cs-section-title">Where your data lives</h2>
+        <p>The synthetic demo stores readings and drafts in this browser's IndexedDB database. CrewSignal does not sync or encrypt that data. Report exports contain the readings you select and exclude mood and notes by default.</p>
+      </section>
     </div>
   );
 }

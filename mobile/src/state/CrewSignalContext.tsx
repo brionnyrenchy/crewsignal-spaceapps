@@ -687,6 +687,13 @@ export function CrewSignalProvider({
   const activeProfile = snapshot?.active.profile ?? null;
   const preferences = snapshot?.preferences ?? null;
 
+  const [, refreshScheduleClock] = useState(0);
+  useEffect(() => {
+    if (clockOverrideUtc || activeProfile?.mode === 'demo') return;
+    const timer = setInterval(() => refreshScheduleClock((tick) => tick + 1), 30_000);
+    return () => clearInterval(timer);
+  }, [activeProfile?.mode, clockOverrideUtc]);
+
   const nowUtc = useCallback((): string => {
     if (clockOverrideUtc) return clockOverrideUtc;
     if (activeProfile?.mode === 'demo' && activeProfile.snapshotUtc) {
@@ -1319,6 +1326,7 @@ export function CrewSignalProvider({
 
   const reviewInsight = useCallback(
     async (insight: Insight) => {
+      if (!activeProfile || insight.profileId !== activeProfile.profileId) return;
       await store.markInsightReviewed({
         insight,
         reviewedAtUtc: nowUtc(),
@@ -1326,7 +1334,7 @@ export function CrewSignalProvider({
       const refreshed = await store.loadAppSnapshot();
       setSnapshot(refreshed);
     },
-    [nowUtc, store],
+    [activeProfile, nowUtc, store],
   );
 
   const commitCsvImport = useCallback(

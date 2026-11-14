@@ -1,0 +1,11 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (evidence/guidance-review/windows.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.1.0 H:/crewsignal-desktop/guidance-review-fix
+
+
+ Test Files  3 passed (3)
+      Tests  4 passed (4)
+   Start at  15:48:02
+   Duration  3.06s (environment 66%, setup 17%, import 12%, transform 5%, tests 1%)

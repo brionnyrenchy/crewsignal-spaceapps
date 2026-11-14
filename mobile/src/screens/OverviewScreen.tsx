@@ -14,6 +14,7 @@ import {
   getObservedMissionDay,
   getReadingStatus,
   isInsightReviewCurrent,
+  findCurrentInsightReview,
   resolveActiveReference,
   READING_STATUSES,
   type Observation,
@@ -91,13 +92,7 @@ export function OverviewScreen(): React.ReactElement {
 
   const savedSleepReview = useMemo(() => {
     if (!generatedSleepInsight) return null;
-    return (
-      insights.find(
-        (i) =>
-          i.insightId === generatedSleepInsight.insightId &&
-          i.observationId === generatedSleepInsight.observationId,
-      ) ?? null
-    );
+    return findCurrentInsightReview(insights, generatedSleepInsight);
   }, [generatedSleepInsight, insights]);
 
   const sleepReviewed =
@@ -147,7 +142,7 @@ export function OverviewScreen(): React.ReactElement {
               marginTop: 6,
             }}
           >
-            Opening encrypted-sandbox SQLite records on this device.
+            Opening your records stored on this device.
           </Text>
         </PanelCard>
       </View>
@@ -225,6 +220,28 @@ export function OverviewScreen(): React.ReactElement {
         </PanelCard>
       )}
 
+        <View style={{ gap: 8 }}>
+          <EyebrowLabel>Due now</EyebrowLabel>
+          {dueSchedules.map((item) => {
+            const name = METRIC_DEFINITIONS[item.metricId].name;
+            const msg =
+              item.result.status === 'due_no_entries'
+                ? `First check-in due (every ${item.result.intervalLabel}).`
+                : `${name} was logged ${item.result.ageLabel} ago (past ${item.result.intervalLabel} interval).`;
+            return (
+              <CalmBanner
+                key={item.metricId}
+                testID={`schedule-due-${item.metricId}`}
+                title={`${name} due`}
+                message={msg}
+                tone="review"
+                actionLabel={`Log ${METRIC_DEFINITIONS[item.metricId].shortLabel}`}
+                onAction={() => startOrResumeCheckIn(item.metricId)}
+              />
+            );
+          })}
+        </View>
+      )}
       {activeProfile.mode === 'demo' && !gettingStarted && (
         <ActionButton label="Getting started" variant="secondary" onPress={openGettingStarted} />
       )}
@@ -283,6 +300,7 @@ export function OverviewScreen(): React.ReactElement {
         </View>
       </PanelCard>
 
+      {/* Scheduled prompt if configured (e.g. SIM-SCHEDULE 24h BP) */}
       {/* Compact Action Row: Review sleep */}
       {generatedSleepInsight && generatedSleepInsight.comparisonAvailable ? (
         <PanelCard testID="overview-review-sleep-card">
@@ -313,6 +331,8 @@ export function OverviewScreen(): React.ReactElement {
               {generatedSleepInsight.summary}
             </Text>
 
+            {sleepReviewed ? <Text>Reviewed {savedSleepReview?.reviewedAtUtc}</Text> : null}
+            {generatedSleepInsight.sourceIds.map(id => <ActionButton key={id} label={id + ' · ' + generatedSleepInsight.sourceVersions[id]} onPress={() => navigateTo('sources')} variant="subtle" />)}
             <View style={styles.ctaRow}>
               <ActionButton
                 testID="overview-review-sleep-btn"

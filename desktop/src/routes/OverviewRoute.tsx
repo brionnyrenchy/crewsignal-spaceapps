@@ -1,3 +1,4 @@
+import { currentActionReview } from '../bridge/desktopBridge';
 import {
   buildRaiseReadingPrompt,
   buildSleepInsight,
@@ -5,6 +6,7 @@ import {
   computeMissionDay,
   describeMissionContact,
   evaluateMetricSchedule,
+  getDueCheckIns,
   formatObservationDisplay,
   NEEDS_RECHECK_LABEL,
   formatUtcTimeHHMM,
@@ -131,6 +133,7 @@ export function OverviewRoute() {
   }
 
   const observations = snapshot.profileData.observations;
+  const dueCheckIns = getDueCheckIns(activeProfile, observations, currentReferenceNowUtc);
   const raisePrompt = buildRaiseReadingPrompt({
     profileId: activeProfile.profileId,
     observations,
@@ -153,14 +156,7 @@ export function OverviewRoute() {
       })
     : null;
 
-  const latestReview = snapshot.profileData.actionReviews.find(
-    (r) =>
-      latestSleep &&
-      r.observationId === latestSleep.observationId &&
-      r.referenceVersion === (sleepInsight?.referenceVersion ?? null) &&
-      r.ruleVersion === sleepInsight?.ruleVersion &&
-      r.reviewed,
-  );
+  const latestReview = currentActionReview(snapshot.profileData.actionReviews, sleepInsight);
 
   const openMetricTrend = (metricId: MetricId) => {
     setSelectedTrendMetric(metricId);
@@ -237,6 +233,18 @@ export function OverviewRoute() {
               </li>
             ))}
           </ul>
+      {dueCheckIns.length > 0 && (
+        <section className="panel-card stack-sm" aria-labelledby="due-now-heading">
+          <h2 id="due-now-heading" className="panel-heading">Due now</h2>
+          {dueCheckIns.map(({ metricId, status }) => (
+            <div className="row-wrap" key={metricId}>
+              <span>{METRIC_DEFINITIONS[metricId].name}</span>
+              <span>{status === "due_no_entries" ? "First check-in due" : "Check-in due"}</span>
+              <button type="button" className="btn-secondary" onClick={() => void openDraftForMetric(metricId)}>
+                Log {METRIC_DEFINITIONS[metricId].shortLabel.toLowerCase()}
+              </button>
+            </div>
+          ))}
         </section>
       )}
 
@@ -327,7 +335,7 @@ export function OverviewRoute() {
                   {sleepInsight.summary}
                 </h2>
                 <span style={{ fontSize: 13, color: "var(--text-supporting)" }}>
-                  {latestReview ? "Reviewed" : "Educational · Prototype"} · Reference v
+                  {latestReview ? `Reviewed ${latestReview.reviewedAtUtc}` : "Educational · Prototype"} · Reference v
                   {sleepInsight.referenceVersion ?? "—"} · Rule {sleepInsight.ruleVersion}
                 </span>
               </div>

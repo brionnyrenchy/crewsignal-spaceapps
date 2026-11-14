@@ -1,3 +1,4 @@
+import { requestCheckInNotificationPermission } from '../components/ScheduledNotifications';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -139,6 +140,22 @@ export function SettingsScreen(): React.ReactElement {
       {statusMessage ? (
         <CalmBanner title="Settings updated" message={statusMessage} tone="neutral" />
       ) : null}
+
+      <PanelCard>
+        <SelectableChip
+          label={preferences.checkInNotifications ? 'Check-in notifications on' : 'Check-in notifications off'}
+          selected={preferences.checkInNotifications === true}
+          onPress={async () => {
+            try {
+              const enabled = !preferences.checkInNotifications && await requestCheckInNotificationPermission();
+              await updatePreferences({ checkInNotifications: enabled });
+              if (!enabled && !preferences.checkInNotifications) setStatusMessage('Notification permission is unavailable.');
+            } catch {
+              setStatusMessage('Could not change notification settings.');
+            }
+          }}
+        />
+      </PanelCard>
 
       {/* Appearance Switcher — preserves route/draft/selection */}
       <PanelCard testID="settings-appearance-card">

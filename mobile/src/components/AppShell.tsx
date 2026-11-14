@@ -1,3 +1,4 @@
+import { getDueCheckIns } from '../shared/src';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -174,6 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
     gettingStarted,
     openGettingStarted,
     activeProfile,
+    observations,
     nowUtc,
     dueSchedules,
     isKeyboardVisible,
@@ -184,6 +186,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
   const checkInCount = dueSchedules.length;
   const checkInLabel = checkInCount ? `Check-in, ${checkInCount} due` : 'Check-in';
   const currentUtc = nowUtc();
+  const dueCount = getDueCheckIns(activeProfile, observations, currentUtc).length;
   const missionDay = activeProfile
     ? computeMissionDay(currentUtc, activeProfile.missionEpochUtc)
     : 1;
@@ -423,7 +426,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                     testID={`rail-${item.route}`}
                     onPress={() => navigateTo(item.route)}
                     accessibilityRole="tab"
-                    accessibilityLabel={item.route === 'checkin' ? checkInLabel : item.label}
+                    accessibilityLabel={item.label === 'Check-in' && dueCount ? `Check-in, ${dueCount} due` : item.label}
                     accessibilityState={{ selected }}
                     style={{
                       minHeight: MIN_NATIVE_TARGET_DP,
@@ -452,6 +455,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                       }}
                     >
                       {item.route === 'checkin' && checkInCount ? `${item.label} (${checkInCount})` : item.label}
+                      {item.label}{item.label === 'Check-in' && dueCount > 0 ? ` (${dueCount})` : ''}
                     </Text>
                   </Pressable>
                 );
@@ -528,7 +532,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                 testID={`tab-${tab.route}`}
                 onPress={() => navigateTo(tab.route)}
                 accessibilityRole="tab"
-                accessibilityLabel={tab.route === 'checkin' ? checkInLabel : tab.label}
+                accessibilityLabel={tab.route === 'checkin' && dueCount ? `Check-in, ${dueCount} due` : tab.label}
                 accessibilityState={{ selected }}
                 style={{
                   flex: 1,
@@ -554,7 +558,7 @@ export function AppShell({ children }: { children: React.ReactNode }): React.Rea
                     color: selected ? palette.textPrimary : palette.textSupporting,
                   }}
                 >
-                  {tab.route === 'checkin' && checkInCount ? `${tab.label} (${checkInCount})` : tab.label}
+                  {tab.label}{tab.route === 'checkin' && dueCount > 0 ? ` (${dueCount})` : ''}
                 </Text>
               </Pressable>
             );

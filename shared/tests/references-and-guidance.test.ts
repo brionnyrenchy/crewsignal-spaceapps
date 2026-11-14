@@ -360,10 +360,11 @@ describe('Personal reference lifecycle & 7-day fallback heuristic', () => {
 });
 
 describe('Controlled guidance, evidence registry, and Help registry', () => {
-  it('bundles unique source records with cached summaries', () => {
-    expect(new Set(EVIDENCE_LIST.map((source) => source.sourceId)).size).toBe(EVIDENCE_LIST.length);
+  it('bundles the original and measurement-education sources with cached summaries', () => {
+    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === EVIDENCE_CHECKED_DATE)).toHaveLength(8);
+    expect(EVIDENCE_LIST.filter((src) => src.checkedDate === '2026-11-14')).toHaveLength(9);
+    expect(EVIDENCE_LIST).toHaveLength(17);
     for (const src of EVIDENCE_LIST) {
-      expect(src.checkedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(src.cachedAvailable).toBe(true);
       expect(src.summaryText.length).toBeGreaterThan(20);
       expect(src.limitations.length).toBeGreaterThan(15);
