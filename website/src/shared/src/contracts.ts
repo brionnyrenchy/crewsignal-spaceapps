@@ -570,6 +570,7 @@ export const HelpProcedureCardSchema = z.object({
   versionLabel: z.string().nullable(),
   cachedAvailable: z.boolean(),
   body: z.string().min(1),
+  contactRoute: z.string().min(1).optional(),
   steps: z.array(z.string().min(1)),
   limitation: z.string().min(1),
   offlineFacts: z.array(z.string().min(1)),

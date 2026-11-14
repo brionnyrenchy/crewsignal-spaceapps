@@ -51,6 +51,7 @@ export function ReportsRoute() {
     draftRetentionFailed,
     setDraftRetentionFailed,
     navigate,
+    readingReportScope,
     showToast,
   } = useApp();
 
@@ -85,17 +86,18 @@ export function ReportsRoute() {
     ? Math.max(1, computeMissionDay(currentReferenceNowUtc, activeProfile.missionEpochUtc))
     : 42;
 
-  const [startDay, setStartDay] = useState(() => Math.max(1, currentMissionDay - 6));
-  const [endDay, setEndDay] = useState(() => currentMissionDay);
-  const [selectedMetrics, setSelectedMetrics] = useState<MetricId[]>([...DEFAULT_REPORT_METRICS]);
+  const readingScope = readingReportScope?.profileId === activeProfile?.profileId ? readingReportScope : undefined;
+  const [startDay, setStartDay] = useState(() => readingScope?.startDay ?? Math.max(1, currentMissionDay - 6));
+  const [endDay, setEndDay] = useState(() => readingScope?.endDay ?? currentMissionDay);
+  const [selectedMetrics, setSelectedMetrics] = useState<MetricId[]>([...(readingScope?.metricIds ?? DEFAULT_REPORT_METRICS)]);
   const [includeMood, setIncludeMood] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
 
   // Sync default day window cleanly when switching active profile
   useEffect(() => {
-    setStartDay(Math.max(1, currentMissionDay - 6));
-    setEndDay(currentMissionDay);
-  }, [activeProfile?.profileId, currentMissionDay]);
+    setStartDay(readingScope?.startDay ?? Math.max(1, currentMissionDay - 6));
+    setEndDay(readingScope?.endDay ?? currentMissionDay);
+  }, [activeProfile?.profileId, currentMissionDay, readingScope]);
 
   // Backup export & restore state
   const [confirmFullBackup, setConfirmFullBackup] = useState(false);
@@ -118,23 +120,25 @@ export function ReportsRoute() {
 
   const reportBundle = useMemo(() => {
     if (!snapshot || !activeProfile) return null;
-    const requested = includeMood
+    const requested = includeMood && !readingScope
       ? [...new Set<MetricId>([...selectedMetrics, "mood"])]
       : selectedMetrics.filter((m) => m !== "mood");
     return buildReportBundle({
       profile: activeProfile,
       observations: snapshot.profileData.observations,
       references: snapshot.profileData.references,
+      selectedObservationIds: readingScope?.observationIds,
       startDay: Math.max(1, Math.min(startDay, endDay)),
       endDay: Math.max(1, Math.max(startDay, endDay)),
       selectedMetricIds: requested,
-      includeMood,
+      includeMood: includeMood && !readingScope,
       includeNotes,
       generatedAtUtc: currentReferenceNowUtc,
     });
   }, [
     snapshot,
     activeProfile,
+    readingScope,
     includeMood,
     includeNotes,
     selectedMetrics,
@@ -622,6 +626,15 @@ export function ReportsRoute() {
                 Report scope
               </h2>
 
+              {readingScope && (
+                <div className="stack-sm">
+                  <p>This draft contains the selected readings from Overview.</p>
+                  <button type="button" className="btn-secondary" onClick={() => navigate("reports")}>
+                    Start a general report
+                  </button>
+                </div>
+              )}
+
               <div className="form-grid-2">
                 <div className="field-group">
                   <label className="field-label" htmlFor="rep-start-day">
@@ -664,6 +677,7 @@ export function ReportsRoute() {
                         <input
                           type="checkbox"
                           checked={checked}
+                          disabled={Boolean(readingScope && !readingScope.metricIds.includes(mId))}
                           onChange={() => toggleMetric(mId)}
                         />
                         <span>

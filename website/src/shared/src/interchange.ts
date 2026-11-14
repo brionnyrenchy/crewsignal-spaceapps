@@ -62,6 +62,7 @@ export interface BuildReportOptions {
   startDay: number;
   endDay: number;
   selectedMetricIds?: readonly MetricId[];
+  selectedObservationIds?: readonly string[];
   includeMood?: boolean;
   includeNotes?: boolean;
   generatedAtUtc: string;
@@ -89,10 +90,12 @@ export function buildReportBundle(options: BuildReportOptions): ReportBundle {
   const excludedMetricIds = METRIC_ORDER.filter((m) => !includedSet.has(m));
 
   const filteredObservations: Observation[] = [];
+  const selectedObservations = options.selectedObservationIds && new Set(options.selectedObservationIds);
   const countsByMetric: Partial<Record<MetricId, number>> = {};
 
   for (const obs of options.observations) {
     if (obs.profileId !== options.profile.profileId) continue;
+    if (selectedObservations && !selectedObservations.has(obs.observationId)) continue;
     if (!includedSet.has(obs.metricId)) continue;
     const day = getObservedMissionDay(obs);
     if (day < options.startDay || day > options.endDay) continue;

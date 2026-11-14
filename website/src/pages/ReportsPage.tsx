@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer } from 'lucide-react';
 import {
   DEFAULT_REPORT_METRICS,
@@ -11,11 +12,20 @@ import {
   getObservedMissionDay,
   serializeObservationsToCsv,
   type MetricId,
+  type ReadingReportScope,
 } from '../shared';
 import { useAppState } from '../state/AppStateContext';
 import { downloadJsonBundle, downloadTextFile } from '../utils/files';
 
 export function ReportsPage() {
+  const location = useLocation();
+  const { activeProfile } = useAppState();
+  const scope = location.state as ReadingReportScope | null;
+  const draftKey = scope ? `${location.key}:${activeProfile?.profileId}` : 'general-report';
+  return <ReportDraft key={draftKey} scope={scope} />;
+}
+
+function ReportDraft({ scope }: { scope: ReadingReportScope | null }) {
   const {
     activeProfile,
     currentMissionDay,
@@ -25,15 +35,16 @@ export function ReportsPage() {
     announce,
   } = useAppState();
 
-  const [startDay, setStartDay] = useState(() => Math.max(1, currentMissionDay - 6));
-  const [endDay, setEndDay] = useState(currentMissionDay);
+  const readingScope = scope?.profileId === activeProfile?.profileId ? scope : null;
+  const [startDay, setStartDay] = useState(() => readingScope?.startDay ?? Math.max(1, currentMissionDay - 6));
+  const [endDay, setEndDay] = useState(() => readingScope?.endDay ?? currentMissionDay);
 
   useEffect(() => {
-    setStartDay(Math.max(1, currentMissionDay - 6));
-    setEndDay(currentMissionDay);
-  }, [activeProfile?.profileId, currentMissionDay]);
+    setStartDay(readingScope?.startDay ?? Math.max(1, currentMissionDay - 6));
+    setEndDay(readingScope?.endDay ?? currentMissionDay);
+  }, [activeProfile?.profileId, currentMissionDay, readingScope]);
   const [selectedMetrics, setSelectedMetrics] = useState<MetricId[]>([
-    ...DEFAULT_REPORT_METRICS,
+    ...(readingScope?.metricIds ?? DEFAULT_REPORT_METRICS),
   ]);
   const [includeMood, setIncludeMood] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
@@ -56,12 +67,13 @@ export function ReportsPage() {
       profile: activeProfile,
       observations: profileObservations,
       references: profileReferences,
+      selectedObservationIds: readingScope?.observationIds,
       startDay: Math.min(startDay, endDay),
       endDay: Math.max(startDay, endDay),
-      selectedMetricIds: includeMood
+      selectedMetricIds: includeMood && !readingScope
         ? [...new Set([...selectedMetrics, 'mood' as MetricId])]
         : selectedMetrics,
-      includeMood,
+      includeMood: includeMood && !readingScope,
       includeNotes,
       generatedAtUtc: activeProfile.snapshotUtc ?? new Date().toISOString(),
     });
@@ -69,6 +81,7 @@ export function ReportsPage() {
     activeProfile,
     profileObservations,
     profileReferences,
+    readingScope,
     startDay,
     endDay,
     selectedMetrics,
@@ -170,6 +183,13 @@ export function ReportsPage() {
           Report selection &amp; privacy filters
         </h2>
 
+        {readingScope && (
+          <p className="cs-helper">
+            This draft contains the selected readings from Overview.{' '}
+            <Link to="/demo/reports" replace>Start a general report</Link>
+          </p>
+        )}
+
         <div className="cs-grid-2">
           <div>
             <label htmlFor="report-start-day" className="cs-label">
@@ -213,6 +233,7 @@ export function ReportsPage() {
                   <input
                     type="checkbox"
                     checked={checked}
+                    disabled={Boolean(readingScope && !readingScope.metricIds.includes(mId))}
                     onChange={() => toggleMetric(mId)}
                   />
                   <span>{METRIC_DEFINITIONS[mId].shortLabel}</span>
@@ -227,6 +248,7 @@ export function ReportsPage() {
             <input
               type="checkbox"
               checked={includeMood}
+              disabled={Boolean(readingScope)}
               onChange={(e) => setIncludeMood(e.target.checked)}
             />
             <span>Include mood self-report entries (off by default)</span>
