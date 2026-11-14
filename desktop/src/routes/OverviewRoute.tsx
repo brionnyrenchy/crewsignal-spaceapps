@@ -1,3 +1,4 @@
+import { currentActionReview } from '../bridge/desktopBridge';
 import {
   buildRaiseReadingPrompt,
   buildSleepInsight,
@@ -153,14 +154,7 @@ export function OverviewRoute() {
       })
     : null;
 
-  const latestReview = snapshot.profileData.actionReviews.find(
-    (r) =>
-      latestSleep &&
-      r.observationId === latestSleep.observationId &&
-      r.referenceVersion === (sleepInsight?.referenceVersion ?? null) &&
-      r.ruleVersion === sleepInsight?.ruleVersion &&
-      r.reviewed,
-  );
+  const latestReview = currentActionReview(snapshot.profileData.actionReviews, sleepInsight);
 
   const openMetricTrend = (metricId: MetricId) => {
     setSelectedTrendMetric(metricId);
@@ -308,7 +302,7 @@ export function OverviewRoute() {
                   {sleepInsight.summary}
                 </h2>
                 <span style={{ fontSize: 13, color: "var(--text-supporting)" }}>
-                  {latestReview ? "Reviewed" : "Educational · Prototype"} · Reference v
+                  {latestReview ? `Reviewed ${latestReview.reviewedAtUtc}` : "Educational · Prototype"} · Reference v
                   {sleepInsight.referenceVersion ?? "—"} · Rule {sleepInsight.ruleVersion}
                 </span>
               </div>

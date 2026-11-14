@@ -14,6 +14,7 @@ import {
   selectFallbackReferenceToLock,
   createWorkflowEvent,
   markInsightReviewed,
+  isInsightReviewCurrent,
   planCommitDraft,
   planProfileRestore,
   resolveUnknownCommitOutcome,
@@ -680,10 +681,12 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
     reviewedAtUtc = new Date().toISOString(),
   ): Promise<Insight> {
     const updated = markInsightReviewed(insight, reviewedAtUtc);
-    await db.transaction('rw', db.insights, async () => {
+    return db.transaction('rw', db.insights, async () => {
+      const existing = await db.insights.get(updated.insightId);
+      if (existing && isInsightReviewCurrent(existing, updated)) return existing;
       await db.insights.put(updated);
+      return updated;
     });
-    return updated;
   }
 
   async function updateSourceCacheEntry(entry: EvidenceReference): Promise<void> {

@@ -1,3 +1,4 @@
+import { guidanceReviewIdentity } from "../shared/src";
 import type { BackupBundle, MetricId, ProfileConfig } from "../shared/src";
 import {
   desktopBridge,
@@ -84,7 +85,11 @@ export function buildRestoreRequest(params: {
     corrections: history.corrections.map((c) => ({ ...c })),
     checkinEvents: b.checkInEvents.map((e) => ({ ...e, profileId: destId })),
     references: b.references.map((r) => ({ ...r, profileId: destId })),
-    actionReviews: history.actionReviews.map((r) => ({ ...r })) as unknown as ActionReviewRecord[],
+    actionReviews: history.actionReviews.map((r) => {
+      const review = { ...r, profileId: destId } as unknown as ActionReviewRecord;
+      const identity = guidanceReviewIdentity(review);
+      return { ...review, reviewId: identity ?? review.reviewId };
+    }),
     schedules: Object.entries(b.profile.schedules)
       .filter(([, sched]) => sched !== null)
       .map(([metricId, schedule]) => ({ metricId: metricId as MetricId, schedule: schedule! })),
