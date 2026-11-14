@@ -17,8 +17,8 @@ import {
   RAISE_READING_SUGGESTION,
   buildRaiseReadingPrompt,
   buildSleepInsight,
+  getMetricAction,
   findCurrentInsightReview,
-  isObservationQualityEligible,
   compareObservationToReference,
   describeMissionContact,
   formatObservationDisplay,
@@ -78,15 +78,14 @@ export function OverviewPage() {
   );
 
   const currentSleepInsight = useMemo(() => {
-    if (!latestSleep || !isObservationQualityEligible(latestSleep)) return null;
-    const current = buildSleepInsight({
+    if (!latestSleep) return null;
+    return buildSleepInsight({
       observation: latestSleep,
       reference: sleepRef,
       createdAtUtc: activeProfile?.snapshotUtc ?? latestSleep.recordedAtUtc,
     });
-    const saved = findCurrentInsightReview(profileInsights, current);
-    return saved ? { ...current!, status: 'reviewed' as const, reviewedAtUtc: saved.reviewedAtUtc ?? null } : current;
-  }, [latestSleep, profileInsights, sleepRef, activeProfile]);
+  }, [latestSleep, sleepRef, activeProfile]);
+  const sleepReviewed = findCurrentInsightReview(profileInsights, currentSleepInsight);
 
   const scheduledItems = useMemo(
     () =>
@@ -167,18 +166,20 @@ export function OverviewPage() {
                   ? ` · ${sleepComparison.differenceText}`
                   : ''}
               </h2>
-              {currentSleepInsight?.status === 'reviewed' && (
-                <p className="cs-helper">Reviewed educational note · {currentSleepInsight.reviewedAtUtc}</p>
+              {sleepReviewed && (
+                <p className="cs-helper">Reviewed educational note · {sleepReviewed.reviewedAtUtc}</p>
               )}
               <div className="cs-row">
-                <Link to="/demo/actions" className="cs-btn cs-btn-secondary">
+                <Link to={`/demo/actions#${getMetricAction('sleep').actionId}`} className="cs-btn cs-btn-secondary">
                   <FileText size={16} aria-hidden="true" />
                   <span>Review sleep routine</span>
                 </Link>
-                {(currentSleepInsight?.sourceIds ?? []).map(id => <Link key={id} to={`/demo/sources/${id}`} className="cs-btn cs-btn-ghost">
-                  <BookOpen size={16} aria-hidden="true" />
-                  <span>{id} · {currentSleepInsight?.sourceVersions[id]}</span>
-                </Link>)}
+                {(currentSleepInsight?.sourceIds ?? []).map((id) => (
+                  <Link key={id} to={`/demo/sources/${id}`} className="cs-btn cs-btn-ghost">
+                    <BookOpen size={16} aria-hidden="true" />
+                    <span>{id} · {currentSleepInsight?.sourceVersions[id]}</span>
+                  </Link>
+                ))}
               </div>
             </>
           ) : (
@@ -230,6 +231,7 @@ export function OverviewPage() {
             <ul className="cs-readings" role="list">
               {METRIC_ORDER.map((metricId) => {
                 const def = METRIC_DEFINITIONS[metricId];
+                const action = getMetricAction(metricId);
                 const obs = latestByMetric[metricId];
                 const formatted = obs
                   ? formatObservationDisplay(obs, preferences.displayUnits)
@@ -295,6 +297,11 @@ export function OverviewPage() {
                           Add
                         </Link>
                       </>
+                    )}
+                    {(metricId !== 'sleep' || !latestSleep) && (
+                      <Link to={`/demo/actions#${action.actionId}`} className="cs-reading-link">
+                        {action.title}
+                      </Link>
                     )}
                   </li>
                 );

@@ -1,0 +1,11 @@
+Clean-source verification (442 files scanned in source/):
+- Root release files: OK
+- License check: OK (Apache-2.0 header verified)
+- Workspace sibling references (../docs, ../plan): OK (0 hits)
+- Forbidden secret/signing/DB files: OK (0 hits)
+- Secret token content scan: OK (0 hits)
+- Shared-to-target parity (strict all targets):
+    * website: OK (42 files match SHA-256)
+    * desktop: OK (42 files match SHA-256)
+    * mobile: OK (42 files match SHA-256)
+Overall: PASS

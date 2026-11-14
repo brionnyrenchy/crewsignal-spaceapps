@@ -200,6 +200,47 @@ describe('CrewSignal Mobile UI, responsiveness, accessibility & recovery workflo
     } finally { source.summaryVersion = oldVersion; }
   });
 
+  test.each([390, 834])('reference editor at %i px requires two explicit BP values and preserves fields on storage failure', async (width) => {
+    const {store}=await renderTestApp();
+    await screen.findByTestId('overview-primary-checkin-cta');
+    await fireEvent.press(screen.getByTestId('tab-more'));
+    await fireEvent.press(await screen.findByTestId('more-nav-settings'));
+    await fireEvent.changeText(await screen.findByTestId('new-personal-profile-label'),'Reference entry harness');
+    await fireEvent.press(screen.getByTestId('create-personal-profile-btn'));
+    await waitFor(async()=>expect((await store.loadAppSnapshot()).active.profile.mode).toBe('personal'));
+    await act(async () => { setViewport(width, 1100); });
+    const card=await screen.findByTestId('settings-references-card');
+    const write=jest.spyOn(store,'upsertPersonalReference');
+    await fireEvent.press(within(card).getByText('Blood pressure'));
+    expect(screen.getByTestId('reference-primary').props.value).toBe('');
+    expect(screen.getByTestId('reference-secondary').props.value).toBe('');
+    await fireEvent.changeText(screen.getByTestId('reference-primary'),'118');
+    await fireEvent.press(within(card).getByText('Manual cuff'));
+    await fireEvent.press(screen.getByTestId('save-reference'));
+    expect(write).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByTestId('reference-secondary'),'76');
+    await fireEvent.press(screen.getByTestId('save-reference'));
+    expect(write).not.toHaveBeenCalled();
+    await fireEvent.press(within(card).getByText('At rest'));
+    await fireEvent.changeText(screen.getByTestId('reference-primary'),'118junk');
+    await fireEvent.press(screen.getByTestId('save-reference'));expect(write).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByTestId('reference-primary'),'118');
+    await fireEvent.press(screen.getByTestId('save-reference'));
+    await waitFor(()=>expect(write).toHaveBeenCalledTimes(1));
+    await waitFor(()=>expect(screen.getByTestId('reference-primary').props.value).toBe(''));
+    const before=await store.loadAppSnapshot();expect(before.active.references[0]!.value).toEqual({kind:'blood_pressure',systolic:118,diastolic:76});
+    write.mockRejectedValueOnce(new Error('simulated storage failure'));
+    await fireEvent.changeText(screen.getByTestId('reference-primary'),'120.25');
+    await fireEvent.changeText(screen.getByTestId('reference-secondary'),'80.75');
+    await fireEvent.press(within(card).getByText('Manual cuff'));await fireEvent.press(within(card).getByText('At rest'));
+    await fireEvent.press(screen.getByTestId('save-reference'));
+    await screen.findByText(/Reference was not saved/);
+    expect(screen.getByTestId('reference-primary').props.value).toBe('120.25');
+    expect(screen.getByTestId('reference-secondary').props.value).toBe('80.75');
+    expect((await store.loadAppSnapshot()).active.references).toEqual(before.active.references);
+    await fireEvent.press(within(card).getByText('Sleep'));expect(screen.getByTestId('reference-primary').props.value).toBe('');
+  });
+
   test('Phone shell (390x844): Overview -> ER-01 validation -> Review -> Saved -> Overview live update (12 entries)', async () => {
     await renderTestApp();
 

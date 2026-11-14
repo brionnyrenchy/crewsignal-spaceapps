@@ -9,7 +9,7 @@ import {
   SIM_SCHEDULE_OBSERVATIONS,
   SIM_SCHEDULE_PROFILE,
   buildCsvCommitPlan,
-  buildSleepInsight,
+  buildMetricInsight,
   createNewReferenceVersion,
   selectFallbackReferenceToLock,
   createWorkflowEvent,
@@ -312,15 +312,16 @@ export function createRepository(db: CrewSignalDatabase = defaultDb) {
           await db.checkInDrafts.delete(plan.draftToCloseId);
         }
 
-        if (plan.observation.metricId === 'sleep') {
-          const activeSleepRef = await db.references
+        const metricId = plan.observation.metricId;
+        if (metricId !== 'mood') {
+          const activeReference = await db.references
             .where('[profileId+metricId]')
-            .equals([draft.profileId, 'sleep'])
+            .equals([draft.profileId, metricId])
             .filter((r) => r.status === 'active')
             .first();
-          const insight = buildSleepInsight({
+          const insight = buildMetricInsight(metricId, {
             observation: plan.observation,
-            reference: activeSleepRef ?? null,
+            reference: activeReference ?? null,
             createdAtUtc: committedAtUtc,
           });
           if (insight) await db.insights.put(insight);

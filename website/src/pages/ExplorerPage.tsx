@@ -10,6 +10,7 @@ import {
   formatDurationHoursMinutes,
   formatObservationDisplay,
   getObservedMissionDay,
+  getMetricAction,
   getReadingStatus,
   resolveActiveReference,
   type BodySystemId,
@@ -206,6 +207,7 @@ export function ExplorerPage() {
             ) : (
               <div className="cs-stack" style={{ gap: '12px' }}>
                 {selectedDef.metricIds.map((mId) => {
+                  const action = getMetricAction(mId);
                   const def = METRIC_DEFINITIONS[mId];
                   const obs = latestByMetric[mId];
                   const activeRef =
@@ -315,6 +317,9 @@ export function ExplorerPage() {
 
                       <MeasurementEducation definition={def} />
                       <div className="cs-row" style={{ gap: '8px' }}>
+                        <Link to={`/demo/actions#${action.actionId}`} className="cs-btn cs-btn-ghost">
+                          {action.title}
+                        </Link>
 
                         <Link
                           to={`/demo/check-in?metric=${mId}`}
